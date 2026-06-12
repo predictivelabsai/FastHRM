@@ -78,6 +78,13 @@ Part of the
 [`fasthtml-oss-migrations`](https://github.com/predictivelabsai/fasthtml-oss-migrations)
 initiative.
 
+## Heritage
+
+FastHRM consolidates the earlier **openhr** project (a pure-Python HR platform
+explored for Nordic / EU public-sector deployments). Its reference architecture,
+CBRE deck, diagrams and earlier implementation are preserved in
+[`docs/openhr-reference/`](docs/openhr-reference/).
+
 ## Licence
 
 MIT.
