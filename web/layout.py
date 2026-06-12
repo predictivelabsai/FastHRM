@@ -73,6 +73,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:13px;}
 .btn:hover{background:var(--surface-2);} .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);} .btn.primary:hover{background:var(--accent-hover);}
 .btn.sm{padding:3px 9px;font-size:12px;}
+.inline-form{display:flex;gap:8px;align-items:center;}
+.hr-inp{padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);}
 .login-wrap{height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e3f5ec 0%,#d1fae5 100%);}
 .login-card{background:#fff;padding:36px 40px;border-radius:14px;width:360px;box-shadow:0 20px 40px rgba(15,23,42,.08);}
 .login-card h1{margin:0 0 4px;font-size:22px;} .login-card p{margin:0 0 20px;color:var(--text-mute);font-size:13px;}

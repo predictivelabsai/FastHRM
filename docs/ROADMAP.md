@@ -18,7 +18,7 @@
 
 ## Near-term roadmap 🔜
 
-1. **Approve/reject leave** — currently read-only; add HTMX approve/reject on
+1. ✅ **Approve/reject + apply leave** (done) — HTMX approve/reject on
    pending requests with balance recompute (`Leave Application` workflow).
 2. **Apply for leave** — a self-service request form (employee-side).
 3. **Clock in/out** — `Employee Checkin` (today's check-ins → attendance).

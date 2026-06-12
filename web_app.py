@@ -118,6 +118,31 @@ def get(session, status: str = "Pending"):
     return _guard(session, "leave", lambda: views.leave_list(status))
 
 
+def _lfrag(session, status="Pending"):
+    if not _user(session):
+        return Response("Unauthorized", status_code=401)
+    return views.leave_main(status)
+
+
+@rt("/leave/apply")
+def post(session, employee_id: int = 0, leave_type: str = "", from_date: str = "", to_date: str = "", reason: str = ""):
+    if employee_id and from_date and to_date:
+        db.apply_leave(employee_id, leave_type, from_date, to_date, reason)
+    return _lfrag(session, "Pending")
+
+
+@rt("/leave/{req_id}/approve")
+def post(session, req_id: int):
+    db.set_leave_status(req_id, "Approved")
+    return _lfrag(session, "Pending")
+
+
+@rt("/leave/{req_id}/reject")
+def post(session, req_id: int):
+    db.set_leave_status(req_id, "Rejected")
+    return _lfrag(session, "Pending")
+
+
 @rt("/attendance")
 def get(session):
     return _guard(session, "attendance", views.attendance_view)

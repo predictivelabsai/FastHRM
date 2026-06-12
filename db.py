@@ -22,8 +22,9 @@ EMP_STATUSES = ["Active", "On Leave", "Probation"]
 
 
 def connect():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
@@ -176,3 +177,45 @@ def recent_attendance(eid: int, limit=14):
 
 def payslips_for(eid: int):
     return rows("SELECT * FROM payslips WHERE employee_id=? ORDER BY period DESC", (eid,))
+
+
+def employees_min() -> list[dict]:
+    return rows("SELECT id, first_name, last_name FROM employees ORDER BY first_name")
+
+
+# --- leave workflow (transactional) -----------------------------------------
+
+def apply_leave(employee_id: int, leave_type: str, from_date: str, to_date: str, reason: str = ""):
+    from datetime import date
+    try:
+        d0 = date.fromisoformat(from_date)
+        d1 = date.fromisoformat(to_date)
+        days = max(1, (d1 - d0).days + 1)
+    except ValueError:
+        days = 1
+    with cursor() as conn:
+        conn.execute(
+            """INSERT INTO leave_requests(employee_id,leave_type,from_date,to_date,days,status,reason,applied_on)
+               VALUES (?,?,?,?,?,'Pending',?,datetime('now'))""",
+            (employee_id, leave_type if leave_type in LEAVE_TYPES else "Annual Leave",
+             from_date, to_date, days, reason))
+        return conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+
+def set_leave_status(req_id: int, status: str) -> bool:
+    if status not in LEAVE_STATUSES:
+        return False
+    r = one("SELECT * FROM leave_requests WHERE id=?", (req_id,))
+    if not r:
+        return False
+    was = r["status"]
+    with cursor() as conn:
+        conn.execute("UPDATE leave_requests SET status=? WHERE id=?", (status, req_id))
+        # approving consumes balance; reverting an approval refunds it
+        if status == "Approved" and was != "Approved":
+            conn.execute("UPDATE leave_balances SET used = used + ? WHERE employee_id=? AND leave_type=?",
+                         (r["days"], r["employee_id"], r["leave_type"]))
+        elif was == "Approved" and status != "Approved":
+            conn.execute("UPDATE leave_balances SET used = MAX(0, used - ?) WHERE employee_id=? AND leave_type=?",
+                         (r["days"], r["employee_id"], r["leave_type"]))
+    return True

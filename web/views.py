@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from fasthtml.common import (
-    Div, H1, H3, P, Span, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, NotStr, Strong,
+    Div, H1, H3, P, Span, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, Button, Select, Option, NotStr, Strong,
 )
 
 import db
@@ -149,20 +149,50 @@ def departments_list():
 
 # ---------- leave -----------------------------------------------------------
 
-def leave_list(status="Pending"):
+def _apply_form():
+    emps = db.employees_min()
+    return Div(Div(H3("Apply for leave"), cls="card-header"),
+               Form(
+                   Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in emps],
+                          name="employee_id", cls="hr-inp"),
+                   Select(*[Option(t, value=t) for t in db.LEAVE_TYPES], name="leave_type", cls="hr-inp"),
+                   Input(type="date", name="from_date", cls="hr-inp", required=True),
+                   Input(type="date", name="to_date", cls="hr-inp", required=True),
+                   Input(name="reason", placeholder="Reason", cls="hr-inp", style="flex:1;min-width:140px;"),
+                   Button("Submit", cls="btn primary", type="submit"),
+                   **{"hx-post": "/leave/apply", "hx-target": "#leave-main", "hx-swap": "innerHTML"},
+                   cls="inline-form", style="flex-wrap:wrap;gap:8px;"),
+               cls="card")
+
+
+def leave_main(status="Pending"):
     seg = Div(*[A(s, href=f"/leave?status={s}", cls="" + ("active" if status == s else ""))
                 for s in ["Pending", "All"] + db.LEAVE_STATUSES], cls="seg")
     clause, params = ("", ()) if status == "All" else ("WHERE lr.status=?", (status,))
     reqs = db.rows(f"""SELECT lr.*, e.first_name,e.last_name, d.name dept FROM leave_requests lr
                        JOIN employees e ON e.id=lr.employee_id LEFT JOIN departments d ON d.id=e.dept_id
-                       {clause} ORDER BY lr.from_date DESC LIMIT 200""", params)
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Dept"), Th("Type"), Th("Dates"), Th("Days", cls="num"), Th("Reason"), Th("Status"))),
-                Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "—"),
-                           Td(_pill(r["leave_type"])),
-                           Td(f"{r['from_date']} → {r['to_date']}", style="white-space:nowrap;"),
-                           Td(str(r["days"]), cls="num"), Td(r["reason"]), Td(_pill(r["status"])))
-                        for r in reqs] or [Tr(Td("No requests.", colspan="7"))]), cls="tbl")
-    return _title("Leave requests", f"{len(reqs)} shown"), seg, Div(tbl, cls="card")
+                       {clause} ORDER BY (lr.status!='Pending'), lr.from_date DESC LIMIT 200""", params)
+    rows_ = []
+    for r in reqs:
+        if r["status"] == "Pending":
+            act = Div(Button("✓ Approve", cls="btn sm primary",
+                             **{"hx-post": f"/leave/{r['id']}/approve", "hx-target": "#leave-main", "hx-swap": "innerHTML"}),
+                      Button("✕", cls="btn sm", title="Reject",
+                             **{"hx-post": f"/leave/{r['id']}/reject", "hx-target": "#leave-main", "hx-swap": "innerHTML"}),
+                      style="display:flex;gap:4px;")
+        else:
+            act = Span("—", style="color:var(--text-mute);")
+        rows_.append(Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "—"),
+                        Td(_pill(r["leave_type"])),
+                        Td(f"{r['from_date']} → {r['to_date']}", style="white-space:nowrap;"),
+                        Td(str(r["days"]), cls="num"), Td(_pill(r["status"])), Td(act)))
+    tbl = Table(Thead(Tr(Th("Employee"), Th("Dept"), Th("Type"), Th("Dates"), Th("Days", cls="num"), Th("Status"), Th("Action"))),
+                Tbody(*rows_ or [Tr(Td("No requests.", colspan="7"))]), cls="tbl")
+    return Div(_apply_form(), seg, Div(tbl, cls="card"))
+
+
+def leave_list(status="Pending"):
+    return _title("Leave requests"), Div(leave_main(status), id="leave-main")
 
 
 # ---------- attendance ------------------------------------------------------
