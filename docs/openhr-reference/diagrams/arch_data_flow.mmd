@@ -1,0 +1,29 @@
+flowchart LR
+    subgraph Sources["Source systems"]
+      CRM["OSS CRM<br/>(Frappe)"]
+      SF["Salesforce"]
+      SP["SharePoint"]
+      Snow["Snowflake"]
+    end
+
+    subgraph Semantic["Semantic layer"]
+      Resolver["Entity<br/>Resolver"]
+      KG["Knowledge<br/>Graph"]
+      Onto["CRE<br/>Ontology"]
+    end
+
+    subgraph Consumers["Consumers"]
+      AI["AI Agents"]
+      Dash["Dashboards"]
+      App["Mobile App"]
+    end
+
+    CRM -- "CDC events" --> Resolver
+    SF -- "sync" --> Resolver
+    SP -- "doc metadata" --> Resolver
+    Snow -- "enrichment" --> Resolver
+    Resolver --> KG
+    Onto --> KG
+    KG --> AI
+    KG --> Dash
+    KG --> App

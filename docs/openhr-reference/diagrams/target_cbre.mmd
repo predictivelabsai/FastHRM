@@ -1,0 +1,85 @@
+flowchart TB
+    subgraph Client["Client layer (new)"]
+      RN["React Native + Material UI<br/>(mobile + web, CBRE design system)"]
+      Exec["Executive dashboard<br/>cards, drill-down, action buttons"]
+    end
+
+    subgraph Gateway["API gateway / BFF"]
+      BFF["Backend-for-frontend<br/>(FastAPI / Node)<br/>authz · aggregation · orchestration"]
+      Event["Event bus<br/>(Kafka / NATS)"]
+    end
+
+    subgraph Core["System of action (OSS core)"]
+      CRM["CRM / Projects<br/>Frappe CRM (OSS core)<br/>accounts · contacts · deals<br/>work packages · workflows"]
+      DB[("Postgres")]
+      CRM --- DB
+    end
+
+    subgraph SF["Salesforce (kept, scoped down)"]
+      SFAccounts["Accounts + Opportunities<br/>(sales-led pipeline only)"]
+      SFData["Salesforce Data Cloud<br/>(if already licensed)"]
+    end
+
+    subgraph Semantic["Semantic layer — knowledge graph + CRE ontology"]
+      Onto["CRE Ontology<br/>(OWL / SHACL)<br/>Property · Lease · Tenant · Market<br/>BrokerEngagement · Portfolio"]
+      KG["Knowledge Graph<br/>(Neo4j / Amazon Neptune)<br/>entities + relationships<br/>unified across all sources"]
+      Resolver["Entity resolver<br/>golden-record matching<br/>accounts ↔ properties ↔ leases"]
+      Onto --- KG
+      Resolver --- KG
+    end
+
+    subgraph AI["AI agent layer"]
+      LLM["LLM gateway<br/>Claude / internal<br/>summarise · draft · classify"]
+      RAG["RAG index<br/>accounts + deals + docs"]
+      Agents["Autonomous agents<br/>research · underwrite · comp-analysis<br/>reason over ontology + KG"]
+      MCP["Tool registry (MCP)<br/>agent ↔ CRM · SF · KG actions"]
+      LLM --- RAG
+      LLM --- Agents
+      Agents --- MCP
+    end
+
+    subgraph Analytics["Analytics"]
+      Snow[("Snowflake<br/>enterprise warehouse")]
+      Tableau["Tableau<br/>read-only dashboards"]
+    end
+
+    subgraph Legacy["Legacy"]
+      SP["SharePoint<br/>docs, contracts"]
+      OldCRM["Proprietary CRM<br/>sunset — read-only"]
+    end
+
+    %% Client → Gateway
+    RN --> BFF
+    Exec --> BFF
+    BFF --> CRM
+    BFF --> SFAccounts
+    BFF --> SP
+    BFF --> LLM
+    BFF --> Snow
+
+    %% AI reads from semantic layer
+    RAG --> KG
+    RAG --> SP
+    Agents --> KG
+    MCP --> CRM
+    MCP --> SFAccounts
+    MCP --> KG
+
+    %% Knowledge graph ingests from all sources
+    CRM -- "CDC / events" --> Resolver
+    SFAccounts -- "sync" --> Resolver
+    SP -- "doc metadata" --> Resolver
+    Snow -- "enrichment" --> Resolver
+
+    %% Event bus
+    CRM -- "account.updated / deal.won" --> Event
+    SFAccounts -- "opportunity.closed" --> Event
+    Event --> CRM
+    Event --> SFAccounts
+    Event --> Snow
+    Event --> KG
+    Snow --> Tableau
+
+    %% Legacy migration
+    OldCRM -. "one-off migration" .-> CRM
+    OldCRM -. "historical load" .-> Snow

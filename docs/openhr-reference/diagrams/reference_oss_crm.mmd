@@ -1,0 +1,18 @@
+flowchart LR
+    Browser["Browser<br/>Vue 3 SPA (Frappe-UI)"]
+    subgraph Proc["Python process (gunicorn)"]
+      WebApp["Frappe web app<br/>REST + /api/method · WebSockets"]
+      ORM["Frappe ORM<br/>DocType metadata layer"]
+      Queue["Background workers<br/>(RQ)"]
+    end
+    Redis[("Redis<br/>queue · cache · pub/sub")]
+    Store[("MariaDB (default)<br/>or PostgreSQL")]
+    Files[("/sites/&lt;tenant&gt;/files<br/>attachments")]
+
+    Browser -- "HTTPS + WS" --> WebApp
+    WebApp --> ORM
+    ORM --> Store
+    WebApp --> Redis
+    Queue --> Redis
+    Queue --> ORM
+    WebApp --> Files

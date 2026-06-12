@@ -1,0 +1,43 @@
+flowchart TB
+    subgraph Clients["Client applications"]
+      Mobile["Mobile App"]
+      Web["Web App"]
+      Dashboard["Exec Dashboard"]
+    end
+
+    BFF["API Gateway / BFF<br/>authentication | aggregation | routing"]
+
+    subgraph EventBus["Event bus (Kafka / NATS)"]
+      E1["account.updated"]
+      E2["deal.won"]
+      E3["opportunity.closed"]
+      E4["lease.expiring"]
+    end
+
+    subgraph Systems["Connected systems"]
+      CRM["Frappe CRM<br/>(OSS core)"]
+      SF["Salesforce<br/>(pipeline)"]
+      SP["SharePoint<br/>(documents)"]
+      Snow["Snowflake<br/>(warehouse)"]
+      Tab["Tableau<br/>(read-only)"]
+    end
+
+    subgraph SmartLayer["Semantic + AI layer"]
+      KG["Knowledge Graph"]
+      AI["AI Agents"]
+    end
+
+    Clients --> BFF
+    BFF --> CRM
+    BFF --> SF
+    BFF --> SP
+    BFF --> AI
+
+    CRM --> EventBus
+    SF --> EventBus
+    EventBus --> KG
+    EventBus --> Snow
+    Snow --> Tab
+    KG --> AI
+    AI --> CRM
+    AI --> KG

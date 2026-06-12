@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph Users["What people see"]
+      App["Mobile + Web App<br/>(React Native)"]
+      Dash["Executive Dashboards"]
+    end
+
+    subgraph Platform["What runs underneath"]
+      BFF["API Layer"]
+      CRM["Open-Source CRM<br/>(accounts, deals, projects)"]
+      SF["Salesforce<br/>(pipeline only)"]
+    end
+
+    subgraph Intelligence["What makes it smart"]
+      KG["Knowledge Graph<br/>(all entities connected)"]
+      AI["AI Agents<br/>(research, underwrite, analyse)"]
+    end
+
+    Users --> Platform
+    Platform --> Intelligence
+    Intelligence --> Platform

@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph Data["Raw data layer"]
+      CRM["CRM records"]
+      Docs["Documents<br/>(SharePoint)"]
+      Market["Market data<br/>(Snowflake)"]
+    end
+
+    subgraph Semantic["Semantic layer"]
+      Onto["CRE Ontology<br/>Property | Lease | Tenant | Market<br/>BrokerEngagement | Portfolio | Comp"]
+      KG["Knowledge Graph<br/>entities + relationships<br/>unified golden records"]
+      Onto --- KG
+    end
+
+    subgraph Agents["AI agent layer"]
+      LLM["LLM Gateway<br/>(Claude)"]
+      Research["Research<br/>Agent"]
+      Underwrite["Underwriting<br/>Agent"]
+      CompAgent["Comp Analysis<br/>Agent"]
+      MCP["Tool Registry<br/>(MCP)"]
+      LLM --- Research
+      LLM --- Underwrite
+      LLM --- CompAgent
+      Research --- MCP
+      Underwrite --- MCP
+      CompAgent --- MCP
+    end
+
+    subgraph Actions["Agent actions"]
+      Draft["Draft reports"]
+      Score["Score deals"]
+      Alert["Lease expiry alerts"]
+      Update["Update CRM records"]
+    end
+
+    Data --> Semantic
+    Semantic --> Agents
+    MCP --> KG
+    MCP --> CRM
+    Agents --> Actions
