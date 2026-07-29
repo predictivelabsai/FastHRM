@@ -109,7 +109,8 @@ NAV_ITEMS = [
                 ("departments", "Departments", "🏢", "/departments")]),
     ("TIME", [("leave", "Leave", "🌴", "/leave"), ("attendance", "Attendance", "🕘", "/attendance")]),
     ("PAY", [("payroll", "Payroll", "💷", "/payroll")]),
-    ("HELP", [("guide", "User Guide", "📖", "/guide")]),
+    ("HELP", [("guide", "User Guide", "📖", "/guide"),
+              ("developers", "Developers", "⌘", "/developers")]),
 ]
 SAMPLE_QUESTIONS = ["Who's on leave today?", "Which team is biggest?", "How many leave requests are pending?"]
 
