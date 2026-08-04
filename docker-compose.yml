@@ -1,10 +1,16 @@
 services:
-  fasthr:
-    build: .
+  fasthrm:
+    build:
+      context: .
+      args:
+        FASTHR_COMMIT: ${FASTHR_COMMIT:-}
+        FASTHR_BRANCH: ${FASTHR_BRANCH:-}
+        FASTHR_BUILD_DATE: ${FASTHR_BUILD_DATE:-}
     ports:
       - "5010:5010"
     environment:
       FASTHR_DB: /data/fasthr.sqlite
+      FASTHR_UPLOAD_DIR: /data/uploads
       FASTHR_PORT: "5010"
       MODEL_PROVIDER: ${MODEL_PROVIDER:-xai}
       MODEL_NAME: ${MODEL_NAME:-grok-4-1-fast-reasoning}
@@ -13,8 +19,11 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       FASTHR_ADMIN_PASSWORD: ${FASTHR_ADMIN_PASSWORD:-FastHR2026$$}
-      FASTHR_SECRET: ${FASTHR_SECRET:-}
+      # Required, not optional: it keys both session cookies and the encryption
+      # of stored integration API keys. If it changes, sessions drop and stored
+      # credentials become undecryptable and must be re-entered.
+      FASTHR_SECRET: ${FASTHR_SECRET:?set FASTHR_SECRET to a stable random value}
     volumes:
-      - fasthr-data:/data
+      - fasthrm-data:/data
 volumes:
-  fasthr-data:
+  fasthrm-data:

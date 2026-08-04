@@ -96,6 +96,10 @@ docker compose up --build      # http://localhost:5010
   break the parser.
 - **AI Assistant** (right rail) — HR Q&A grounded in a live snapshot;
   slash-commands `/headcount`, `/leave`, `/today`, `/payroll` work with **no key**.
+- **Build identity** — the top bar shows `v0.3.0 · <commit>` for signed-in users,
+  linking to `/about` (build, environment, model, schema history). `/healthz`
+  returns the same as JSON **without a login**, so you can confirm what a
+  deployment is actually running.
 
 > **Two things are deliberately unfinished and say so in the UI:** roles are
 > assigned but **not yet enforced** at the query layer, and integration

@@ -26,6 +26,8 @@ a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
 .brand{font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px;font-size:16px;}
 .brand-dot{width:11px;height:11px;background:var(--accent);border-radius:50%;display:inline-block;}
 .env-pill{background:var(--accent-light);color:var(--accent-hover);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.ver-pill{background:var(--surface-2);color:var(--text-mute);border:1px solid var(--border);padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.ver-pill:hover{color:var(--accent-hover);border-color:var(--accent);text-decoration:none;}
 .topbar .actions{display:flex;gap:10px;align-items:center;}
 .left-pane{grid-area:left;background:var(--surface);border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;}
 .nav-section{margin-bottom:14px;} .nav-section h4{margin:6px 16px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-mute);font-weight:700;}
@@ -198,9 +200,12 @@ SAMPLE_QUESTIONS = ["Who's on leave today?", "Which team is biggest?", "How many
 
 
 def topbar(env, user_email):
+    import version
     right = Div(
         Button(NotStr("&laquo; Chat"), id="copilot-topbar-toggle", cls="btn", onclick="toggleCopilot()") if user_email else None,
         Span(env, cls="env-pill"),
+        # Which build am I looking at? Answerable without opening a terminal.
+        A(version.label(), href="/about", cls="ver-pill", title=version.detail()) if user_email else None,
         Span(user_email or "", style="color:var(--text-mute);font-size:12px;") if user_email else None,
         A("Logout", href="/logout", cls="btn") if user_email else None, cls="actions")
     return Div(Div(Span(cls="brand-dot"), Span("Fast", style="font-weight:800;"),

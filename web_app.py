@@ -32,6 +32,7 @@ import db
 import talent
 import people
 import integrations
+import version
 from web.layout import page, LAYOUT_CSS
 from web import views, ai, ats, cv_extract, ranking, performance, lifecycle, settings
 from web.landing import landing_page
@@ -731,6 +732,52 @@ def get(session):
                 "<p style='color:var(--text-mute)'>Slash-commands (no API key): "
                 "<code>/headcount</code> <code>/leave</code> <code>/today</code> <code>/payroll</code></p></div>")))
     return _guard(session, "ai", body)
+
+
+@rt("/healthz")
+def healthz():
+    """Unauthenticated build probe — confirms which version a deploy is running."""
+    return JSONResponse({"status": "ok", "product": "FastHRM", **version.info(),
+                         "migrations": db.scalar(
+                             "SELECT COUNT(*) FROM schema_migrations") or 0})
+
+
+@rt("/about")
+def get(session):
+    v = version.info()
+    stamped = bool(v["commit"])
+    rows = [("Version", f"v{v['version']}"),
+            ("Commit", v["commit"] + (" (uncommitted changes)" if v["dirty"] else "")
+             if v["commit"] else "unknown"),
+            ("Branch", v["branch"] or "unknown"),
+            ("Built", v["build_date"] or "unknown"),
+            ("Environment", ENV_LABEL),
+            ("Model provider", f"{os.getenv('MODEL_PROVIDER', 'xai')} · "
+                               f"{os.getenv('MODEL_NAME', 'grok-4-1-fast-reasoning')}"),
+            ("Database", db.DB_PATH),
+            ("Migrations applied", str(db.scalar("SELECT COUNT(*) FROM schema_migrations") or 0))]
+    applied = db.rows("SELECT * FROM schema_migrations ORDER BY version")
+    body = (
+        views._title("About this build", "What is running, and where it came from"),
+        Div(NotStr("<div class='card'><div class='card-header'><h3>Build</h3></div>"
+                   "<div class='kv'>"
+                   + "".join(f"<span class='k'>{k}</span><span>{v_}</span>" for k, v_ in rows)
+                   + "</div></div>")),
+        None if stamped else Div(NotStr(
+            "<p class='flag'>No build stamp and no git metadata available, so the exact "
+            "commit cannot be confirmed. Deployed images should set "
+            "<code>FASTHR_COMMIT</code> and <code>FASTHR_BUILD_DATE</code>.</p>")),
+        Div(NotStr("<div class='card'><div class='card-header'><h3>Schema history</h3></div>"
+                   "<table class='tbl'><thead><tr><th>Migration</th><th>Applied</th></tr></thead>"
+                   "<tbody>"
+                   + "".join(f"<tr><td>{m['version']}</td><td>{m['applied_at']}</td></tr>"
+                             for m in applied)
+                   + "</tbody></table></div>")),
+        Div(NotStr("<p style='color:var(--text-mute);font-size:12.5px;'>"
+                   "<code>/healthz</code> returns the same build details as JSON, without "
+                   "requiring a login — use it to confirm what a deployment is running.</p>")),
+    )
+    return _guard(session, "about", tuple(b for b in body if b is not None))
 
 
 @rt("/guide")
