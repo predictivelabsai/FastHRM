@@ -12,6 +12,7 @@ from datetime import datetime, date
 from pathlib import Path
 
 DB_PATH = os.getenv("FASTHR_DB") or str(Path(__file__).parent / "fasthr.sqlite")
+MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 
 TODAY = date(2026, 6, 11)
 
@@ -60,79 +61,37 @@ def scalar(sql, params=()):
         return r[0] if r else None
 
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS departments (
-    id            INTEGER PRIMARY KEY,
-    name          TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS employees (
-    id              INTEGER PRIMARY KEY,
-    code            TEXT,
-    first_name      TEXT,
-    last_name       TEXT,
-    email           TEXT,
-    dept_id         INTEGER REFERENCES departments(id),
-    designation     TEXT,
-    manager_id      INTEGER REFERENCES employees(id),
-    branch          TEXT,
-    status          TEXT NOT NULL DEFAULT 'Active',
-    date_of_joining TEXT,
-    gender          TEXT,
-    base_salary     REAL
-);
-CREATE TABLE IF NOT EXISTS leave_balances (
-    id            INTEGER PRIMARY KEY,
-    employee_id   INTEGER REFERENCES employees(id),
-    leave_type    TEXT NOT NULL,
-    allocated     REAL NOT NULL DEFAULT 0,
-    used          REAL NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS leave_requests (
-    id            INTEGER PRIMARY KEY,
-    employee_id   INTEGER REFERENCES employees(id),
-    leave_type    TEXT NOT NULL,
-    from_date     TEXT,
-    to_date       TEXT,
-    days          REAL,
-    status        TEXT NOT NULL DEFAULT 'Pending',
-    reason        TEXT,
-    applied_on    TEXT
-);
-CREATE TABLE IF NOT EXISTS attendance (
-    id            INTEGER PRIMARY KEY,
-    employee_id   INTEGER REFERENCES employees(id),
-    att_date      TEXT NOT NULL,
-    status        TEXT NOT NULL,
-    hours         REAL
-);
-CREATE TABLE IF NOT EXISTS payslips (
-    id            INTEGER PRIMARY KEY,
-    employee_id   INTEGER REFERENCES employees(id),
-    period        TEXT NOT NULL,    -- YYYY-MM
-    gross         REAL,
-    tax           REAL,
-    pension       REAL,
-    other_ded     REAL,
-    net           REAL,
-    status        TEXT DEFAULT 'Paid'
-);
-CREATE TABLE IF NOT EXISTS chat_messages (
-    id            INTEGER PRIMARY KEY,
-    thread_id     TEXT NOT NULL,
-    role          TEXT NOT NULL,
-    content       TEXT NOT NULL,
-    created       TEXT NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_emp_dept ON employees(dept_id);
-CREATE INDEX IF NOT EXISTS idx_att_emp ON attendance(employee_id, att_date);
-CREATE INDEX IF NOT EXISTS idx_leave_emp ON leave_requests(employee_id);
-CREATE INDEX IF NOT EXISTS idx_pay_emp ON payslips(employee_id);
-"""
+# --- migrations -------------------------------------------------------------
+#
+# Numbered SQL files in migrations/, applied in filename order and recorded in a
+# ledger. The baseline schema is 0001; everything after it is additive.
+#
+# sqlite3's executescript() commits any open transaction before running, so a
+# migration file is not atomic. Migration DDL is therefore written idempotently
+# (IF NOT EXISTS) wherever the dialect allows, so re-running after a partial
+# failure is safe. Statements that can't be (ALTER TABLE ADD COLUMN) go last.
+
+def migrate() -> list[str]:
+    """Apply pending migrations. Returns the versions applied this call."""
+    applied = []
+    with cursor() as conn:
+        conn.execute("""CREATE TABLE IF NOT EXISTS schema_migrations (
+                            version    TEXT PRIMARY KEY,
+                            applied_at TEXT NOT NULL)""")
+        done = {r[0] for r in conn.execute("SELECT version FROM schema_migrations")}
+        for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+            if path.stem in done:
+                continue
+            conn.executescript(path.read_text())
+            conn.execute("INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+                         (path.stem,))
+            applied.append(path.stem)
+    return applied
 
 
 def init_schema():
-    with cursor() as conn:
-        conn.executescript(SCHEMA)
+    """Bring the database up to the latest schema (kept as the legacy name)."""
+    migrate()
 
 
 # --- reads ------------------------------------------------------------------

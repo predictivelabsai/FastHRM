@@ -16,6 +16,7 @@ import json
 import secrets
 import uuid
 import logging
+from urllib.parse import quote
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -28,9 +29,11 @@ from starlette.responses import StreamingResponse, Response
 from starlette.responses import JSONResponse
 
 import db
+import talent
 from web.layout import page, LAYOUT_CSS
-from web import views, ai
+from web import views, ai, ats, cv_extract
 from web.landing import landing_page
+from web.seo import register_seo_routes
 from web.developer import developer_page
 from web import account_auth, google_auth
 from web.api import api
@@ -191,6 +194,106 @@ def get(session):
     return _guard(session, "attendance", views.attendance_view)
 
 
+# ---------- talent / ATS ----------------------------------------------------
+
+@rt("/talent/jobs")
+def get(session, status: str = "All"):
+    return _guard(session, "jobs", lambda: ats.jobs_list(status))
+
+
+@rt("/talent/jobs/{job_id}")
+def get(session, job_id: int, stage: str = "All"):
+    return _guard(session, "jobs", lambda: ats.job_detail(job_id, stage))
+
+
+@rt("/talent/candidates")
+def get(session, q: str = "", status: str = "All"):
+    return _guard(session, "candidates", lambda: ats.candidates_list(q, status))
+
+
+@rt("/talent/candidates/{cid}")
+def get(session, cid: int):
+    return _guard(session, "candidates", lambda: ats.candidate_detail(cid))
+
+
+@rt("/talent/applications/{app_id}/stage")
+def post(session, app_id: int, stage: str = ""):
+    if not _user(session):
+        return Response("Unauthorized", status_code=401)
+    a = db.one("SELECT job_id FROM applications WHERE id=?", (app_id,))
+    if not a:
+        return Response("No such application", status_code=404)
+    talent.set_stage(app_id, stage, actor=_user(session))
+    return ats.job_main(a["job_id"])
+
+
+@rt("/talent/candidates/{cid}/apply")
+def post(session, cid: int, job_id: int = 0):
+    if not _user(session):
+        return Response("Unauthorized", status_code=401)
+    if job_id:
+        talent.apply_to_job(cid, job_id, actor=_user(session))
+        return P("Added to the requisition. Reload to see it listed.", cls="flag",
+                 style="border-left-color:var(--accent);background:var(--accent-light);color:var(--accent-hover);")
+    return P("Pick a requisition first.", cls="flag")
+
+
+@rt("/talent/upload")
+async def post(session, request):
+    """Accept a CV, store it, and kick off extraction on a background thread."""
+    if not _user(session):
+        return Response("Unauthorized", status_code=401)
+    form = await request.form()
+    upload = form.get("cv")
+    if upload is None or not getattr(upload, "filename", ""):
+        return P("Choose a CV file to upload.", cls="flag")
+    if not cv_extract.supported(upload.filename):
+        return P(f"{upload.filename} is not a supported format — use PDF, DOCX, TXT or MD.", cls="flag")
+
+    data = await upload.read()
+    if not data:
+        return P("That file is empty.", cls="flag")
+
+    job_id = int(form.get("job_id") or 0) or None
+    res = cv_extract.ingest_cv(file_name=upload.filename, data=data, job_id=job_id,
+                               source=form.get("source") or "Direct", actor=_user(session))
+    cv_extract.run_extraction_async(res["run_id"], res["candidate_id"], res["document_id"])
+    return ats.extraction_status(res["candidate_id"])
+
+
+@rt("/talent/candidates/{cid}/extraction")
+def get(session, cid: int):
+    if not _user(session):
+        return Response("Unauthorized", status_code=401)
+    return ats.extraction_status(cid)
+
+
+@rt("/talent/prompts")
+def get(session, key: str = "", saved: str = ""):
+    return _guard(session, "prompts", lambda: ats.prompts_page(key or cv_extract.PROMPT_KEY, saved))
+
+
+@rt("/talent/prompts")
+def post(session, key: str = "", content: str = "", restore: str = ""):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    key = key or cv_extract.PROMPT_KEY
+    body = cv_extract.DEFAULT_EXTRACTION_PROMPT if restore else (content or "").strip()
+    if not body:
+        return RedirectResponse(f"/talent/prompts?key={key}", status_code=303)
+    version = talent.save_prompt(key, body, title="CV extraction", updated_by=_user(session))
+    note = f"Saved as v{version}{' (restored the built-in default)' if restore else ''} — it takes effect on the next upload."
+    return RedirectResponse(f"/talent/prompts?key={key}&saved={quote(note)}", status_code=303)
+
+
+@rt("/talent/prompts/{key}/{version}/activate")
+def post(session, key: str, version: int):
+    if not _user(session):
+        return Response("Unauthorized", status_code=401)
+    talent.activate_prompt(key, version)
+    return ats.prompt_versions_fragment(key)
+
+
 @rt("/payroll")
 def get(session, period: str = "latest"):
     return _guard(session, "payroll", lambda: views.payroll_list(period))
@@ -264,13 +367,30 @@ async def post(session, message: str = "", thread_id: str = ""):
 
 
 def _ensure_db():
-    if not db.db_exists():
-        logger.info("No database found — seeding synthetic HR data…")
+    """Migrate, then seed anything that is still empty.
+
+    Emptiness is judged by row counts, not by whether the file exists: importing
+    web.api constructs the SQLite backend, which creates the database before this
+    runs, so a file-existence check would skip seeding on a fresh install.
+    """
+    applied = db.migrate()
+    if applied:
+        logger.info("Applied migrations: %s", ", ".join(applied))
+    if not db.scalar("SELECT COUNT(*) FROM employees"):
+        logger.info("No employees found — seeding synthetic HR data…")
         import seed
         seed.build()
+    if not db.scalar("SELECT COUNT(*) FROM job_openings"):
+        logger.info("No requisitions found — seeding synthetic talent pipeline…")
+        import seed_talent
+        seed_talent.build()
+    cv_extract.ensure_default_prompt()
 
 
 _ensure_db()
+
+
+register_seo_routes(app)
 
 if __name__ == "__main__":
     logger.info("FastHR on http://localhost:%s  (login %s)", PORT, VALID_EMAIL)

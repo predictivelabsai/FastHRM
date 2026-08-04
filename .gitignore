@@ -13,6 +13,9 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
+# Uploaded CVs — personal data, never committed (see plan §12.3)
+uploads/
+
 # Playwright / scratch
 .playwright-mcp/
 /tmp/

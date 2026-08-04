@@ -19,6 +19,17 @@ assistant grounded in the live (synthetic) data.
 
 ![FastHR walkthrough](docs/demo/fasthr-walkthrough.gif)
 
+**User guide** — [PDF](docs/fasthrm_user_guide_2026-08-04.pdf) ·
+[PPTX](docs/fasthrm_user_guide_2026-08-04.pptx) ·
+[markdown](docs/fasthrm_user_guide_2026-08-04.md). Screenshots live in
+[`screenshots/`](screenshots/); regenerate everything with:
+
+```bash
+DEMO_BASE_URL=http://localhost:5010 .venv/bin/python scripts/capture_guide_screenshots.py
+bash scripts/build_demo_gif.sh      # README walkthrough GIF
+bash scripts/build_user_guide.sh    # PDF + PPTX
+```
+
 ## Quickstart (native)
 
 ```bash
@@ -53,6 +64,15 @@ docker compose up --build      # http://localhost:5010
 - **Attendance** (`/attendance`) — today's register with a per-status breakdown.
 - **Payroll** (`/payroll`) — payslips per period; each payslip has a full
   deductions breakdown.
+- **Requisitions** (`/talent/jobs`) — open roles with a live pipeline: stage
+  counts, applicant list, and one-click stage moves (every move audited).
+- **Candidates** (`/talent/candidates`) — talent pool with **AI CV extraction**:
+  drop in a PDF/DOCX and the model returns a structured profile — identity,
+  work history with normalised dates, education, and skills with evidence —
+  persisted to the database, not just displayed.
+- **AI Prompts** (`/talent/prompts`) — the CV-extraction guidance, editable in
+  plain English by a recruiter. Versioned and roll-backable; the JSON output
+  contract lives in code, so an edit can never break the parser.
 - **AI Assistant** (right rail) — HR Q&A grounded in a live snapshot;
   slash-commands `/headcount`, `/leave`, `/today`, `/payroll` work with **no key**.
 
@@ -60,18 +80,45 @@ docker compose up --build      # http://localhost:5010
 
 Frappe HR is ~160 doctypes (full payroll engine, recruitment, performance,
 onboarding, expenses, shifts…). FastHR ports the three pillars an HR team touches
-daily; the rest is mapped in **[docs/ROADMAP.md](docs/ROADMAP.md)**.
+daily, plus the ATS core; the rest is mapped in
+**[docs/ROADMAP.md](docs/ROADMAP.md)**, and the plan to grow this into a full
+Talent + Performance + Lifecycle platform is in
+**[docs/TALENT-PLATFORM-PLAN.md](docs/TALENT-PLATFORM-PLAN.md)**.
 
 ## Architecture
 
 ```
 web_app.py        routes, auth, SSE chat, boot
-db.py             SQLite schema (people/time/pay) + read helpers
+db.py             connection helpers, migration runner, people/time/pay reads
+migrations/       numbered SQL, applied in order and recorded in a ledger
+talent.py         ATS data layer — requisitions, candidates, applications, prompts
 seed.py           deterministic synthetic org, leave, attendance, payroll
+seed_talent.py    synthetic requisitions, candidates and pipeline (re-runnable)
 web/layout.py     3-pane shell, CSS, chat JS
 web/views.py      dashboard, employees, leave, attendance, payroll renderers
+web/ats.py        requisition, candidate and prompt-manager renderers
+web/cv_extract.py CV → text → prompt + contract → structured profile
+web/llm.py        Grok via the OpenAI-compatible LangChain client
 web/ai.py         grounded chat + slash-commands
+tests/            migrations + CV extraction (pytest)
 ```
+
+### CV extraction
+
+Upload a CV and it is stored, converted to text (pdfplumber / python-docx), and
+sent to Grok with the active prompt plus a fixed output contract. The parse runs
+on a background thread; the page polls until it lands. Every run records its
+prompt version, model, latency and raw response in `extraction_runs`, so a bad
+parse is diagnosable and a prompt change is measurable.
+
+```bash
+.venv/bin/python -m pytest tests/ -q          # stubbed model, no API calls
+FASTHR_LIVE_LLM=1 .venv/bin/python -m pytest tests/ -q -k live   # real API
+```
+
+Set `MODEL_PROVIDER` (`xai` or `openai`), `MODEL_NAME` and the matching key in
+`.env`. Without a key the ATS still works — extraction reports that it is
+disabled rather than failing silently.
 
 See **[SKILLS.md](SKILLS.md)** for the capability reference + migration playbook.
 Part of the

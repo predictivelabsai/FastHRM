@@ -58,6 +58,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .funnel-bar{height:18px;border-radius:5px;background:var(--accent);min-width:2px;} .funnel-row .v{text-align:right;color:var(--text-dim);}
 .detail-grid{display:grid;grid-template-columns:1fr 320px;gap:16px;}
 .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:13px;} .kv .k{color:var(--text-mute);}
+.kv .pill{justify-self:start;}  /* grid items stretch by default; a pill should hug its text */
 .avatar{width:40px;height:40px;border-radius:50%;background:var(--accent-light);color:var(--accent-hover);display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
 .emp-head{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
 .bal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
@@ -101,6 +102,32 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .thinking-indicator{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:12.5px;color:var(--text-mute);align-self:flex-start;}
 .thinking-indicator .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:.35;transform:scale(.85);}50%{opacity:1;transform:scale(1.1);}}
+
+/* --- talent / ATS --- */
+.pill.open,.pill.hired,.pill.filled,.pill.ok{background:var(--accent-light);color:var(--accent-hover);}
+.pill.screen,.pill.interview,.pill.onhold,.pill.draft{background:var(--warn-light);color:#92400e;}
+.pill.error,.pill.withdrawn{background:var(--danger-light);color:#9f1239;}
+.pill.offer,.pill.applied{background:#e0e7ff;color:#4338ca;}
+.stage-bar{display:flex;gap:4px;margin:4px 0 14px;}
+.stage-seg{flex:1;border:1px solid var(--border);border-radius:8px;padding:9px 11px;background:var(--surface);text-align:left;}
+.stage-seg .n{font-size:19px;font-weight:700;} .stage-seg .s{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-mute);font-weight:600;}
+.stage-seg.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
+.stage-seg.terminal .n{color:var(--text-mute);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface-2);border-radius:999px;padding:4px 11px;font-size:12px;}
+.chip .yrs{color:var(--text-mute);font-size:11px;}
+.chip.expert{border-color:var(--accent);background:var(--accent-light);color:var(--accent-hover);}
+.timeline{border-left:2px solid var(--border);margin-left:6px;padding-left:16px;}
+.tl-item{position:relative;padding-bottom:16px;}
+.tl-item::before{content:'';position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);}
+.tl-item .role{font-weight:600;} .tl-item .org{color:var(--text-dim);} .tl-item .when{font-size:11.5px;color:var(--text-mute);font-variant-numeric:tabular-nums;}
+.tl-item .what{font-size:12.5px;color:var(--text-dim);margin-top:3px;}
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:22px;text-align:center;background:var(--surface-2);}
+.drop-zone.hot{border-color:var(--accent);background:var(--accent-light);}
+.drop-zone .big{font-size:15px;font-weight:600;margin-bottom:3px;} .drop-zone .small{font-size:12px;color:var(--text-mute);}
+.flag{display:block;border-left:3px solid var(--warn);background:var(--warn-light);color:#92400e;padding:7px 11px;border-radius:0 7px 7px 0;font-size:12.5px;margin-bottom:6px;}
+.prompt-box{width:100%;min-height:380px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.6;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);resize:vertical;}
+.contract-box{background:#0f172a;color:#cbd5e1;border-radius:10px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.55;overflow-x:auto;white-space:pre;}
 """
 
 NAV_ITEMS = [
@@ -109,6 +136,9 @@ NAV_ITEMS = [
                 ("departments", "Departments", "🏢", "/departments")]),
     ("TIME", [("leave", "Leave", "🌴", "/leave"), ("attendance", "Attendance", "🕘", "/attendance")]),
     ("PAY", [("payroll", "Payroll", "💷", "/payroll")]),
+    ("TALENT", [("jobs", "Requisitions", "📌", "/talent/jobs"),
+                ("candidates", "Candidates", "🎯", "/talent/candidates"),
+                ("prompts", "AI Prompts", "✎", "/talent/prompts")]),
     ("HELP", [("guide", "User Guide", "📖", "/guide"),
               ("developers", "Developers", "⌘", "/developers")]),
 ]
