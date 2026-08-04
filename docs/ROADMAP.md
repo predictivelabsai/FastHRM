@@ -1,11 +1,11 @@
-# FastHR Roadmap — Frappe HR (HRMS) feature comparison
+# FastHRM Roadmap — Frappe HR (HRMS) feature comparison
 
-`frappe/hrms` is the largest non-ERP Frappe app (~160 doctypes). FastHR ports the
+`frappe/hrms` is the largest non-ERP Frappe app (~160 doctypes). FastHRM ports the
 **three pillars an HR team touches daily**; the long tail is deferred.
 
 ## Implemented ✅
 
-| Capability | Upstream doctype(s) | FastHR |
+| Capability | Upstream doctype(s) | FastHRM |
 |---|---|---|
 | Employees | `Employee` | `employees` (dept, designation, manager, branch, status) |
 | Departments | `Department` | `departments` + headcount/payroll |
@@ -53,7 +53,7 @@ The bulk of HRMS, deferred for a 3-pillar demonstrator:
 
 ## Design notes
 
-FastHR collapses Frappe's normalised leave/attendance/payroll doctypes into five
+FastHRM collapses Frappe's normalised leave/attendance/payroll doctypes into five
 compact tables and computes the headline metrics in `db.kpis()`. The highest-value
 next step is making leave **transactional** (apply → approve → balance updates) —
 the demonstrator currently shows the data read-only.

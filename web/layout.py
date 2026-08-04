@@ -1,4 +1,4 @@
-"""FastHR 3-pane layout — emerald palette, SSE AI rail."""
+"""FastHRM 3-pane layout — emerald palette, SSE AI rail."""
 from __future__ import annotations
 
 from fasthtml.common import (
@@ -128,6 +128,45 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .flag{display:block;border-left:3px solid var(--warn);background:var(--warn-light);color:#92400e;padding:7px 11px;border-radius:0 7px 7px 0;font-size:12.5px;margin-bottom:6px;}
 .prompt-box{width:100%;min-height:380px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.6;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);resize:vertical;}
 .contract-box{background:#0f172a;color:#cbd5e1;border-radius:10px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.55;overflow-x:auto;white-space:pre;}
+
+/* --- integrations --- */
+.int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;}
+.int-card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:var(--surface);display:flex;flex-direction:column;gap:8px;}
+.int-card.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
+.int-card.err{border-color:var(--danger);}
+.int-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.int-head .nm{font-weight:700;font-size:14px;} .int-blurb{font-size:12.2px;color:var(--text-dim);line-height:1.45;}
+.int-meta{font-size:11.5px;color:var(--text-mute);font-variant-numeric:tabular-nums;}
+.int-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--text-dim);background:var(--surface-2);padding:2px 7px;border-radius:5px;display:inline-block;}
+.int-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px;}
+
+/* --- progress bars, goals --- */
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;min-width:90px;}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:99px;}
+.bar.warn > i{background:var(--warn);} .bar.danger > i{background:var(--danger);}
+.goal-row{display:grid;grid-template-columns:1fr 140px 74px 100px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);}
+.goal-row:last-child{border-bottom:0;}
+.goal-row .t{font-weight:600;font-size:13px;} .goal-row .m{font-size:11.5px;color:var(--text-mute);}
+.goal-tree{margin:0;} .goal-tree .kid{margin-left:22px;border-left:2px solid var(--border);padding-left:14px;}
+
+/* --- org chart --- */
+.org{font-size:13px;} .org ul{list-style:none;margin:0;padding-left:20px;border-left:1px solid var(--border);}
+.org li{padding:3px 0;position:relative;}
+.org .node{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);}
+.org .node .r{font-size:11px;color:var(--text-mute);} .org .node .n{font-weight:600;}
+.org .node .sz{background:var(--accent-light);color:var(--accent-hover);border-radius:99px;padding:1px 7px;font-size:10.5px;font-weight:700;}
+
+/* --- checklists & feed --- */
+.check{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.check:last-child{border-bottom:0;} .check.done .lbl{color:var(--text-mute);text-decoration:line-through;}
+.check .lbl{flex:1;} .check .due{font-size:11.5px;color:var(--text-mute);white-space:nowrap;}
+.check .due.late{color:var(--danger);font-weight:600;}
+.feed-item{border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0;padding:9px 12px;margin-bottom:8px;}
+.feed-item .who{font-size:12px;color:var(--text-mute);margin-bottom:3px;}
+.feed-item .body{font-size:13px;line-height:1.5;}
+.factors{margin:4px 0 0;padding-left:16px;font-size:11.8px;color:var(--text-dim);line-height:1.5;}
+.score-cell{font-variant-numeric:tabular-nums;font-weight:700;}
+.heat{display:inline-block;min-width:34px;text-align:center;border-radius:5px;padding:2px 6px;font-weight:700;font-size:12px;}
 """
 
 NAV_ITEMS = [
@@ -138,7 +177,20 @@ NAV_ITEMS = [
     ("PAY", [("payroll", "Payroll", "💷", "/payroll")]),
     ("TALENT", [("jobs", "Requisitions", "📌", "/talent/jobs"),
                 ("candidates", "Candidates", "🎯", "/talent/candidates"),
-                ("prompts", "AI Prompts", "✎", "/talent/prompts")]),
+                ("offers", "Offers", "📨", "/talent/offers"),
+                ("talent-analytics", "Analytics", "📈", "/talent/analytics")]),
+    ("PERFORMANCE", [("goals", "Goals & OKRs", "🎯", "/performance/goals"),
+                     ("feedback", "Feedback", "💬", "/performance/feedback"),
+                     ("reviews", "Review cycles", "📝", "/performance/reviews"),
+                     ("signals", "Signals", "📡", "/performance/signals")]),
+    ("LIFECYCLE", [("onboarding", "Onboarding", "🚀", "/lifecycle/onboarding"),
+                   ("changes", "Changes", "🔀", "/lifecycle/changes"),
+                   ("separations", "Separations", "👋", "/lifecycle/separations"),
+                   ("cases", "Cases", "🗂", "/lifecycle/cases"),
+                   ("org", "Org chart", "🌳", "/lifecycle/org")]),
+    ("SETTINGS", [("integrations", "Integrations", "🔌", "/settings/integrations"),
+                  ("prompts", "AI Prompts", "✎", "/talent/prompts"),
+                  ("roles", "Roles & access", "🔑", "/settings/roles")]),
     ("HELP", [("guide", "User Guide", "📖", "/guide"),
               ("developers", "Developers", "⌘", "/developers")]),
 ]
@@ -152,7 +204,7 @@ def topbar(env, user_email):
         Span(user_email or "", style="color:var(--text-mute);font-size:12px;") if user_email else None,
         A("Logout", href="/logout", cls="btn") if user_email else None, cls="actions")
     return Div(Div(Span(cls="brand-dot"), Span("Fast", style="font-weight:800;"),
-                   Span("HR", style="color:var(--accent);font-weight:700;letter-spacing:.5px;"), cls="brand"),
+                   Span("HRM", style="color:var(--accent);font-weight:700;letter-spacing:.5px;"), cls="brand"),
                right, cls="topbar")
 
 
@@ -191,7 +243,7 @@ def right_pane_chat(thread_id):
 
 def page(active, env, user_email, thread_id, *content, right_override=None):
     right = right_override if right_override is not None else right_pane_chat(thread_id)
-    return (Title("FastHR"),
+    return (Title("FastHRM"),
             Link(rel="icon", type="image/svg+xml", href="/static/favicon.svg"),
             Script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"),
             Style(LAYOUT_CSS),

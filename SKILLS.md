@@ -1,11 +1,11 @@
 # Skills
 
-Capability reference for FastHR + the shared **Frappe → FastHTML migration
+Capability reference for FastHRM + the shared **Frappe → FastHTML migration
 playbook** (same recipe across `fasthtml-oss-migrations`; see `FastCRM/SKILLS.md`).
 
 ---
 
-## Part 1 — FastHR capabilities
+## Part 1 — FastHRM capabilities
 
 **Entry:** `python web_app.py` → http://localhost:5010
 (login `admin@fasthr.example` / `FastHR2026$`).

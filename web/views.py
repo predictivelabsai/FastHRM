@@ -1,4 +1,4 @@
-"""Center-pane renderers for FastHR."""
+"""Center-pane renderers for FastHRM."""
 from __future__ import annotations
 
 from fasthtml.common import (

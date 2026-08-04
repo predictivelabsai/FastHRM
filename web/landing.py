@@ -33,7 +33,8 @@ CSS = """
 """
 
 def landing_page():
-    features = ['Employee records', 'Leave and attendance', 'Payroll and payslips']
+    features = ['Employee records', 'Leave and attendance', 'Payroll and payslips',
+                'Recruitment and AI CV screening', 'Goals and performance', 'Onboarding to exit']
     return Html(
         Head(Title("FastHRM · FastSME"), Meta(charset="utf-8"),
              Meta(name="viewport", content="width=device-width, initial-scale=1"),
@@ -54,9 +55,11 @@ def landing_page():
                         Div(Button("Sign In or Register", type="button", onclick="authOpen('login')", cls="lp-primary"),
                             A("Explore the open-source suite →", href="https://fastsme.com/products", cls="lp-secondary"),
                             cls="lp-actions"), cls="lp-hero"),
-                Section(Div(Img(src="/static/product-demo.gif", alt="FastHRM product tour",
-                                loading="eager", width="1854", height="909"),
-                            P("Product tour · see the workspace in action"),
+                Section(Div(Img(src="/static/product-demo.gif",
+                                alt="FastHRM product tour — dashboard, employees, leave, payroll, "
+                                    "recruitment pipeline and AI CV screening",
+                                loading="eager", width="1100", height="689"),
+                            P("Product tour · people, time, pay and hiring in one workspace"),
                             cls="lp-demo-frame"), cls="lp-demo", aria_label="FastHRM product tour"),
                 Section(Div(*[Article(Span(f"0{i}", cls="lp-num"), H2(title),
                                       P("Everything you need for " + title.lower() + ", in one focused workspace."),

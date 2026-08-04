@@ -30,9 +30,21 @@ Employees · Leave & attendance · Payroll · Recruitment with AI CV screening
 | 12 | Candidates | Your talent pool |
 | 13 | Candidate profile | What the AI reads out of a CV |
 | 14 | Adding a CV | Upload, and let the AI do the typing |
-| 15 | AI prompts | Changing how the AI reads CVs |
-| 16 | AI assistant | Asking questions in plain English |
-| 17 | Weekly playbook | A suggested rhythm |
+| 15 | Offers | Making, approving and accepting an offer |
+| 16 | Talent analytics | Funnel, sources, speed and interviewer load |
+| 17 | Goals & OKRs | Cascading objectives and check-ins |
+| 18 | Feedback | Praise, coaching and peer review |
+| 19 | Review cycles | Running an appraisal round |
+| 20 | Performance signals | Explainable attrition and promotion indicators |
+| 21 | Onboarding | The new-hire checklist |
+| 22 | Internal changes | Promotions and transfers, with approval |
+| 23 | Separations | Notice, handover and exit interview |
+| 24 | Employee relations | Confidential case handling |
+| 25 | Org chart | Reporting lines and headcount planning |
+| 26 | Integrations | Connecting LinkedIn and other services |
+| 27 | AI prompts | Changing how the AI reads CVs |
+| 28 | AI assistant | Asking questions in plain English |
+| 29 | Weekly playbook | A suggested rhythm |
 
 ---
 
@@ -236,9 +248,176 @@ the same CV is read again, your edit stands.
 
 ---
 
-## 15 · AI prompts
+## 15 · Offers
 
-![AI prompt manager](../screenshots/14-prompts.png)
+![Offers](../screenshots/14-offers.png)
+
+When you've decided, draft the offer from the candidate's profile: salary, start
+date and an expiry. The letter is written for you and can be edited.
+
+An offer moves through drafting, approval, sending and acceptance, and each step
+is recorded. **Accepting an offer creates the employee record automatically** —
+their details, skills and leave allowance carry across, and the onboarding
+checklist starts itself. You never retype a hire.
+
+---
+
+## 16 · Talent analytics
+
+![Talent analytics](../screenshots/15-analytics.png)
+
+How your hiring is actually performing: how long roles take to fill, which
+sources produce candidates who progress, where people sit waiting in the
+pipeline, and how interview work is spread across the team.
+
+The stage timings are the ones worth watching. Candidates waiting a long time at
+one stage is usually a process problem, not a candidate problem.
+
+---
+
+## 17 · Goals & OKRs
+
+![Goals](../screenshots/16-goals.png)
+
+Objectives at three levels: company, team and individual. Each goal has a
+metric, a target and a period, and shows progress against it.
+
+Link a goal to a parent to show how it contributes. The **Alignment** view then
+draws the whole cascade, so anyone can see how their work ladders up.
+
+Check in on a goal to update its progress. Every check-in is kept, so you can
+see whether something drifted gradually or stalled all at once.
+
+---
+
+## 18 · Feedback
+
+![Feedback](../screenshots/18-feedback.png)
+
+Continuous feedback rather than an annual surprise: praise, coaching notes and
+peer review, optionally tagged to a competency.
+
+Visibility is set per entry — public, team-only, or private to the manager. Use
+private for anything that needs care, and public for praise, which is worth more
+when others can see it.
+
+---
+
+## 19 · Review cycles
+
+![Review cycles](../screenshots/19-reviews.png)
+
+Create a cycle for the period you're reviewing, then open it. Opening generates
+a self review and a manager review for everyone automatically — you don't create
+them one at a time.
+
+As reviews come in, the cycle view shows the distribution of ratings and the
+average by department. That's your calibration conversation: if one team rates
+everyone a four and another rates nobody above three, the difference is usually
+the manager, not the people.
+
+---
+
+## 20 · Performance signals
+
+![Performance signals](../screenshots/20-signals.png)
+
+Advisory indicators drawn from goal progress, attendance, feedback and tenure —
+who may be disengaging, and who looks ready for more.
+
+**Every flag lists the reasons behind it.** There are no unexplained scores, and
+nothing here is a verdict. Treat a flag as a prompt to have a conversation, and
+check the reasons before you do — some of them will have an obvious innocent
+explanation you already know about.
+
+---
+
+## 21 · Onboarding
+
+![Onboarding](../screenshots/21-onboarding.png)
+
+Every new hire gets a checklist covering contracts, equipment, accounts, a buddy
+and their first check-ins, with each task owned by HR, the manager, IT or the new
+starter themselves.
+
+Overdue tasks are flagged in red. The board shows everyone currently onboarding
+at once, so nothing quietly stalls at "order the laptop".
+
+---
+
+## 22 · Internal changes
+
+![Internal changes](../screenshots/22-changes.png)
+
+Promotions, transfers, role changes and pay changes are proposed here with an
+effective date, then approved.
+
+Nothing is written to the employee record until it's approved, and the before
+and after values are both kept. That means you can always answer "what was their
+title in March", which matters more often than you'd think.
+
+---
+
+## 23 · Separations
+
+![Separations](../screenshots/23-separations.png)
+
+When someone resigns or leaves, record it here: notice date, last day and reason.
+
+An offboarding checklist covers handover, equipment, access and the final
+payslip. Completing it marks the person as inactive and moves them to **Alumni** —
+former colleagues are the cheapest source of a good hire, so they're kept rather
+than deleted.
+
+The exit interview is recorded alongside, with a sentiment so patterns across
+leavers are visible.
+
+---
+
+## 24 · Employee relations
+
+![Cases](../screenshots/24-cases.png)
+
+Grievances, wellbeing requests, conduct issues and pay queries, tracked with a
+severity and a restricted visibility.
+
+A case can be opened without naming the person where that's appropriate.
+Everything is audit-logged — which protects both the employee and you.
+
+---
+
+## 25 · Org chart
+
+![Org chart](../screenshots/25-org.png)
+
+Reporting lines drawn from who reports to whom, with team sizes rolled up.
+
+Alongside it, headcount planning: pick a team, add or remove people, and see what
+it does to annual salary cost at that team's current average. Useful for budget
+conversations before they become commitments.
+
+---
+
+## 26 · Integrations
+
+![Integrations](../screenshots/26-integrations.png)
+
+Connect FastHRM to the services you already use: LinkedIn, Indeed and other job
+boards, calendars for interview scheduling, Slack or Teams for notifications,
+e-signature for offers, and background screening.
+
+Enter the API key the provider gives you and press **Test**. Keys are encrypted
+before they're stored and are never shown again in full — only the last four
+characters — so a screen-share can't leak one.
+
+**Disconnect** erases the stored credentials entirely rather than just hiding
+them.
+
+---
+
+## 27 · AI prompts
+
+![AI prompt manager](../screenshots/28-prompts.png)
 
 The instructions the AI follows when reading a CV are written in plain English,
 and you can change them.
@@ -255,9 +434,9 @@ what guarantees your changes can't break anything, so you can experiment freely.
 
 ---
 
-## 16 · AI assistant
+## 28 · AI assistant
 
-![AI assistant](../screenshots/15-ai.png)
+![AI assistant](../screenshots/29-ai.png)
 
 The panel on the right answers questions about your own data, in plain English —
 "which department is biggest", "who's on leave today", "how many requests are
@@ -271,7 +450,7 @@ Collapse the panel with the arrow when you want the full screen width.
 
 ---
 
-## 17 · A weekly playbook
+## 29 · A weekly playbook
 
 | When | Do this | Where |
 |---|---|---|
@@ -282,6 +461,12 @@ Collapse the panel with the arrow when you want the full screen width.
 | Weekly | Review roles with few applicants | Requisitions |
 | Monthly | Check the pay run before it goes out | Payroll |
 | Quarterly | Review headcount and cost per team | Departments |
+| As offers go out | Chase acceptance before expiry | Offers |
+| Weekly | Check onboarding for overdue tasks | Onboarding |
+| Weekly | Clear pending internal changes | Changes |
+| Fortnightly | Review goals showing at risk | Goals & OKRs |
+| Monthly | Read the performance signals, then talk to people | Signals |
+| Quarterly | Run the review cycle and calibrate | Review cycles |
 | When it annoys you | Adjust what the AI pulls out of CVs | AI prompts |
 
 Two habits make the rest easier: clear pending leave daily so it never becomes a

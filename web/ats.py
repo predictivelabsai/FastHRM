@@ -5,6 +5,8 @@ a container id and swaps innerHTML.
 """
 from __future__ import annotations
 
+import json
+
 from fasthtml.common import (
     Div, H1, H3, H4, P, Span, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, Button,
     Select, Option, Label, Textarea, NotStr, Strong, Small, Details, Summary,
@@ -87,8 +89,11 @@ def job_detail(job_id, stage="All"):
                      cls="kv"), cls="card")
 
     return (_title(j["title"], f"{j['code']} · {j['dept'] or '—'} · {j['status']}",
-                   A("← Requisitions", href="/talent/jobs", cls="btn")),
+                   Div(A("Calibration", href=f"/talent/jobs/{job_id}/calibration", cls="btn"),
+                       A("← Requisitions", href="/talent/jobs", cls="btn"),
+                       style="display:flex;gap:6px;")),
             Div(job_main(job_id, stage), id="job-main"),
+            Div(ranking_panel(job_id), id="rank-panel"),
             detail)
 
 
@@ -314,11 +319,42 @@ def candidate_detail(cid: int):
         **{"hx-post": f"/talent/candidates/{cid}/apply", "hx-target": "#cand-actions", "hx-swap": "innerHTML"},
         cls="inline-form", style="gap:8px;flex-wrap:wrap;")
 
+    live_app = next((a for a in p["applications"] if a["status"] == "Active"), None)
+    iv_panel = Div(interviews_panel(live_app["id"]), id="iv-panel") if live_app else None
+    offer_panel = _offer_panel(live_app, c) if live_app else None
+
     return (head,
             Div(A("← Candidates", href="/talent/candidates", cls="btn"),
                 style="margin-bottom:12px;"),
             Div(Div(id="cand-actions"), reparse, cls="card"),
-            Div(Div(info, skills, exp), Div(edu, apps, docs), cls="detail-grid"))
+            Div(Div(info, skills, exp, iv_panel, offer_panel),
+                Div(edu, apps, docs), cls="detail-grid"))
+
+
+def _offer_panel(app, cand):
+    """Draft or show the offer for the candidate's live application."""
+    existing = talent.offer_for_application(app["id"])
+    if existing:
+        return Div(Div(H3("Offer"), _pill(existing["status"]), cls="card-header"),
+                   Div(Span("Salary", cls="k"), Span(Strong(money(existing["salary"]))),
+                       Span("Start date", cls="k"), Span(existing["start_date"] or "—"),
+                       Span("Expires", cls="k"), Span(existing["expires_on"] or "—"),
+                       cls="kv"),
+                   Div(A("Open offer →", href=f"/talent/offers/{existing['id']}", cls="btn sm"),
+                       style="margin-top:10px;"), cls="card")
+    if app["stage"] not in ("Interview", "Offer"):
+        return None
+    return Div(Div(H3("Make an offer"), cls="card-header"),
+               P("Drafting an offer moves the application to the Offer stage. Accepting one "
+                 "creates the employee record and starts onboarding.",
+                 style="color:var(--text-mute);font-size:12.5px;margin:0 0 10px;"),
+               Form(Input(name="salary", type="number", step="any", placeholder="Salary",
+                          cls="hr-inp", required=True, style="width:140px;"),
+                    Input(type="date", name="start_date", cls="hr-inp", required=True),
+                    Input(type="date", name="expires_on", cls="hr-inp"),
+                    Button("Draft offer", cls="btn primary", type="submit"),
+                    method="post", action=f"/talent/applications/{app['id']}/offer",
+                    cls="inline-form", style="flex-wrap:wrap;gap:8px;"), cls="card")
 
 
 # ---------- prompt manager --------------------------------------------------
@@ -356,6 +392,301 @@ def prompts_page(key: str = cv_extract.PROMPT_KEY, saved: str = ""):
                                                      style="color:var(--text-mute);"), cls="card-header"),
                     Div(cv_extract.OUTPUT_FORMAT, cls="contract-box"), cls="card")),
             cls="detail-grid", style="--x:1;grid-template-columns:1fr 420px;"))
+
+
+# ---------- interviews ------------------------------------------------------
+
+def interviews_panel(app_id: int):
+    ivs = talent.interviews_for(app_id)
+    emps = db.employees_min()
+    rows = []
+    for iv in ivs:
+        rows.append(Tr(
+            Td(_pill(iv["kind"] or "—")),
+            Td(iv["interviewer"] or "— unassigned —"),
+            Td(iv["scheduled_at"] or "—", style="white-space:nowrap;"),
+            Td(_pill(iv["mode"] or "—")),
+            Td(f"{iv['avg_score']:.1f}" if iv["avg_score"] else "—", cls="num"),
+            Td(_pill(iv["recommendation"]) if iv["recommendation"]
+               else Span("—", style="color:var(--text-mute);")),
+            Td(_pill(iv["status"])),
+            Td(A("Scorecard", href=f"/talent/interviews/{iv['id']}", cls="btn sm")
+               if iv["status"] != "Completed" else
+               A("View", href=f"/talent/interviews/{iv['id']}", cls="btn sm"))))
+    tbl = Table(Thead(Tr(Th("Stage"), Th("Interviewer"), Th("When"), Th("Mode"),
+                         Th("Score", cls="num"), Th("Recommendation"), Th("Status"), Th(""))),
+                Tbody(*rows or [Tr(Td("No interviews scheduled.", colspan="8"))]), cls="tbl")
+    form = Form(
+        Select(*[Option(k, value=k) for k in talent.INTERVIEW_KINDS], name="kind", cls="hr-inp"),
+        Select(Option("— interviewer —", value="0"),
+               *[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in emps],
+               name="interviewer_id", cls="hr-inp"),
+        Input(type="datetime-local", name="scheduled_at", cls="hr-inp", required=True),
+        Select(*[Option(m, value=m) for m in talent.INTERVIEW_MODES], name="mode", cls="hr-inp"),
+        Button("Schedule", cls="btn primary", type="submit"),
+        **{"hx-post": f"/talent/applications/{app_id}/interview", "hx-target": "#iv-panel",
+           "hx-swap": "innerHTML"},
+        cls="inline-form", style="flex-wrap:wrap;gap:8px;margin-bottom:12px;")
+    return Div(Div(Div(H3("Interviews"), cls="card-header"), form, tbl, cls="card"))
+
+
+def scorecard_page(interview_id: int):
+    iv = db.one("""SELECT i.*, a.candidate_id, a.job_id, c.first_name, c.last_name,
+                          j.title job_title, e.first_name||' '||e.last_name interviewer
+                   FROM interviews i JOIN applications a ON a.id=i.application_id
+                   JOIN candidates c ON c.id=a.candidate_id
+                   JOIN job_openings j ON j.id=a.job_id
+                   LEFT JOIN employees e ON e.id=i.interviewer_id WHERE i.id=?""", (interview_id,))
+    if not iv:
+        return _title("Interview not found"), P("No such interview.")
+    comps = talent.competencies()
+    existing = {s["competency_id"]: s for s in
+                db.rows("SELECT * FROM scorecards WHERE interview_id=?", (interview_id,))}
+
+    fields = []
+    for c in comps:
+        cur = existing.get(c["id"]) or {}
+        fields.append(Div(
+            Div(Strong(c["name"]),
+                Small(f" · {c['category'] or ''}", style="color:var(--text-mute);"),
+                Div(c["description"] or "", style="font-size:12px;color:var(--text-mute);")),
+            Div(Select(Option("—", value=""),
+                       *[Option(f"{i} — {lbl}", value=str(i),
+                                selected=(cur.get("score") == i))
+                         for i, lbl in ((5, "Outstanding"), (4, "Strong"), (3, "Solid"),
+                                        (2, "Mixed"), (1, "Weak"))],
+                       name=f"score_{c['id']}", cls="hr-inp", style="width:170px;"),
+                Input(name=f"comment_{c['id']}", value=cur.get("comment") or "",
+                      placeholder="Evidence", cls="hr-inp", style="flex:1;min-width:180px;"),
+                style="display:flex;gap:8px;flex:1;"),
+            style="display:flex;gap:14px;align-items:flex-start;justify-content:space-between;"
+                  "padding:10px 0;border-bottom:1px solid var(--border);"))
+
+    return (_title(f"Scorecard — {iv['first_name']} {iv['last_name']}",
+                   f"{iv['kind']} interview for {iv['job_title']} · {iv['interviewer'] or 'unassigned'}",
+                   A("← Candidate", href=f"/talent/candidates/{iv['candidate_id']}", cls="btn")),
+            Div(Div(H3("Competencies"), _pill(iv["status"]), cls="card-header"),
+                Form(*fields,
+                     Div(Label("Overall recommendation",
+                               style="font-size:13px;font-weight:600;margin-right:10px;"),
+                         Select(*[Option(r, value=r, selected=(iv["recommendation"] == r))
+                                  for r in talent.RECOMMENDATIONS],
+                                name="recommendation", cls="hr-inp"),
+                         style="margin-top:14px;display:flex;align-items:center;"),
+                     Div(Label("Notes", style="font-size:13px;font-weight:600;"),
+                         Textarea(iv["notes"] or "", name="notes", cls="prompt-box",
+                                  style="min-height:130px;margin-top:6px;",
+                                  placeholder="What they said, what you probed, what you concluded."),
+                         style="margin-top:12px;"),
+                     Button("Save scorecard", cls="btn primary", type="submit",
+                            style="margin-top:12px;"),
+                     method="post", action=f"/talent/interviews/{interview_id}"),
+                cls="card"))
+
+
+def calibration_page(job_id: int):
+    j = talent.job(job_id)
+    if not j:
+        return _title("Requisition not found"), P("No such requisition.")
+    comps, by_cand = talent.calibration(job_id)
+
+    def cell(v):
+        if v is None:
+            return Td("—", cls="num", style="color:var(--text-mute);")
+        bg = ("var(--accent-light)" if v >= 4 else "var(--warn-light)" if v >= 3
+              else "var(--danger-light)")
+        fg = ("var(--accent-hover)" if v >= 4 else "#92400e" if v >= 3 else "#9f1239")
+        return Td(Span(f"{v:.1f}", cls="heat", style=f"background:{bg};color:{fg};"), cls="num")
+
+    tbl = Table(Thead(Tr(Th("Candidate"), *[Th(c, cls="num") for c in comps],
+                         Th("Mean", cls="num"), Th("Stage"))),
+                Tbody(*[Tr(Td(A(name, href=f"/talent/candidates/{d['candidate_id']}")),
+                           *[cell(d["scores"].get(c)) for c in comps],
+                           Td(Strong(f"{d['mean']:.2f}"), cls="num"),
+                           Td(_pill(d["stage"])))
+                        for name, d in by_cand.items()]
+                      or [Tr(Td("No completed scorecards yet.", colspan=str(len(comps) + 3)))]),
+                cls="tbl")
+    return (_title(f"Calibration — {j['title']}",
+                   "Every completed scorecard side by side, so scores can be compared fairly",
+                   A("← Requisition", href=f"/talent/jobs/{job_id}", cls="btn")),
+            Div(Div(H3("Scores by competency"), cls="card-header"), tbl, cls="card"))
+
+
+# ---------- offers ----------------------------------------------------------
+
+def offers_page(status="All"):
+    os_ = talent.all_offers(status)
+    stats = talent.offer_stats()
+    seg = Div(*[A(s, href=f"/talent/offers?status={s}", cls="active" if status == s else "")
+                for s in ["All"] + talent.OFFER_STATUSES], cls="seg")
+    return (_title("Offers", "Approval, e-sign handoff, and automatic conversion to an employee"),
+            Div(kpi_card("Acceptance rate", f"{stats['acceptance_rate']}%",
+                         f"{stats['accepted']} accepted / {stats['declined']} declined"),
+                kpi_card("In flight", stats["pending"], "drafted, approved or sent"),
+                kpi_card("Accepted", stats["accepted"], "converted to employees"),
+                kpi_card("Total offers", stats["total"]),
+                cls="kpi-grid"),
+            seg, Div(offers_table(status), id="offers"))
+
+
+def offers_table(status="All"):
+    os_ = talent.all_offers(status)
+    rows = []
+    for o in os_:
+        acts = []
+        nxt = {"Draft": "Pending approval", "Pending approval": "Approved",
+               "Approved": "Sent", "Sent": "Accepted"}.get(o["status"])
+        if nxt:
+            acts.append(Button(f"→ {nxt}", cls="btn sm primary",
+                               **{"hx-post": f"/talent/offers/{o['id']}/status?status={nxt}",
+                                  "hx-target": "#offers", "hx-swap": "innerHTML"}))
+        if o["status"] in ("Sent", "Approved"):
+            acts.append(Button("Declined", cls="btn sm",
+                               **{"hx-post": f"/talent/offers/{o['id']}/status?status=Declined",
+                                  "hx-target": "#offers", "hx-swap": "innerHTML"}))
+        rows.append(Tr(
+            Td(A(f"{o['first_name']} {o['last_name']}",
+                 href=f"/talent/candidates/{o['candidate_id']}")),
+            Td(o["job_title"]), Td(money(o["salary"]), cls="num"),
+            Td(o["start_date"] or "—", style="white-space:nowrap;"),
+            Td(o["expires_on"] or "—", style="white-space:nowrap;color:var(--text-mute);"),
+            Td(_pill(o["status"])),
+            Td(A("Letter", href=f"/talent/offers/{o['id']}", cls="btn sm")),
+            Td(Div(*acts, style="display:flex;gap:4px;") if acts
+               else Span("—", style="color:var(--text-mute);"))))
+    return Div(Div(Table(Thead(Tr(Th("Candidate"), Th("Role"), Th("Salary", cls="num"),
+                                  Th("Start"), Th("Expires"), Th("Status"), Th(""), Th("Move"))),
+                         Tbody(*rows or [Tr(Td("No offers.", colspan="8"))]), cls="tbl"),
+                   cls="card"))
+
+
+def offer_detail(offer_id: int):
+    o = talent.offer(offer_id)
+    if not o:
+        return _title("Offer not found"), P("No such offer.")
+    emp = db.one("SELECT id FROM employees WHERE candidate_id=?", (o["candidate_id"],))
+    info = Div(Div(H3("Offer"), _pill(o["status"]), cls="card-header"),
+               Div(Span("Candidate", cls="k"),
+                   Span(A(f"{o['first_name']} {o['last_name']}",
+                          href=f"/talent/candidates/{o['candidate_id']}")),
+                   Span("Role", cls="k"), Span(o["job_title"]),
+                   Span("Department", cls="k"), Span(o["dept"] or "—"),
+                   Span("Salary", cls="k"), Span(Strong(money(o["salary"]))),
+                   Span("Start date", cls="k"), Span(o["start_date"] or "—"),
+                   Span("Expires", cls="k"), Span(o["expires_on"] or "—"),
+                   Span("Approved by", cls="k"), Span(o["approved_by"] or "—"),
+                   Span("Sent", cls="k"), Span(o["sent_at"] or "—"),
+                   Span("Signed", cls="k"), Span(o["signed_at"] or "—"),
+                   *([Span("Employee record", cls="k"),
+                      Span(A("View employee →", href=f"/employees/{emp['id']}"))] if emp else []),
+                   cls="kv"), cls="card")
+    letter = Div(Div(H3("Offer letter"),
+                     Small("generated from the requisition and candidate record",
+                           style="color:var(--text-mute);"), cls="card-header"),
+                 Div(NotStr((o["letter"] or "No letter drafted yet.").replace("\n", "<br>")),
+                     style="font-size:13.5px;line-height:1.65;"), cls="card")
+    return (_title(f"Offer — {o['first_name']} {o['last_name']}",
+                   f"{o['job_code']} · {o['job_title']}",
+                   A("← Offers", href="/talent/offers", cls="btn")),
+            Div(Div(letter), Div(info), cls="detail-grid"))
+
+
+# ---------- ranking ---------------------------------------------------------
+
+def ranking_panel(job_id: int):
+    run, scores = talent.rankings_for_job(job_id)
+    head = Div(H3("AI shortlist ranking"),
+               Button("Rank candidates", cls="btn sm primary",
+                      **{"hx-post": f"/talent/jobs/{job_id}/rank", "hx-target": "#rank-panel",
+                         "hx-swap": "innerHTML"}), cls="card-header")
+    if not run:
+        return Div(Div(head,
+                       P("No ranking run yet. Ranking compares each candidate's experience and "
+                         "skills against the requisition, and stores its reasoning so a score can "
+                         "always be challenged.", style="color:var(--text-mute);font-size:12.5px;"),
+                       cls="card"))
+    if run["status"] == "error":
+        return Div(Div(head, P(f"Last run failed: {run['error']}", cls="flag"), cls="card"))
+
+    excluded = ", ".join(json.loads(run["excluded_json"] or "[]"))
+    tbl = Table(Thead(Tr(Th("#", cls="num"), Th("Candidate"), Th("Current title"),
+                         Th("Score", cls="num"), Th("Why"), Th("Stage"))),
+                Tbody(*[Tr(Td(str(i), cls="num"),
+                           Td(A(f"{s['first_name']} {s['last_name']}",
+                                href=f"/talent/candidates/{s['candidate_id']}")),
+                           Td(s["current_title"] or "—"),
+                           Td(Strong(f"{s['score']:.1f}"), cls="num score-cell"),
+                           Td(Div(s["rationale"] or "—", style="font-size:12.5px;"),
+                              Div(f"Strengths: {s['strengths']}", cls="factors") if s["strengths"] else None,
+                              Div(f"Gaps: {s['gaps']}", cls="factors") if s["gaps"] else None),
+                           Td(_pill(s["stage"])))
+                        for i, s in enumerate(scores, 1)]
+                      or [Tr(Td("Run produced no scores.", colspan="6"))]), cls="tbl")
+    return Div(Div(head,
+                   P(f"Ranked {run['candidates']} candidates with {run['model']} on "
+                     f"{(run['created'] or '')[:16]}. Withheld from the model: {excluded}.",
+                     style="color:var(--text-mute);font-size:12px;margin:0 0 10px;"),
+                   tbl, cls="card"))
+
+
+# ---------- talent analytics ------------------------------------------------
+
+def analytics_page():
+    k = talent.ats_kpis()
+    stats = talent.offer_stats()
+    fun = talent.funnel()
+    mx = max((n for _, n in fun), default=1) or 1
+    src = talent.source_effectiveness()
+    tis = {r["stage"]: r for r in talent.time_in_stage()}
+    load = talent.interviewer_load()
+    ttf = talent.time_to_fill()
+    avg_ttf = (sum(r["days"] for r in ttf) / len(ttf)) if ttf else 0
+
+    funnel_card = Div(Div(H3("Pipeline funnel"), cls="card-header"),
+                      *[Div(Div(s, style="color:var(--text-dim);"),
+                            Div(Div(cls="funnel-bar", style=f"width:{max(2, 100 * n / mx):.0f}%;")),
+                            Div(str(n), cls="v"), cls="funnel-row") for s, n in fun], cls="card")
+
+    src_card = Div(Div(H3("Source effectiveness"), cls="card-header"),
+                   Table(Thead(Tr(Th("Source"), Th("Applications", cls="num"),
+                                  Th("Progressed", cls="num"), Th("Hires", cls="num"),
+                                  Th("Conversion", cls="num"))),
+                         Tbody(*[Tr(Td(_pill(s["source"] or "—")),
+                                    Td(str(s["applications"]), cls="num"),
+                                    Td(str(s["progressed"] or 0), cls="num"),
+                                    Td(str(s["hires"] or 0), cls="num"),
+                                    Td(f"{100 * (s['progressed'] or 0) / s['applications']:.0f}%"
+                                       if s["applications"] else "—", cls="num"))
+                                 for s in src]), cls="tbl"), cls="card")
+
+    stage_card = Div(Div(H3("Average days in stage"), cls="card-header"),
+                     Table(Thead(Tr(Th("Stage"), Th("Waiting", cls="num"), Th("Avg days", cls="num"))),
+                           Tbody(*[Tr(Td(_pill(s)),
+                                      Td(str((tis.get(s) or {}).get("n", 0)), cls="num"),
+                                      Td(f"{(tis.get(s) or {}).get('avg_days') or 0:.0f}", cls="num"))
+                                   for s in talent.OPEN_STAGES]), cls="tbl"), cls="card")
+
+    load_card = Div(Div(H3("Interviewer load"), cls="card-header"),
+                    Table(Thead(Tr(Th("Interviewer"), Th("Dept"), Th("Interviews", cls="num"),
+                                   Th("Upcoming", cls="num"))),
+                          Tbody(*[Tr(Td(l["interviewer"]), Td(l["dept"] or "—"),
+                                     Td(str(l["interviews"]), cls="num"),
+                                     Td(str(l["upcoming"] or 0), cls="num"))
+                                  for l in load] or [Tr(Td("No interviews recorded.", colspan="4"))]),
+                          cls="tbl"), cls="card")
+
+    return (_title("Talent analytics", "Funnel, sources, speed and interviewer load"),
+            Div(kpi_card("Time to fill", f"{avg_ttf:.0f}d" if ttf else "—",
+                         f"across {len(ttf)} hires"),
+                kpi_card("Offer acceptance", f"{stats['acceptance_rate']}%",
+                         f"{stats['accepted']} of {stats['accepted'] + stats['declined']} decided"),
+                kpi_card("Active applications", k["active_applications"],
+                         f"{k['in_process']} past first screen"),
+                kpi_card("CVs parsed", k["parsed"], f"of {k['candidates']} candidates"),
+                cls="kpi-grid"),
+            Div(funnel_card, stage_card, cls="grid-2"),
+            src_card, load_card)
 
 
 def prompt_versions_fragment(key: str):

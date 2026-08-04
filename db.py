@@ -1,4 +1,4 @@
-"""FastHR data layer — SQLite, collapsed from Frappe HR (HRMS).
+"""FastHRM data layer — SQLite, collapsed from Frappe HR (HRMS).
 
 Three pillars: people (employees, departments), time (leave + attendance),
 and pay (payslips). All synthetic.

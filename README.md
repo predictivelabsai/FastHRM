@@ -1,6 +1,6 @@
-# FastHR
+# FastHRM
 
-**FastHR** is an open-source **HR system** built with
+**FastHRM** is an open-source **HR system** built with
 [FastHTML](https://fastht.ml) — a server-side, HTMX-driven port of the core of
 [Frappe HR (HRMS)](https://github.com/frappe/hrms), scoped to three pillars:
 **people** (employee directory + departments), **time** (leave + attendance),
@@ -17,7 +17,7 @@ assistant grounded in the live (synthetic) data.
 
 ## Demo
 
-![FastHR walkthrough](docs/demo/fasthr-walkthrough.gif)
+![FastHRM walkthrough](docs/demo/fasthr-walkthrough.gif)
 
 **User guide** — [PDF](docs/fasthrm_user_guide_2026-08-04.pdf) ·
 [PPTX](docs/fasthrm_user_guide_2026-08-04.pptx) ·
@@ -70,16 +70,42 @@ docker compose up --build      # http://localhost:5010
   drop in a PDF/DOCX and the model returns a structured profile — identity,
   work history with normalised dates, education, and skills with evidence —
   persisted to the database, not just displayed.
-- **AI Prompts** (`/talent/prompts`) — the CV-extraction guidance, editable in
-  plain English by a recruiter. Versioned and roll-backable; the JSON output
-  contract lives in code, so an edit can never break the parser.
+- **Offers** (`/talent/offers`) — draft, approve, send. **Accepting an offer
+  creates the employee record**: skills carry across from the parsed CV, leave is
+  allocated, and the onboarding checklist starts itself.
+- **Talent analytics** (`/talent/analytics`) — time-to-fill, source
+  effectiveness, days-in-stage and interviewer load.
+- **Goals & OKRs** (`/performance/goals`) — company → team → individual cascade
+  with check-in history and an alignment tree.
+- **Feedback** (`/performance/feedback`) — praise, coaching and peer review,
+  tagged to competencies with per-entry visibility.
+- **Review cycles** (`/performance/reviews`) — opening a cycle generates self and
+  manager reviews for everyone; calibration grid and rating distribution.
+- **Signals** (`/performance/signals`) — advisory attrition and promotion
+  indicators. **Every flag lists the factors behind it** — no unexplained scores.
+- **Lifecycle** (`/lifecycle/…`) — onboarding checklists, effective-dated
+  promotions and transfers with approval, separations with exit interviews and
+  alumni status, confidential employee-relations cases, and an org chart with
+  what-if headcount costing.
+- **Integrations** (`/settings/integrations`) — 13 providers (LinkedIn, Indeed,
+  Greenhouse, Slack, calendars, DocuSign, screening, HRIS). API keys are
+  **encrypted at rest** and shown only as the last four characters.
+- **AI Prompts** (`/talent/prompts`) — the CV-extraction, ranking and offer-letter
+  guidance, editable in plain English by a recruiter. Versioned and
+  roll-backable; the JSON output contract lives in code, so an edit can never
+  break the parser.
 - **AI Assistant** (right rail) — HR Q&A grounded in a live snapshot;
   slash-commands `/headcount`, `/leave`, `/today`, `/payroll` work with **no key**.
+
+> **Two things are deliberately unfinished and say so in the UI:** roles are
+> assigned but **not yet enforced** at the query layer, and integration
+> connectors store and test credentials but do **not** call their providers yet.
+> See [docs/TALENT-PLATFORM-PLAN.md](docs/TALENT-PLATFORM-PLAN.md) §10.
 
 ## Scope
 
 Frappe HR is ~160 doctypes (full payroll engine, recruitment, performance,
-onboarding, expenses, shifts…). FastHR ports the three pillars an HR team touches
+onboarding, expenses, shifts…). FastHRM ports the three pillars an HR team touches
 daily, plus the ATS core; the rest is mapped in
 **[docs/ROADMAP.md](docs/ROADMAP.md)**, and the plan to grow this into a full
 Talent + Performance + Lifecycle platform is in
@@ -91,16 +117,23 @@ Talent + Performance + Lifecycle platform is in
 web_app.py        routes, auth, SSE chat, boot
 db.py             connection helpers, migration runner, people/time/pay reads
 migrations/       numbered SQL, applied in order and recorded in a ledger
-talent.py         ATS data layer — requisitions, candidates, applications, prompts
+talent.py         ATS data layer — requisitions, candidates, interviews, offers, hire
+people.py         performance + lifecycle — goals, feedback, reviews, onboarding, exits
+integrations.py   provider catalogue, encrypted credential store, connection tests
 seed.py           deterministic synthetic org, leave, attendance, payroll
 seed_talent.py    synthetic requisitions, candidates and pipeline (re-runnable)
+seed_platform.py  synthetic interviews, offers, goals, feedback, lifecycle
 web/layout.py     3-pane shell, CSS, chat JS
 web/views.py      dashboard, employees, leave, attendance, payroll renderers
-web/ats.py        requisition, candidate and prompt-manager renderers
+web/ats.py        requisitions, candidates, scorecards, offers, analytics
+web/performance.py goals, feedback, review cycles, signals
+web/lifecycle.py  onboarding, changes, separations, cases, org chart
+web/settings.py   integrations and roles
 web/cv_extract.py CV → text → prompt + contract → structured profile
+web/ranking.py    explainable shortlist ranking + offer-letter drafting
 web/llm.py        Grok via the OpenAI-compatible LangChain client
 web/ai.py         grounded chat + slash-commands
-tests/            migrations + CV extraction (pytest)
+tests/            migrations, CV extraction, hire conversion, integrations (pytest)
 ```
 
 ### CV extraction

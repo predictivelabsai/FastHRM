@@ -1,4 +1,4 @@
-"""FastHR AI — grounded chat + slash-commands over HR data."""
+"""FastHRM AI — grounded chat + slash-commands over HR data."""
 from __future__ import annotations
 
 import json
@@ -24,7 +24,7 @@ def snapshot() -> str:
     return "\n".join(lines)
 
 
-SYSTEM_PROMPT = """You are the FastHR assistant, embedded in an open-source HR system.
+SYSTEM_PROMPT = """You are the FastHRM assistant, embedded in an open-source HR system.
 Help HR and managers with headcount, leave, attendance and payroll questions. Be concise;
 use Markdown (short tables, bold figures). All data is synthetic — never claim it's real.
 Base answers on the HR SNAPSHOT below; if something isn't there, say so."""
@@ -44,7 +44,7 @@ def handle_command(text):
     cmd = parts[0].lower() if parts else ""
     arg = " ".join(parts[1:])
     if cmd in ("help", "?"):
-        return ("**FastHR shortcuts**\n\n- `/headcount` — by department\n- `/leave` — pending requests\n"
+        return ("**FastHRM shortcuts**\n\n- `/headcount` — by department\n- `/leave` — pending requests\n"
                 "- `/today` — who's in / out today\n- `/payroll` — latest run summary\n\nOr ask a question in plain English.")
     if cmd == "headcount":
         return "**Headcount by department**\n\n" + _table(

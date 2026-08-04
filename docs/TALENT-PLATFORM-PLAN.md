@@ -378,16 +378,35 @@ stage `<select>` when unavailable.
 
 ## 10. Phasing
 
-| Slice | Contents | Exit criterion |
+| Slice | Contents | Status |
 |---|---|---|
-| **0** *(this turn)* | Migration runner; ATS core tables; CV extraction (LangChain + xAI); prompt manager; candidate/job UI; seeded pipeline | Upload a PDF CV → structured candidate persisted and rendered |
-| **1** | RBAC + scoping; workflow/audit engine; leave retrofitted onto it; tests | No view issues an unscoped query; leave still works |
-| **2** | AI tool layer; full pipeline kanban; scorecards; LLM ranking with stored rationale | "Show pipeline health for the Berlin req" answers correctly |
-| **3** | Offers + approval + hire→employee conversion; onboarding checklists; candidate + employee portals | A candidate is hired end-to-end without SQL |
-| **4** | Goals/OKRs; continuous feedback; competency framework | A manager runs a check-in cycle |
-| **5** | Review cycles; calibration; signals + explainable risk flags | A quarterly cycle completes |
-| **6** | Lifecycle changes; separation; alumni; cases; org chart + scenarios | Hire → promote → exit → rehire, fully audited |
-| **7** | Integrations, notifications, analytics depth, compliance tooling | — |
+| **0** | Migration runner; ATS core tables; CV extraction (LangChain + xAI); prompt manager; candidate/job UI; seeded pipeline | ✅ **Done** — upload a PDF CV → structured candidate persisted and rendered |
+| **2** | Scorecards + calibration; LLM ranking with stored rationale and bias audit; talent analytics | ✅ **Done** — ranking withholds identity fields and records the exclusion list |
+| **3** | Offers + approval + hire→employee conversion; onboarding checklists | ✅ **Done** — accepting an offer creates the employee, carries skills, allocates leave, starts onboarding |
+| **4** | Goals/OKRs with cascade and check-ins; continuous feedback; competency framework | ✅ **Done** — competencies shared between scorecards and reviews |
+| **5** | Review cycles; calibration grid; explainable signals | ✅ **Done** — every flag carries its contributing factors |
+| **6** | Lifecycle changes; separation; alumni; cases; org chart + scenarios | ✅ **Done** — hire → promote → exit → alumni, fully audited |
+| **7** | Integrations: encrypted credential store, 13 providers, connection tests, audit trail | ✅ **Store done**, live connectors pending (see below) |
+| **1** | **RBAC + row-level scoping**; workflow engine generalised; leave retrofitted | 🔜 **Next — the remaining gap** |
+
+### What is deliberately not finished
+
+Two things are stubbed, and are stubbed *visibly* rather than pretending:
+
+1. **RBAC is stored but not enforced.** `account_roles` exists and `/settings/roles`
+   assigns roles, but no query is scoped by them yet — every signed-in user still
+   sees all data. The roles page says so on the page itself. Enforcement means
+   threading an `Actor` through `_guard()` and every view builder; doing it
+   half-way would be worse than not at all, because it would look enforced.
+2. **Integration connectors do not call their providers.** The credential store,
+   encryption, connection test and audit trail are real; `test_connection` checks
+   what it can locally and says plainly that live calls are not enabled, rather
+   than showing a green tick it has not earned. `sync()` records the attempt and
+   reports that nothing was fetched.
+
+Also outstanding: candidate and employee self-service portals (§F4), the AI tool
+layer (§F5 — the assistant still uses the static snapshot, so the new modules are
+not yet queryable in chat), and notifications.
 
 Near-term roadmap items already listed in `ROADMAP.md` (leave self-service,
 clock-in, org chart, salary structure, holidays/shifts) fold into slices 1, 3
