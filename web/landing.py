@@ -4,6 +4,7 @@ from urllib.parse import quote
 from fasthtml.common import *
 
 from .account_auth import AUTH_CSS, AUTH_JS, auth_modal
+from .seo import seo_meta
 
 ACCENT = "#0891b2"
 TINT = "#ecfeff"
@@ -37,6 +38,7 @@ def landing_page():
         Head(Title("FastHRM · FastSME"), Meta(charset="utf-8"),
              Meta(name="viewport", content="width=device-width, initial-scale=1"),
              Meta(name="description", content="Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead."),
+             *seo_meta(),
              Link(rel="icon", type="image/svg+xml", href=FAVICON),
              Link(rel="preconnect", href="https://fonts.googleapis.com"),
              Link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;750&display=swap"),
