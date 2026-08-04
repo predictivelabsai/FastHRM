@@ -1,4 +1,4 @@
-"""Generate a synthetic FastHR database (deterministic, no PII)."""
+"""Generate a synthetic FastHRM database (deterministic, no PII)."""
 from __future__ import annotations
 
 import random
@@ -155,7 +155,7 @@ def build():
             """INSERT INTO payslips(employee_id,period,gross,tax,pension,other_ded,net,status)
                VALUES (?,?,?,?,?,?,?,?)""", pays)
 
-    print(f"FastHR seeded → {db.DB_PATH}")
+    print(f"FastHRM seeded → {db.DB_PATH}")
     print(f"  {n} employees · {len(DEPTS)} depts · {len(reqs)} leave requests · {len(att)} attendance · {len(pays)} payslips")
 
 

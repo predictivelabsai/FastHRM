@@ -40,3 +40,10 @@ else
 fi
 
 echo "Wrote $OUT ($(du -h "$OUT" | cut -f1))"
+
+# The landing page serves its tour from static/, which the docs/ copy is not
+# reachable from. Publish both from the same build so they cannot drift — that
+# is exactly how the landing page ended up a release behind before.
+LANDING="static/product-demo.gif"
+cp "$OUT" "$LANDING"
+echo "Wrote $LANDING (landing-page product tour)"

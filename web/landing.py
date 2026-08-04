@@ -4,6 +4,7 @@ from urllib.parse import quote
 from fasthtml.common import *
 
 from .account_auth import AUTH_CSS, AUTH_JS, auth_modal
+from .seo import seo_meta
 
 ACCENT = "#0891b2"
 TINT = "#ecfeff"
@@ -32,11 +33,13 @@ CSS = """
 """
 
 def landing_page():
-    features = ['Employee records', 'Leave and attendance', 'Payroll and payslips']
+    features = ['Employee records', 'Leave and attendance', 'Payroll and payslips',
+                'Recruitment and AI CV screening', 'Goals and performance', 'Onboarding to exit']
     return Html(
         Head(Title("FastHRM · FastSME"), Meta(charset="utf-8"),
              Meta(name="viewport", content="width=device-width, initial-scale=1"),
              Meta(name="description", content="Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead."),
+             *seo_meta(),
              Link(rel="icon", type="image/svg+xml", href=FAVICON),
              Link(rel="preconnect", href="https://fonts.googleapis.com"),
              Link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;750&display=swap"),
@@ -52,9 +55,11 @@ def landing_page():
                         Div(Button("Sign In or Register", type="button", onclick="authOpen('login')", cls="lp-primary"),
                             A("Explore the open-source suite →", href="https://fastsme.com/products", cls="lp-secondary"),
                             cls="lp-actions"), cls="lp-hero"),
-                Section(Div(Img(src="/static/product-demo.gif", alt="FastHRM product tour",
-                                loading="eager", width="1854", height="909"),
-                            P("Product tour · see the workspace in action"),
+                Section(Div(Img(src="/static/product-demo.gif",
+                                alt="FastHRM product tour — dashboard, employees, leave, payroll, "
+                                    "recruitment pipeline and AI CV screening",
+                                loading="eager", width="1100", height="689"),
+                            P("Product tour · people, time, pay and hiring in one workspace"),
                             cls="lp-demo-frame"), cls="lp-demo", aria_label="FastHRM product tour"),
                 Section(Div(*[Article(Span(f"0{i}", cls="lp-num"), H2(title),
                                       P("Everything you need for " + title.lower() + ", in one focused workspace."),
