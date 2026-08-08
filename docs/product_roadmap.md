@@ -60,10 +60,16 @@ This roadmap closes the useful product gaps without copying Teamdash’s packagi
 
 ## Public product and developer experience (delivered 2026-08-08)
 
-- [x] Public `/products` catalogue lists every current and planned FastHRM module with a single Free price and unambiguous Available/Coming soon status (2026-08-08).
-- [x] Landing, sitemap, and developer navigation expose the product catalogue without requiring an account (2026-08-08).
+- [x] Public `/features` catalogue lists every current and planned FastHRM module with a single Free price and unambiguous Available/Coming soon status; legacy `/products` permanently redirects to it (2026-08-08).
+- [x] Landing, sitemap, and developer navigation expose the feature catalogue without requiring an account (2026-08-08).
+- [x] Public `/compare` page compares FastHRM with Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo using source-linked price, licence, payroll/global, fit, and limitation fields without review-site ratings (2026-08-08).
+- [x] SEO/AEO discovery includes every canonical public page and published job in `sitemap.xml`, plus Free/open-source Offer metadata, FAQ/ItemList schema, crawler policy, and `llms.txt` (2026-08-08).
 - [x] Regenerated the committed OpenAPI contract and expanded `/developers` with version, pagination, filtering, errors, authentication, and write examples (2026-08-08).
 - [x] Generated a dated FastHRM platform guide in Markdown, PDF, and editable PowerPoint formats (2026-08-08).
+- [x] Released v0.4.0 with one runtime-derived build/version identity in public page footers and the authenticated app shell (2026-08-08).
+- [x] Replaced the stale demo-only `/login` page with Google sign-in, local registration, password reset, and safe return-to-feature routing (2026-08-08).
+- [x] Added persistent per-section sidebar minimisation plus global `<<` / `>>` controls for denser in-app navigation (2026-08-08).
+- [x] Verified the shared Google OAuth/Postmark production path, including every Google-enabled FastSME service callback and a delivered FastHRM password-reset email (2026-08-08).
 
 ## Roadmap/change-log rule
 

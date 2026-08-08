@@ -61,10 +61,13 @@ Employees · Time & pay · Public careers · Recruiting automation · Performanc
 
 ![Sign-in screen](../screenshots/00-login.png)
 
-Go to your FastHRM address and sign in with your work email and password.
+Go to your FastHRM address and continue with Google, or sign in with your work
+email and password. New users can register from the same panel; verified Google
+accounts are created on first sign-in.
 
 Your account decides what you can see once you're in. If you've forgotten your
 password, use the reset link rather than asking a colleague to share theirs.
+After signing in from a feature link, FastHRM returns you to that feature.
 
 The demonstration workspace signs in as `admin@fasthr.example`.
 

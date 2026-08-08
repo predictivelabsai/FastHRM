@@ -2,6 +2,54 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-08-08 — v0.4.0 build identity
+
+### Changed
+
+- Bumped the FastHRM release from v0.3.0 to v0.4.0.
+- Added the runtime-derived version and commit identity to the bottom of every public product page; the authenticated top bar continues to expose the same linked build identity.
+- Replaced the stale demo-only `/login` surface with the shared Google/local account experience, including registration and forgotten-password recovery.
+- Preserved safe same-origin feature destinations through local and Google authentication, so opening Payroll returns to `/payroll` after sign-in.
+- Added persistent collapse controls to every in-app sidebar group, with `<<` / `>>` actions to minimise or expand all sections at once.
+- Regenerated the walkthrough GIF, guide screenshots, and v0.4.0 user-guide/platform-guide PDF and PowerPoint outputs.
+
+### Data and configuration
+
+- No migration or environment configuration is required. Coolify continues to stamp the deployed source commit into the existing build metadata.
+- Audited all 22 FastSME services configured for Google sign-in: every production route and Coolify key is present. The shared GCP OAuth client already covered the fleet except FastVC, whose missing callback was added, bringing the client to 26 authorized redirects.
+- Confirmed FastHRM already uses the same non-empty Postmark token as its sister repositories; no secret was copied into source control or rotated.
+
+### Verification
+
+- Added regression checks for the v0.4.0 release file, public footers, authenticated shell, collapsible navigation, shared `/about` build link, current login surface, and open-redirect rejection.
+- Browser-verified Google sign-in through the FastHRM callback, safe `/payroll` return routing, persistent sidebar collapse state, the GCP callback inventory, and Postmark delivery of a password-reset email.
+
+### Roadmap
+
+- Synchronized the v0.4.0 build-identity delivery in `docs/product_roadmap.md`.
+
+## 2026-08-08 — Features, comparison, and SEO/AEO discovery
+
+### Added
+
+- Renamed the public Products navigation and canonical catalogue to Features at `/features`; `/products` remains as a permanent compatibility redirect.
+- Added `/compare`, a source-linked table covering FastHRM, Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo. The grid highlights Free/open-source status and omits Capterra or other review-site ratings.
+- Added FAQPage and ItemList structured data, explicit zero-price Offer metadata, and `/llms.txt` for answer-engine discovery.
+- Expanded `sitemap.xml` to cover the home, Features, comparison, careers, developer, privacy, and every published job page with page-specific crawl hints.
+
+### Data and configuration
+
+- No migration or environment configuration is required. Comparison prices are dated 2026-08-08 and link directly to official vendor pages.
+
+### Verification
+
+- Added regression checks for the renamed catalogue, comparison vendor set, absence of ratings, canonical URLs, structured data, sitemap coverage, dynamic job discovery, and `llms.txt`.
+- Browser-verified the public navigation, wide comparison grid, internal mobile table scrolling, legacy redirect, and SEO endpoints.
+
+### Roadmap
+
+- Updated the public product/developer-experience section in `docs/product_roadmap.md` with the canonical Features route, comparison page, and SEO/AEO coverage.
+
 ## 2026-08-08 — Public product catalogue, API docs, and platform guide
 
 ### Added

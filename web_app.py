@@ -46,9 +46,9 @@ import recruitment_ecosystem
 import recruitment_enterprise
 import recruiting_ops
 import version
-from web.layout import page, LAYOUT_CSS
+from web.layout import page, LAYOUT_CSS, NAV_ITEMS
 from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings
-from web.landing import landing_page, products_page
+from web.landing import comparison_page, features_page, landing_page
 from web.seo import register_seo_routes
 from web.developer import developer_page
 from web import account_auth, google_auth
@@ -77,9 +77,19 @@ def developers():
     return developer_page()
 
 
+@rt("/features", methods=["GET"])
+def features():
+    return features_page()
+
+
+@rt("/compare", methods=["GET"])
+def compare():
+    return comparison_page()
+
+
 @rt("/products", methods=["GET"])
-def products():
-    return products_page()
+def legacy_products():
+    return RedirectResponse("/features", status_code=308)
 
 
 account_auth.register_fasthtml_routes(rt, app_name="FastHRM", session_key="user", success_path="/")
@@ -97,7 +107,9 @@ def _thread(session):
 
 def _guard(session, active, builder):
     if not _user(session):
-        return RedirectResponse("/login", status_code=303)
+        destinations = {key: href for _, items in NAV_ITEMS for key, _, _, href in items}
+        destination = destinations.get(active, "/")
+        return RedirectResponse(f"/login?next={quote(destination, safe='')}", status_code=303)
     content = builder() if callable(builder) else builder
     if not isinstance(content, tuple):
         content = (content,)
@@ -303,7 +315,7 @@ def _login_card(error="", email=""):
 def get(session):
     if _user(session):
         return RedirectResponse("/", status_code=303)
-    return _login_card()
+    return landing_page(open_auth=True)
 
 
 @rt("/login")
@@ -315,17 +327,24 @@ def post(session, email: str = "", password: str = ""):
 
 
 
+def _safe_auth_destination(value):
+    value = (value or "").strip()
+    return value if value.startswith("/") and not value.startswith("//") else "/"
+
+
 @rt("/auth/google")
-def google_start(session, request):
+def google_start(session, request, next: str = ""):
     if not google_auth.enabled():
         return RedirectResponse("/login?error=Google+sign-in+is+not+configured", status_code=303)
     state = google_auth.new_state()
     session["google_oauth_state"] = state
+    session["google_oauth_next"] = _safe_auth_destination(next)
     return RedirectResponse(google_auth.authorize_url(request, state), status_code=303)
 
 
 @rt("/auth/google/callback")
 def google_callback(session, request, code: str = "", state: str = "", error: str = ""):
+    destination = _safe_auth_destination(session.pop("google_oauth_next", "/"))
     if error or not code or state != session.pop("google_oauth_state", None):
         return RedirectResponse("/login?error=Google+sign-in+failed", status_code=303)
     identity = google_auth.exchange(request, code)
@@ -333,7 +352,7 @@ def google_callback(session, request, code: str = "", state: str = "", error: st
         return RedirectResponse("/login?error=Google+account+is+not+authorised", status_code=303)
     account_auth.accounts.link_google(identity["email"], identity["name"])
     session["user"] = identity["email"]
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(destination, status_code=303)
 
 
 @rt("/logout")

@@ -19,7 +19,25 @@ def _fresh(monkeypatch, **env):
 def test_version_comes_from_the_version_file(fresh_db, monkeypatch):
     v = _fresh(monkeypatch)
     assert v.version() == v.VERSION_FILE.read_text().strip()
-    assert v.version()[0].isdigit()
+    assert v.version() == "0.4.0"
+
+
+def test_authenticated_shell_shows_the_runtime_version(fresh_db, monkeypatch):
+    v = _fresh(monkeypatch, FASTHR_COMMIT="abc1234")
+    from web.layout import topbar
+    rendered = str(topbar("test", "recruiter@example.com"))
+    assert v.label() in rendered
+    assert 'href="/about"' in rendered
+
+
+def test_authenticated_sidebar_sections_are_collapsible(fresh_db):
+    from web.layout import NAV_ITEMS, left_pane
+    rendered = str(left_pane("payroll"))
+    assert rendered.count('class="nav-section"') == len(NAV_ITEMS)
+    assert 'id="nav-collapse-all"' in rendered
+    assert 'id="nav-expand-all"' in rendered
+    assert 'aria-label="Expand or collapse People"' in rendered
+    assert 'href="/payroll"' in rendered
 
 
 def test_env_stamp_wins_over_git(fresh_db, monkeypatch):
@@ -72,3 +90,10 @@ def test_version_file_matches_the_guide_stamp(fresh_db, monkeypatch):
     v = _fresh(monkeypatch)
     script = (v.ROOT / "scripts" / "build_user_guide.sh").read_text()
     assert "VERSION" in script, "the guide build must read the VERSION file"
+
+
+def test_auth_return_paths_cannot_leave_the_site(fresh_db):
+    from web.account_auth import _safe_next
+    assert _safe_next("/payroll") == "/payroll"
+    assert _safe_next("https://example.com") == "/"
+    assert _safe_next("//example.com") == "/"

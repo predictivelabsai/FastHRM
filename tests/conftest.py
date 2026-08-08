@@ -20,6 +20,7 @@ load_dotenv(ROOT / ".env")
 def fresh_db(tmp_path, monkeypatch):
     """A migrated, empty database isolated per test."""
     monkeypatch.setenv("FASTHR_DB", str(tmp_path / "test.sqlite"))
+    monkeypatch.setenv("FASTSME_AUTH_DB", str(tmp_path / "accounts.sqlite"))
     monkeypatch.setenv("FASTHR_UPLOAD_DIR", str(tmp_path / "uploads"))
 
     import db

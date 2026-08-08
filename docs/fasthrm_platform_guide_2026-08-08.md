@@ -26,7 +26,7 @@ Product landscape · Free catalogue · 8 August 2026
 | Available products | **15** |
 | Coming-soon products | **9** |
 | API resources | **12 versioned resources** |
-| Public experiences | Landing · product catalogue · careers · job pages · candidate flows · developer docs |
+| Public experiences | Landing · feature catalogue · comparison · careers · job pages · candidate flows · developer docs |
 | Delivery model | Open-source, self-hostable FastHTML application |
 | Data model | SQLite with five ordered, additive migrations |
 | Quality gate | Automated pytest suite plus Playwright browser verification |
@@ -242,18 +242,18 @@ Product landscape · Free catalogue · 8 August 2026
 
 - **Repository** — implementation, migrations, tests and `README.md`, reviewed 8 August 2026.
 - **Product status** — `docs/product_roadmap.md` and synchronized `docs/change_log.md`.
-- **Public catalogue** — `/products`; every listed product is Free and delivery state is explicit.
+- **Public catalogue** — `/features`; every listed feature is Free and delivery state is explicit.
 - **Developer contract** — `/developers`, `/api/openapi.json`, `/api/docs` and committed `swagger.json`.
 - **Screenshots** — deterministic local seeded environment; no production candidate or employee data.
 - **Boundary** — “Available” means a working FastHRM surface exists; provider-dependent and security-hardening scope is described separately.
 
 ---
 
-## Appendix 01. Product catalogue
+## Appendix 01. Feature catalogue
 
 Available and coming-soon modules share one transparent Free price.
 
-![FastHRM product catalogue](../screenshots/40-products.png)
+![FastHRM feature catalogue](../screenshots/40-products.png)
 
 ---
 

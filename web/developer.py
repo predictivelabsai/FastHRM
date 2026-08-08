@@ -113,7 +113,7 @@ def developer_page():
         Body(
             Nav(
                 A(Span(cls="dev-diamond"), Span("FastHRM Developers"), href="/developers", cls="dev-brand"),
-                Div(A("Products", href="/products", cls="dev-btn"), A("Back to product", href="/", cls="dev-btn"), cls="dev-actions", style="margin:0"),
+                Div(A("Features", href="/features", cls="dev-btn"), A("Compare", href="/compare", cls="dev-btn"), A("Back to product", href="/", cls="dev-btn"), cls="dev-actions", style="margin:0"),
                 cls="dev-public-nav dev-docs",
             ),
             developer_content(),

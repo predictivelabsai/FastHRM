@@ -41,16 +41,30 @@ function authTab(tab){
   document.querySelectorAll('.auth-tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
 }
 function authMessage(id,text,ok=false){const el=document.getElementById(id);el.textContent=text||'';el.classList.toggle('ok',ok)}
+function authNext(){
+  const value=new URLSearchParams(location.search).get('next')||'/';
+  return value.startsWith('/')&&!value.startsWith('//')?value:'/';
+}
 async function authPost(path, formId, msgId){
   authMessage(msgId,'');
-  const response=await fetch(path,{method:'POST',body:new FormData(document.getElementById(formId)),headers:{'Accept':'application/json'}});
+  const body=new FormData(document.getElementById(formId));if(!body.has('next'))body.append('next',authNext());
+  const response=await fetch(path,{method:'POST',body:body,headers:{'Accept':'application/json'}});
   let data={};try{data=await response.json()}catch(e){}
   authMessage(msgId,data.message||data.error||(response.ok?'Done':'Request failed'),response.ok);
   if(response.ok&&data.redirect)setTimeout(()=>location.assign(data.redirect),250);
   return response.ok;
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')authClose()});
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('a.auth-google').forEach(link=>link.href='/auth/google?next='+encodeURIComponent(authNext()));
+});
 """
+
+
+def _safe_next(value, fallback="/"):
+    """Accept same-origin paths only; never turn auth into an open redirect."""
+    value = (value or "").strip()
+    return value if value.startswith("/") and not value.startswith("//") else fallback
 
 
 def auth_modal(app_name: str):
@@ -358,7 +372,7 @@ def register_fasthtml_routes(rt, *, app_name, session_key=None, success_path="/"
         if not account:
             return JSONResponse({"error": "Invalid email, password, or unverified account."}, status_code=401)
         establish_session(sess, account)
-        return JSONResponse({"message": "Signed in.", "redirect": success_path})
+        return JSONResponse({"message": "Signed in.", "redirect": _safe_next(form.get("next"), success_path)})
 
     @rt("/auth/local/forgot", methods=["POST"])
     async def local_forgot(request):
@@ -408,7 +422,7 @@ def register_fastapi_routes(app, *, app_name, session_key=None, success_path="/"
         if not account:
             return JSONResponse({"error": "Invalid email, password, or unverified account."}, status_code=401)
         establish_session(request.session, account)
-        return JSONResponse({"message": "Signed in.", "redirect": success_path})
+        return JSONResponse({"message": "Signed in.", "redirect": _safe_next(form.get("next"), success_path)})
 
     @app.post("/auth/local/forgot")
     async def local_forgot(request):

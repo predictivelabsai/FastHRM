@@ -63,7 +63,7 @@ SHOTS = [
     ("37-workflow.png",                "goto", "/talent/jobs/2/workflow"),
     ("38-careers.png",                 "goto", "/careers"),
     ("39-public-job.png",              "goto", "/jobs/product-designer"),
-    ("40-products.png",                "goto", "/products"),
+    ("40-products.png",                "goto", "/features"),
 ]
 
 # A concise cross-product tour for the README and public landing page. Keeping
@@ -107,6 +107,14 @@ def _settle(page, extra=1100):
     page.wait_for_timeout(extra)
 
 
+def _goto(page, url: str):
+    """Navigate and fail loudly instead of committing an HTTP error screenshot."""
+    response = page.goto(url)
+    if response is not None and not response.ok:
+        raise RuntimeError(f"{url} returned HTTP {response.status}")
+    return response
+
+
 def capture(base_url: str, out_dir: str, only: set[str] | None = None,
             demo_frames_dir: str = ""):
     email = os.getenv("FASTHR_ADMIN_EMAIL", "admin@fasthr.example")
@@ -124,16 +132,21 @@ def capture(base_url: str, out_dir: str, only: set[str] | None = None,
             # tighter viewport: the sign-in card is small, and at full cockpit
             # width it disappears into a field of background colour
             page.set_viewport_size({"width": 900, "height": 620})
-            page.goto(f"{base_url}/login")
+            _goto(page, f"{base_url}/login")
             _settle(page)
             page.screenshot(path=os.path.join(out_dir, login_shot[0]))
             page.set_viewport_size(VIEWPORT)
             print(f"  ✓ {login_shot[0]}")
 
-        page.goto(f"{base_url}/login")
-        page.fill('input[name="email"]', email)
-        page.fill('input[name="password"]', password)
-        page.click('button[type="submit"]')
+        # The public login page now uses the shared account modal. Keep the
+        # deterministic legacy demo account only for local guide capture; the
+        # request context shares its signed session cookie with the page.
+        response = page.request.post(
+            f"{base_url}/login", form={"email": email, "password": password}
+        )
+        if not response.ok:
+            raise RuntimeError(f"demo login failed with HTTP {response.status}")
+        _goto(page, f"{base_url}/")
         page.wait_for_load_state("networkidle")
 
         for fname, kind, target in shots:
@@ -142,17 +155,17 @@ def capture(base_url: str, out_dir: str, only: set[str] | None = None,
             dest = os.path.join(out_dir, fname)
             try:
                 if kind == "goto":
-                    page.goto(f"{base_url}{target}")
+                    _goto(page, f"{base_url}{target}")
                     _settle(page)
                 elif kind == "first_row":
                     # open the first detail link in the table
-                    page.goto(f"{base_url}{target}")
+                    _goto(page, f"{base_url}{target}")
                     _settle(page, 500)
                     page.click("table.tbl tbody tr:first-child a")
                     _settle(page)
                 elif kind == "parsed":
                     # the candidate whose profile came from a real CV parse
-                    page.goto(f"{base_url}{target}")
+                    _goto(page, f"{base_url}{target}")
                     _settle(page, 500)
                     # the CV-parse column shows an "ok" pill on extracted profiles
                     row = page.locator("table.tbl tbody tr").filter(
@@ -163,12 +176,12 @@ def capture(base_url: str, out_dir: str, only: set[str] | None = None,
                         page.click("table.tbl tbody tr:first-child a")
                     _settle(page)
                 elif kind == "upload":
-                    page.goto(f"{base_url}{target}")
+                    _goto(page, f"{base_url}{target}")
                     _settle(page, 500)
                     page.locator(".drop-zone").scroll_into_view_if_needed()
                     page.wait_for_timeout(700)
                 elif kind == "chat":
-                    page.goto(f"{base_url}/")
+                    _goto(page, f"{base_url}/")
                     _settle(page, 600)
                     page.fill("#chat-input", target)
                     page.press("#chat-input", "Enter")

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from fasthtml.common import (
-    Div, H1, H3, H4, P, Span, A, Button, Form, Input, Title, Link, Script, Style, NotStr,
+    Div, H1, H3, H4, P, Span, A, Button, Details, Summary, Form, Input, Title, Link, Script, Style, NotStr,
 )
 
 LAYOUT_CSS = """
@@ -30,7 +30,8 @@ a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
 .ver-pill:hover{color:var(--accent-hover);border-color:var(--accent);text-decoration:none;}
 .topbar .actions{display:flex;gap:10px;align-items:center;}
 .left-pane{grid-area:left;background:var(--surface);border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;}
-.nav-section{margin-bottom:14px;} .nav-section h4{margin:6px 16px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-mute);font-weight:700;}
+.nav-section-controls{display:flex;justify-content:flex-end;gap:6px;padding:0 12px 8px}.nav-section-controls button{min-width:34px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text-mute);font-size:11px;cursor:pointer}.nav-section-controls button:hover{color:var(--accent-hover);border-color:var(--accent)}
+.nav-section{border-bottom:1px solid var(--border)}.nav-section:last-child{border-bottom:0}.nav-section-toggle{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;padding:8px 16px 4px}.nav-section-toggle::-webkit-details-marker{display:none}.nav-section-toggle h4{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-mute);font-weight:700}.nav-section-toggle:hover h4{color:var(--accent-hover)}.nav-section-arrow::after{content:">>";color:var(--text-mute);font-size:10px;font-weight:900}.nav-section[open]>.nav-section-toggle .nav-section-arrow::after{content:"<<"}.nav-section-items{padding-bottom:8px}
 .nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;color:var(--text-dim);cursor:pointer;border-left:3px solid transparent;}
 .nav-item:hover{background:var(--surface-2);color:var(--text);text-decoration:none;}
 .nav-item.active{background:var(--accent-light);color:var(--accent-hover);border-left-color:var(--accent);font-weight:600;}
@@ -228,8 +229,22 @@ def left_pane(active):
     for name, items in NAV_ITEMS:
         links = [A(Span(icon, cls="nav-icon"), Span(label), href=href,
                    cls=f"nav-item {'active' if active == key else ''}") for key, label, icon, href in items]
-        sections.append(Div(H4(name), *links, cls="nav-section"))
-    return Div(*sections, cls="left-pane")
+        sections.append(
+            Details(
+                Summary(H4(name), Span(cls="nav-section-arrow", aria_hidden="true"),
+                        cls="nav-section-toggle", aria_label=f"Expand or collapse {name.title()}"),
+                Div(*links, cls="nav-section-items"),
+                open=True, cls="nav-section", data_section=name.lower(),
+            )
+        )
+    controls = Div(
+        Button("<<", type="button", id="nav-collapse-all", title="Minimise all menu sections",
+               aria_label="Minimise all menu sections"),
+        Button(">>", type="button", id="nav-expand-all", title="Expand all menu sections",
+               aria_label="Expand all menu sections"),
+        cls="nav-section-controls",
+    )
+    return Div(controls, *sections, cls="left-pane")
 
 
 def _sample_cards():
@@ -291,6 +306,16 @@ function toggleExpand(){var app=document.querySelector('.app');if(!app)return;ap
 (function(){try{var app=document.querySelector('.app');if(!app)return;
   if(localStorage.getItem('hrCollapsed')==='1')app.classList.add('right-collapsed');
   else if(localStorage.getItem('hrExpanded')==='1')app.classList.add('right-expanded');}catch(e){}})();
+(function(){
+  var sections=[...document.querySelectorAll('.nav-section')];
+  function key(section){return 'fasthrm:nav:'+section.dataset.section;}
+  function save(section){try{localStorage.setItem(key(section),section.open?'1':'0');}catch(e){}}
+  sections.forEach(function(section){try{var stored=localStorage.getItem(key(section));if(stored!==null)section.open=stored==='1';}catch(e){}
+    section.addEventListener('toggle',function(){save(section);});});
+  var collapse=document.getElementById('nav-collapse-all'),expand=document.getElementById('nav-expand-all');
+  if(collapse)collapse.addEventListener('click',function(){sections.forEach(function(section){section.open=false;save(section);});});
+  if(expand)expand.addEventListener('click',function(){sections.forEach(function(section){section.open=true;save(section);});});
+})();
 document.addEventListener('DOMContentLoaded',_sync);
 function fillChat(t){var el=document.getElementById('chat-input');if(el){el.value=t;el.focus();}}
 function sendMessage(ev){return streamChat(ev);}
