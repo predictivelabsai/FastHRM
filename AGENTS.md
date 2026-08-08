@@ -40,3 +40,7 @@ Treat `docs/product_roadmap.md` and `docs/change_log.md` as a synchronized pair.
 ## Security & Configuration
 
 Never commit `.env`, API keys, uploaded CVs, production databases, or real employee data. Preserve `FASTHR_SECRET`; rotating it invalidates sessions and makes stored integration credentials unreadable. Update `.env.sample` whenever adding configuration.
+
+## Deployment & Production Verification
+
+Use `skills/coolify-cicd/SKILL.md` for deployment work. The active `main` push webhook is the normal Coolify trigger; do not add a duplicate automatic GitHub Action. From this checkout, run `.venv/bin/python scripts/coolify.py status` for a read-only check and `deploy --yes` only when deployment is explicitly authorized. Always match `HEAD`, `origin/main`, Coolify's deployment commit, and production `/healthz`; never claim dirty or unpushed work is live.

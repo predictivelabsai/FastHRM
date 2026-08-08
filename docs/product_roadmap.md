@@ -58,6 +58,13 @@ This roadmap closes the useful product gaps without copying Teamdash’s packagi
 - [x] Video messaging, uploaded asynchronous interviews, configurable AI transcription/summaries, and token-authenticated sourcing-extension intake (2026-08-08).
 - [x] Mapped candidate imports, assisted onboarding plans, email/live-chat/dedicated support records, and configurable SLA reporting (2026-08-08).
 
+## Public product and developer experience (delivered 2026-08-08)
+
+- [x] Public `/products` catalogue lists every current and planned FastHRM module with a single Free price and unambiguous Available/Coming soon status (2026-08-08).
+- [x] Landing, sitemap, and developer navigation expose the product catalogue without requiring an account (2026-08-08).
+- [x] Regenerated the committed OpenAPI contract and expanded `/developers` with version, pagination, filtering, errors, authentication, and write examples (2026-08-08).
+- [x] Generated a dated FastHRM platform guide in Markdown, PDF, and editable PowerPoint formats (2026-08-08).
+
 ## Roadmap/change-log rule
 
 Every roadmap status, scope, or date change must update `docs/change_log.md` in the same commit or pull request. The matching dated entry must name the phase, summarize user-visible behavior, identify migrations/configuration, and record verification. Do not mark `[x]` until implementation and tests are complete.

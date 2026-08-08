@@ -48,7 +48,7 @@ import recruiting_ops
 import version
 from web.layout import page, LAYOUT_CSS
 from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings
-from web.landing import landing_page
+from web.landing import landing_page, products_page
 from web.seo import register_seo_routes
 from web.developer import developer_page
 from web import account_auth, google_auth
@@ -75,6 +75,11 @@ def swagger_schema():
 @rt("/developers", methods=["GET"])
 def developers():
     return developer_page()
+
+
+@rt("/products", methods=["GET"])
+def products():
+    return products_page()
 
 
 account_auth.register_fasthtml_routes(rt, app_name="FastHRM", session_key="user", success_path="/")
@@ -2391,6 +2396,13 @@ def get(session):
 leave balance, recent attendance, and payslips. Departments lists headcount, head and annual payroll.</p></div>
 <div class='card'><h3>Leave & Attendance</h3><p>Leave requests by status, and today's attendance register with a per-status breakdown.</p></div>
 <div class='card'><h3>Payroll</h3><p>Payslips per pay period with a full deductions breakdown on each payslip.</p></div>
+<div class='card'><h3>Public Careers & Job Pages</h3><p>Author, preview and publish role specifications as shareable
+sub-pages. Candidate applications, form answers and consent flow directly into the matching requisition.</p></div>
+<div class='card'><h3>Recruiting Platform</h3><p>Use Operations for projects, tasks and talent pools; Communications for
+mailboxes, templates, automations and privacy; Scheduling for interview availability; Marketing for job boards and campaigns;
+Analytics for conversion reporting; and Enterprise for brands, identity, screening, video and service controls.</p></div>
+<div class='card'><h3>Performance & Lifecycle</h3><p>Manage goals, feedback, reviews and explainable signals, then coordinate
+onboarding, internal changes, separations, employee-relations cases and the organisation chart.</p></div>
 <div class='card'><h3>AI Assistant</h3><p>The right rail chats over a live HR snapshot. Set <code>MODEL_PROVIDER</code> + a key in
 <code>.env</code> for free-form chat; slash-commands always work.</p></div>""")))
     return _guard(session, "guide", body)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "FastHRM Coolify CI/CD"
+  short_description: "Deploy and verify FastHRM on Coolify"
+  default_prompt: "Use $coolify-cicd to inspect or operate this FastHRM deployment safely."

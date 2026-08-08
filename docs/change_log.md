@@ -2,6 +2,29 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-08-08 — Public product catalogue, API docs, and platform guide
+
+### Added
+
+- Added a public `/products` catalogue covering shipped and planned FastHRM modules. Every card displays Free pricing; incomplete scope is explicitly labelled Coming soon.
+- Added product navigation to the landing and developer pages, and `/products` to the public sitemap.
+- Expanded `/developers` with the v1 contract, pagination, filtering, structured errors, bearer-token writes, and executable examples.
+- Added `docs/fasthrm_platform_guide_2026-08-08` in Markdown, PDF, and editable PowerPoint formats.
+
+### Data and configuration
+
+- No migration or new runtime configuration is required. The API access model remains public reads plus optional `FASTSME_API_TOKEN`-gated writes.
+- Regenerated `swagger.json` from the running FastAPI schema and added a reproducible generation command.
+
+### Verification
+
+- Added regression coverage for product pricing/status, landing navigation, developer documentation, and exact committed/runtime OpenAPI parity.
+- Browser-checked the product catalogue and developer documentation at desktop and mobile widths; visually inspected the generated PDF and PowerPoint.
+
+### Roadmap
+
+- Added and completed the public product/developer-experience section. Phase 0 security-foundation work remains open and the product catalogue labels it Coming soon.
+
 ## 2026-08-08 — Phases 2–5: recruiting platform completion
 
 ### Added

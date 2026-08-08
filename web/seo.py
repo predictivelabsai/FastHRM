@@ -12,8 +12,8 @@ PRODUCT = 'FastHRM'
 BASE_URL = 'https://hrm.fastsme.com'
 DESCRIPTION = 'Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead.'
 KEYWORDS = ('FastHRM', 'open source people operations', 'people operations software', 'SME people operations', 'Employee records', 'Leave and attendance', 'Payroll and payslips', 'FastSME', 'open source business software')
-FEATURES = ('Employee records', 'Leave and attendance', 'Payroll and payslips')
-SITEMAP_PATHS = ('/', '/careers', '/developers')
+FEATURES = ('Employee records', 'Leave and attendance', 'Payroll and payslips', 'Recruiting ATS', 'Performance management', 'Employee lifecycle')
+SITEMAP_PATHS = ('/', '/products', '/careers', '/developers')
 
 
 def seo_meta(

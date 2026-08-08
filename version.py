@@ -2,11 +2,10 @@
 
 Resolution order, most to least trustworthy:
 
-1. ``FASTHR_COMMIT`` / ``FASTHR_BUILD_DATE`` env vars, stamped at image build.
-   This is the only source that works in a deployed container, which has no
-   git history.
-2. ``git`` in the working tree, for local development.
-3. Nothing — reported as "unknown", never guessed.
+1. Coolify's ``SOURCE_COMMIT`` runtime value.
+2. ``FASTHR_COMMIT`` / ``FASTHR_BUILD_DATE`` values stamped by a manual deploy.
+3. ``git`` in the working tree, for local development.
+4. Nothing — reported as "unknown", never guessed.
 
 The version number itself comes from the VERSION file, which is also what
 scripts/build_user_guide.sh stamps into the guide footer, so the docs and the
@@ -42,16 +41,24 @@ def _git(*args: str) -> str:
 
 @lru_cache(maxsize=1)
 def commit() -> str:
-    return (os.getenv("FASTHR_COMMIT") or _git("rev-parse", "--short", "HEAD") or "")[:12]
+    return (os.getenv("SOURCE_COMMIT") or os.getenv("FASTHR_COMMIT")
+            or _git("rev-parse", "--short", "HEAD") or "")[:12]
 
 
 @lru_cache(maxsize=1)
 def branch() -> str:
-    return os.getenv("FASTHR_BRANCH") or _git("rev-parse", "--abbrev-ref", "HEAD") or ""
+    return (os.getenv("COOLIFY_BRANCH") or os.getenv("FASTHR_BRANCH")
+            or _git("rev-parse", "--abbrev-ref", "HEAD") or "")
 
 
 @lru_cache(maxsize=1)
 def build_date() -> str:
+    # A webhook deployment may leave an older manual stamp in the environment.
+    # Do not pair that date with Coolify's newer authoritative source commit.
+    source_commit = os.getenv("SOURCE_COMMIT")
+    stamped_commit = os.getenv("FASTHR_COMMIT")
+    if source_commit and stamped_commit and source_commit[:12] != stamped_commit[:12]:
+        return ""
     return (os.getenv("FASTHR_BUILD_DATE")
             or _git("log", "-1", "--format=%cd", "--date=short") or "")
 
@@ -59,7 +66,7 @@ def build_date() -> str:
 @lru_cache(maxsize=1)
 def dirty() -> bool:
     """True when the working tree has uncommitted changes — dev builds only."""
-    if os.getenv("FASTHR_COMMIT"):
+    if os.getenv("SOURCE_COMMIT") or os.getenv("FASTHR_COMMIT"):
         return False  # a stamped image is by definition a clean build
     return bool(_git("status", "--porcelain"))
 

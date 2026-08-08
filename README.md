@@ -19,15 +19,23 @@ assistant grounded in the live (synthetic) data.
 
 ![FastHRM walkthrough](docs/demo/fasthr-walkthrough.gif)
 
-**User guide** — [PDF](docs/fasthrm_user_guide_2026-08-04.pdf) ·
-[PPTX](docs/fasthrm_user_guide_2026-08-04.pptx) ·
-[markdown](docs/fasthrm_user_guide_2026-08-04.md). Screenshots live in
+**User guide** — [PDF](docs/fasthrm_user_guide_2026-08-08.pdf) ·
+[PPTX](docs/fasthrm_user_guide_2026-08-08.pptx) ·
+[markdown](docs/fasthrm_user_guide_2026-08-08.md). Screenshots live in
 [`screenshots/`](screenshots/); regenerate everything with:
 
+**Platform guide** — [PDF](docs/fasthrm_platform_guide_2026-08-08.pdf) ·
+[PPTX](docs/fasthrm_platform_guide_2026-08-08.pptx) ·
+[markdown](docs/fasthrm_platform_guide_2026-08-08.md).
+
 ```bash
-DEMO_BASE_URL=http://localhost:5010 .venv/bin/python scripts/capture_guide_screenshots.py
+DEMO_BASE_URL=http://localhost:5010 .venv/bin/python scripts/capture_guide_screenshots.py \
+  --demo-frames docs/demo/frames
 bash scripts/build_demo_gif.sh      # README walkthrough GIF
 bash scripts/build_user_guide.sh    # PDF + PPTX
+.venv/bin/python scripts/generate_api_docs.py  # swagger.json
+.venv/bin/python scripts/build_pptx.py docs/fasthrm_platform_guide_2026-08-08.md \
+  docs/fasthrm_platform_guide_2026-08-08.pptx "FastHRM Platform Guide"
 ```
 
 ## Quickstart (native)
@@ -66,6 +74,12 @@ docker compose up --build      # http://localhost:5010
   deductions breakdown.
 - **Requisitions** (`/talent/jobs`) — open roles with a live pipeline: stage
   counts, applicant list, and one-click stage moves (every move audited).
+- **Public careers** (`/careers`, `/jobs/<slug>`) — branded role sub-pages,
+  application forms, consent capture, preview, publishing and scheduled closure.
+- **Recruiting platform** (`/talent/platform`) — project workflows, recruiter
+  tasks, talent CRM, communications and automation, self-scheduling, job-board
+  connectors, campaigns, attribution analytics, multi-brand sites, SSO/SCIM,
+  AI screening, video interviews, imports and service controls.
 - **Candidates** (`/talent/candidates`) — talent pool with **AI CV extraction**:
   drop in a PDF/DOCX and the model returns a structured profile — identity,
   work history with normalised dates, education, and skills with evidence —
@@ -122,6 +136,11 @@ web_app.py        routes, auth, SSE chat, boot
 db.py             connection helpers, migration runner, people/time/pay reads
 migrations/       numbered SQL, applied in order and recorded in a ledger
 talent.py         ATS data layer — requisitions, candidates, interviews, offers, hire
+recruitment.py    job authoring, careers publishing, applications and consent
+recruiting_ops.py projects, workflows, talent CRM, forms, tasks and approvals
+recruitment_communications.py mailboxes, templates, automation, portals and privacy
+recruitment_ecosystem.py scheduling, connectors, campaigns and analytics
+recruitment_enterprise.py brands, identity, AI screening, video, imports and SLAs
 people.py         performance + lifecycle — goals, feedback, reviews, onboarding, exits
 integrations.py   provider catalogue, encrypted credential store, connection tests
 seed.py           deterministic synthetic org, leave, attendance, payroll
@@ -130,6 +149,8 @@ seed_platform.py  synthetic interviews, offers, goals, feedback, lifecycle
 web/layout.py     3-pane shell, CSS, chat JS
 web/views.py      dashboard, employees, leave, attendance, payroll renderers
 web/ats.py        requisitions, candidates, scorecards, offers, analytics
+web/careers.py    public careers site, job sub-pages and application experience
+web/recruiting_platform.py recruiter operations and enterprise control centre
 web/performance.py goals, feedback, review cycles, signals
 web/lifecycle.py  onboarding, changes, separations, cases, org chart
 web/settings.py   integrations and roles

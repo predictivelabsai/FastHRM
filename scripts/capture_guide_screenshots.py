@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import sys
 
 from playwright.sync_api import sync_playwright
@@ -53,6 +54,48 @@ SHOTS = [
     ("28-prompts.png",      "goto",      "/talent/prompts"),
     ("29-ai.png",           "chat",      "Which department is biggest?"),
     ("30-developers.png",   "goto",      "/developers"),
+    ("31-platform-operations.png",     "goto", "/talent/platform?section=operations"),
+    ("32-platform-communications.png", "goto", "/talent/platform?section=communications"),
+    ("33-platform-scheduling.png",     "goto", "/talent/platform?section=scheduling"),
+    ("34-platform-marketing.png",      "goto", "/talent/platform?section=marketing"),
+    ("35-platform-analytics.png",      "goto", "/talent/platform?section=analytics"),
+    ("36-platform-enterprise.png",     "goto", "/talent/platform?section=enterprise"),
+    ("37-workflow.png",                "goto", "/talent/jobs/2/workflow"),
+    ("38-careers.png",                 "goto", "/careers"),
+    ("39-public-job.png",              "goto", "/jobs/product-designer"),
+    ("40-products.png",                "goto", "/products"),
+]
+
+# A concise cross-product tour for the README and public landing page. Keeping
+# this manifest beside SHOTS makes the generated GIF deterministic and prevents
+# guide-only screens from making the public walkthrough too long.
+DEMO_FRAMES = [
+    ("01-dashboard.png", "01-dashboard.png"),
+    ("02-employees.png", "02-employees.png"),
+    ("05-leave.png", "03-leave.png"),
+    ("07-payroll.png", "04-payroll.png"),
+    ("38-careers.png", "05-careers.png"),
+    ("39-public-job.png", "06-public-job.png"),
+    ("09-requisitions.png", "07-requisitions.png"),
+    ("37-workflow.png", "08-workflow.png"),
+    ("31-platform-operations.png", "09-recruiting-operations.png"),
+    ("32-platform-communications.png", "10-communications.png"),
+    ("33-platform-scheduling.png", "11-scheduling.png"),
+    ("34-platform-marketing.png", "12-marketing.png"),
+    ("35-platform-analytics.png", "13-recruiting-analytics.png"),
+    ("36-platform-enterprise.png", "14-enterprise.png"),
+    ("12-candidate.png", "15-candidate.png"),
+    ("14-offers.png", "16-offers.png"),
+    ("16-goals.png", "17-goals.png"),
+    ("21-onboarding.png", "18-onboarding.png"),
+    ("29-ai.png", "19-ai-assistant.png"),
+]
+LEGACY_DEMO_FRAMES = [
+    "hr-01-dashboard.png", "hr-02-employees.png", "hr-03-leave.png",
+    "hr-04-payroll.png", "hr-05-requisitions.png", "hr-06-pipeline.png",
+    "hr-07-candidate.png", "hr-08-upload.png", "hr-09-offers.png",
+    "hr-10-goals.png", "hr-11-signals.png", "hr-12-onboarding.png",
+    "hr-13-org.png", "hr-14-integrations.png", "hr-15-ai.png",
 ]
 
 
@@ -64,7 +107,8 @@ def _settle(page, extra=1100):
     page.wait_for_timeout(extra)
 
 
-def capture(base_url: str, out_dir: str, only: set[str] | None = None):
+def capture(base_url: str, out_dir: str, only: set[str] | None = None,
+            demo_frames_dir: str = ""):
     email = os.getenv("FASTHR_ADMIN_EMAIL", "admin@fasthr.example")
     password = os.getenv("FASTHR_ADMIN_PASSWORD", "FastHR2026$")
     os.makedirs(out_dir, exist_ok=True)
@@ -136,12 +180,28 @@ def capture(base_url: str, out_dir: str, only: set[str] | None = None):
         browser.close()
     print(f"✓ Saved screenshots to {out_dir}")
 
+    if demo_frames_dir:
+        os.makedirs(demo_frames_dir, exist_ok=True)
+        generated_names = [target for _, target in DEMO_FRAMES]
+        for name in [*generated_names, *LEGACY_DEMO_FRAMES]:
+            path = os.path.join(demo_frames_dir, name)
+            if os.path.isfile(path):
+                os.unlink(path)
+        for source, target in DEMO_FRAMES:
+            source_path = os.path.join(out_dir, source)
+            if not os.path.exists(source_path):
+                raise FileNotFoundError(f"Demo source screenshot missing: {source_path}")
+            shutil.copy2(source_path, os.path.join(demo_frames_dir, target))
+        print(f"✓ Published {len(DEMO_FRAMES)} demo frames to {demo_frames_dir}")
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--base-url", default=os.getenv("DEMO_BASE_URL", "http://localhost:5010"))
     ap.add_argument("--out", default="screenshots")
     ap.add_argument("--only", default="", help="comma-separated filenames to (re)capture")
+    ap.add_argument("--demo-frames", default="",
+                    help="replace this directory with the curated README/landing GIF frames")
     a = ap.parse_args()
     only = {s.strip() for s in a.only.split(",") if s.strip()} or None
-    capture(a.base_url.rstrip("/"), a.out, only)
+    capture(a.base_url.rstrip("/"), a.out, only, a.demo_frames)

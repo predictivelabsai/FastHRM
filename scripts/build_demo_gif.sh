@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Build the animated demo GIF from per-screen PNG frames.
 #
-# Capture frames first (e.g. via Playwright MCP) into docs/demo/frames/ named
-# in display order: 01-dashboard.png, 02-deals.png, …  Then run this script.
+# Capture the guide screenshots and curated frame set first, then run this script:
 #
+#   DEMO_BASE_URL=http://localhost:5010 .venv/bin/python \
+#     scripts/capture_guide_screenshots.py --demo-frames docs/demo/frames
 #   bash scripts/build_demo_gif.sh
 #
 # Output: docs/demo/fasthr-walkthrough.gif  (1 frame ≈ 1.6s, looping)

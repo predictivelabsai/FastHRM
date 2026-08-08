@@ -6,7 +6,8 @@ import importlib
 
 def _fresh(monkeypatch, **env):
     """Reload version.py with a controlled environment (its lookups are cached)."""
-    for k in ("FASTHR_COMMIT", "FASTHR_BRANCH", "FASTHR_BUILD_DATE"):
+    for k in ("SOURCE_COMMIT", "COOLIFY_BRANCH", "FASTHR_COMMIT",
+              "FASTHR_BRANCH", "FASTHR_BUILD_DATE"):
         monkeypatch.delenv(k, raising=False)
     for k, v in env.items():
         monkeypatch.setenv(k, v)
@@ -35,6 +36,16 @@ def test_stamped_build_is_never_marked_dirty(fresh_db, monkeypatch):
     v = _fresh(monkeypatch, FASTHR_COMMIT="deadbeef99")
     assert v.dirty() is False
     assert "+" not in v.label()
+
+
+def test_coolify_source_commit_wins_over_stale_manual_stamp(fresh_db, monkeypatch):
+    v = _fresh(monkeypatch, SOURCE_COMMIT="2cebf26a2501088cc3c5487b2481d627933c4504",
+               COOLIFY_BRANCH="main", FASTHR_COMMIT="9ad138f",
+               FASTHR_BUILD_DATE="2026-08-04")
+    assert v.commit() == "2cebf26a2501"
+    assert v.branch() == "main"
+    assert v.build_date() == ""
+    assert v.dirty() is False
 
 
 def test_unknown_provenance_says_so(fresh_db, monkeypatch):
