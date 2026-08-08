@@ -8,11 +8,20 @@ def test_applies_all_migrations_to_empty_db(fresh_db):
     versions = [r["version"] for r in fresh_db.rows("SELECT version FROM schema_migrations ORDER BY version")]
     assert "0001_baseline" in versions
     assert "0002_ats_core" in versions
+    assert "0004_recruitment_publishing" in versions
+    assert "0005_recruitment_platform" in versions
 
     tables = {r["name"] for r in fresh_db.rows("SELECT name FROM sqlite_master WHERE type='table'")}
     for t in ("employees", "leave_requests", "payslips",          # baseline
               "job_openings", "candidates", "applications",        # ATS
-              "candidate_skills", "extraction_runs", "prompts", "lifecycle_events"):
+              "candidate_skills", "extraction_runs", "prompts", "lifecycle_events",
+              "career_sites", "job_postings", "job_posting_versions",
+              "application_answers", "candidate_consents",
+              "recruitment_projects", "candidate_comments", "candidate_pools", "communication_messages",
+              "application_forms", "publication_schedules", "internal_job_posts",
+              "automation_rules", "scheduling_links", "job_board_posts",
+              "recruitment_analytics_events", "organizations", "identity_providers",
+              "ai_screening_profiles", "video_interview_invitations"):
         assert t in tables, f"{t} missing after migration"
 
 

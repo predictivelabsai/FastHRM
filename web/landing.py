@@ -46,7 +46,8 @@ def landing_page():
              Style(CSS + AUTH_CSS)),
         Body(
             Nav(A(Span("F", cls="lp-mark"), Span("FastHRM"), href="/", cls="lp-brand"),
-                Div(A("Developers", href="/developers", cls="lp-nav-link"),
+                Div(A("Careers", href="/careers", cls="lp-nav-link"),
+                    A("Developers", href="/developers", cls="lp-nav-link"),
                     Button("Sign In", type="button", onclick="authOpen('login')", cls="lp-signin"),
                     cls="lp-nav-actions"), cls="lp-nav"),
             Main(

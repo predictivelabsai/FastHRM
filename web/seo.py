@@ -6,12 +6,14 @@ import json
 from fasthtml.common import Link, Meta, NotStr, Script
 from starlette.responses import Response
 
+import recruitment
+
 PRODUCT = 'FastHRM'
 BASE_URL = 'https://hrm.fastsme.com'
 DESCRIPTION = 'Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead.'
 KEYWORDS = ('FastHRM', 'open source people operations', 'people operations software', 'SME people operations', 'Employee records', 'Leave and attendance', 'Payroll and payslips', 'FastSME', 'open source business software')
 FEATURES = ('Employee records', 'Leave and attendance', 'Payroll and payslips')
-SITEMAP_PATHS = ('/', '/developers')
+SITEMAP_PATHS = ('/', '/careers', '/developers')
 
 
 def seo_meta(
@@ -57,9 +59,10 @@ def seo_meta(
 
 
 async def sitemap():
+    paths = [*SITEMAP_PATHS, *(f"/jobs/{job['slug']}" for job in recruitment.public_jobs())]
     urls = "\n".join(
         f'  <url><loc>{BASE_URL}{path}</loc><changefreq>{"weekly" if path == "/" else "monthly"}</changefreq><priority>{"1.0" if path == "/" else "0.6"}</priority></url>'
-        for path in SITEMAP_PATHS
+        for path in paths
     )
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

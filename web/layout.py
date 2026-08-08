@@ -169,6 +169,15 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .factors{margin:4px 0 0;padding-left:16px;font-size:11.8px;color:var(--text-dim);line-height:1.5;}
 .score-cell{font-variant-numeric:tabular-nums;font-weight:700;}
 .heat{display:inline-block;min-width:34px;text-align:center;border-radius:5px;padding:2px 6px;font-weight:700;font-size:12px;}
+
+/* --- recruiting platform --- */
+.pipeline-board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:12px;overflow-x:auto;padding-bottom:12px;margin-bottom:14px;}
+.pipeline-col{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px;min-height:260px;}
+.pipeline-col h4{margin:2px 2px 10px;}.pipeline-drop{min-height:220px;display:grid;align-content:start;gap:8px;}
+.pipeline-card{display:grid;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:grab;box-shadow:var(--shadow);}
+.pipeline-card:active{cursor:grabbing}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
+.note{border-left:3px solid var(--accent);padding:7px 10px;background:var(--surface-2);border-radius:0 7px 7px 0;}
+.slot{display:inline-flex;margin:5px}.public-card,.campaign-public{max-width:760px;margin:60px auto;padding:32px;border:1px solid var(--border);border-radius:16px;background:var(--surface);}
 """
 
 NAV_ITEMS = [
@@ -177,7 +186,8 @@ NAV_ITEMS = [
                 ("departments", "Departments", "🏢", "/departments")]),
     ("TIME", [("leave", "Leave", "🌴", "/leave"), ("attendance", "Attendance", "🕘", "/attendance")]),
     ("PAY", [("payroll", "Payroll", "💷", "/payroll")]),
-    ("TALENT", [("jobs", "Requisitions", "📌", "/talent/jobs"),
+    ("TALENT", [("platform", "Recruiting platform", "🧭", "/talent/platform"),
+                ("jobs", "Requisitions", "📌", "/talent/jobs"),
                 ("candidates", "Candidates", "🎯", "/talent/candidates"),
                 ("offers", "Offers", "📨", "/talent/offers"),
                 ("talent-analytics", "Analytics", "📈", "/talent/analytics")]),

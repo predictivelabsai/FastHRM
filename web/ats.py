@@ -13,6 +13,8 @@ from fasthtml.common import (
 )
 
 import db
+import recruitment
+import recruiting_ops
 import talent
 from web.layout import kpi_card, money
 from web.views import _pill, _title, _initials
@@ -51,7 +53,10 @@ def jobs_list(status="All"):
             Td(_pill(j["status"])))
             for j in js] or [Tr(Td("No requisitions.", colspan="9"))]), cls="tbl")
     return (
-        _title("Requisitions", f"{len(js)} shown — synthetic demo pipeline"),
+        _title("Requisitions", f"{len(js)} shown — synthetic demo pipeline",
+               Div(A("Careers site", href="/talent/careers", cls="btn"),
+                   A("New job", href="/talent/jobs/new", cls="btn primary"),
+                   style="display:flex;gap:6px;")),
         Div(kpi_card("Open reqs", k["open_reqs"], f"{k['open_headcount']} seats to fill"),
             kpi_card("Active applications", k["active_applications"], f"{k['in_process']} past first screen"),
             kpi_card("Candidates", k["candidates"], f"{k['parsed']} CVs parsed"),
@@ -76,6 +81,7 @@ def job_detail(job_id, stage="All"):
     if not j:
         return _title("Requisition not found"), P("No such requisition.")
 
+    posting = recruitment.ensure_posting(job_id)
     detail = Div(Div(H3("Requisition"), cls="card-header"),
                  Div(Span("Code", cls="k"), Span(j["code"] or "—"),
                      Span("Department", cls="k"), Span(j["dept"] or "—"),
@@ -89,9 +95,14 @@ def job_detail(job_id, stage="All"):
                      cls="kv"), cls="card")
 
     return (_title(j["title"], f"{j['code']} · {j['dept'] or '—'} · {j['status']}",
-                   Div(A("Calibration", href=f"/talent/jobs/{job_id}/calibration", cls="btn"),
+                   Div(_pill(posting["publication_status"]),
+                       A("Public page", href=f"/jobs/{posting['slug']}", target="_blank", cls="btn")
+                       if posting["publication_status"] == "Published" else None,
+                       A("Preview", href=f"/talent/jobs/{job_id}/preview", target="_blank", cls="btn"),
+                       A("Edit job", href=f"/talent/jobs/{job_id}/edit", cls="btn primary"),
+                       A("Calibration", href=f"/talent/jobs/{job_id}/calibration", cls="btn"),
                        A("← Requisitions", href="/talent/jobs", cls="btn"),
-                       style="display:flex;gap:6px;")),
+                       style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;")),
             Div(job_main(job_id, stage), id="job-main"),
             Div(ranking_panel(job_id), id="rank-panel"),
             detail)
@@ -201,12 +212,15 @@ def extraction_status(cid: int, *, poll: bool = True):
 
 # ---------- candidates ------------------------------------------------------
 
-def candidates_list(q="", status="All"):
-    cs = talent.candidates(q, status)
+def candidates_list(q="", status="All", *, location="", tag="", skill=""):
+    cs = recruiting_ops.search_candidates(q, status=status, location=location, tag=tag, skill=skill)
     seg = Div(*[A(s, href=f"/talent/candidates?status={s}", cls="active" if status == s else "")
                 for s in ["All", "Active", "Hired", "Archived"]], cls="seg")
     search = Form(Input(type="search", name="q", value=q,
-                        placeholder="Search name, email, title, employer…"),
+                        placeholder="Search profile, CV, custom field or email…"),
+                  Input(name="location", value=location, placeholder="Location"),
+                  Input(name="tag", value=tag, placeholder="Tag"),
+                  Input(name="skill", value=skill, placeholder="Skill"),
                   Input(type="hidden", name="status", value=status),
                   cls="toolbar", method="get", action="/talent/candidates")
     rows = []
@@ -294,7 +308,7 @@ def candidate_detail(cid: int):
 
     docs = Div(Div(H3("Documents & extraction"), cls="card-header"),
                Table(Thead(Tr(Th("File"), Th("Kind"), Th("Size", cls="num"), Th("Uploaded"))),
-                     Tbody(*[Tr(Td(d["file_name"]), Td(_pill(d["kind"])),
+                     Tbody(*[Tr(Td(A(d["file_name"], href=f"/talent/documents/{d['id']}")), Td(_pill(d["kind"])),
                                 Td(f"{(d['bytes'] or 0) / 1024:.0f} kB", cls="num"),
                                 Td(d["uploaded_on"] or "—", style="color:var(--text-mute);"))
                              for d in p["documents"]] or [Tr(Td("No documents.", colspan="4"))]), cls="tbl"),
