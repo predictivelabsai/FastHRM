@@ -15,6 +15,14 @@ FAVICON = "data:image/svg+xml," + quote(
     safe="",
 )
 
+PARTNERS = (
+    ("SAASPASS", "https://saaspass.com/", "https://saaspass.com/_next/static/assets/0176aeff921f6359fee88e796be31ace.png", "Full-stack identity and access management spanning MFA, SSO, passwordless access and integration APIs."),
+    ("Sixty Four", "https://sixtyfour.ee/", "https://sixtyfour.ee/favicon.ico", "A senior Tallinn technology studio delivering software, AI consultancy, service design and public-sector programmes."),
+    ("EDI Labs", "https://edilabs.tech/", "https://edilabs.tech/static/favicon.svg", "AI and data engineering for document intelligence, forecasting, geospatial systems and agentic workflows."),
+    ("Predictive Labs", "https://predictivelabs.ai/", "https://predictivelabs.ai/static/favicon.svg", "Auditable AI systems for health, defence, public management, mobility and financial services."),
+    ("Consistente", "https://consistente.tech/", "https://consistente.tech/static/favicon.svg", "Enterprise AI delivery across financial services, healthcare, the public sector and technology."),
+)
+
 CSS = """
 :root{--accent:#0891b2;--tint:#ecfeff;--ink:#111827;--muted:#667085;--line:#e7eaf0}
 *{box-sizing:border-box} body{margin:0;background:#fff;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}
@@ -29,13 +37,15 @@ CSS = """
 .lp-demo img{display:block;width:100%;height:auto;border-radius:14px;background:var(--tint)} .lp-demo p{margin:13px 0 2px;text-align:center;color:var(--muted);font-size:13px}
 .lp-band{background:var(--tint);border-block:1px solid color-mix(in srgb,var(--accent) 15%,white)} .lp-grid{max-width:1180px;margin:auto;padding:64px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .lp-card{background:rgba(255,255,255,.82);border:1px solid color-mix(in srgb,var(--accent) 15%,white);border-radius:20px;padding:26px} .lp-num{color:var(--accent);font-size:12px;font-weight:750} .lp-card h2{font-size:20px;margin:24px 0 8px} .lp-card p{color:var(--muted);line-height:1.6;margin:0}
+.lp-partners{max-width:1180px;margin:auto;padding:72px 24px;scroll-margin-top:80px}.lp-partners-head{max-width:720px}.lp-partners-head h2{font-size:32px;letter-spacing:-.03em;margin:10px 0 12px}.lp-partners-head p{color:var(--muted);line-height:1.65;margin:0}.lp-partner-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:32px}.lp-partner{min-width:0;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:18px;padding:20px;background:#fff;transition:transform .18s,border-color .18s,box-shadow .18s}.lp-partner:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 40%,white);box-shadow:0 14px 34px rgba(17,24,39,.08)}.lp-partner-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.lp-partner-logo{width:46px;height:46px;object-fit:contain}.lp-partner-type{color:var(--accent);font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.1em;text-align:right}.lp-partner h3{font-size:18px;margin:18px 0 8px}.lp-partner p{color:var(--muted);font-size:13px;line-height:1.55;margin:0}.lp-partner-visit{display:block;color:var(--accent);font-size:12px;font-weight:700;margin-top:16px}
 .lp-developers{max-width:1180px;margin:auto;padding:72px 24px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:32px} .lp-developers h2{font-size:32px;letter-spacing:-.03em;margin:8px 0 12px} .lp-developers p{color:var(--muted);line-height:1.65;max-width:680px;margin:0}
 .lp-footer{max-width:1180px;margin:auto;padding:30px 24px 48px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:20px}.lp-footer-links{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.lp-footer a{color:var(--accent);text-decoration:none}.lp-footer .lp-version{color:var(--muted)}.lp-footer .lp-version:hover{color:var(--accent)}
 .pc-hero{max-width:1180px;margin:auto;padding:82px 24px 44px}.pc-hero h1{font-size:clamp(40px,6vw,68px);line-height:1.04;letter-spacing:-.05em;max-width:900px;margin:20px 0}.pc-summary{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}.pc-chip{border:1px solid var(--line);border-radius:999px;padding:9px 14px;color:var(--muted);font-size:13px;font-weight:650}.pc-chip strong{color:var(--accent)}
 .pc-section{max-width:1180px;margin:auto;padding:24px 24px 66px}.pc-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:22px}.pc-heading h2{font-size:30px;letter-spacing:-.035em;margin:0}.pc-heading p{color:var(--muted);margin:0;max-width:560px;line-height:1.55}.pc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.pc-card{border:1px solid var(--line);border-radius:18px;padding:22px;background:white;display:flex;flex-direction:column;min-height:218px}.pc-card.soon{background:#f8fafc}.pc-meta{display:flex;justify-content:space-between;align-items:center;gap:8px}.pc-status,.pc-price{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;border-radius:999px;padding:6px 9px}.pc-status{color:#047857;background:#ecfdf5}.pc-card.soon .pc-status{color:#92400e;background:#fffbeb}.pc-price{color:var(--accent);background:var(--tint)}.pc-card h3{font-size:19px;margin:25px 0 8px}.pc-card p{color:var(--muted);line-height:1.55;margin:0}.pc-card a{color:var(--accent);font-weight:700;text-decoration:none;margin-top:auto;padding-top:18px;font-size:13px}.pc-note{max-width:1180px;margin:0 auto 50px;padding:0 24px}.pc-note>div{background:var(--tint);border:1px solid color-mix(in srgb,var(--accent) 18%,white);border-radius:18px;padding:22px;line-height:1.6;color:var(--muted)}
 .cmp-wrap{max-width:1180px;margin:auto;padding:12px 24px 68px}.cmp-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:20px}.cmp-table{width:100%;min-width:1500px;border-collapse:collapse;background:white}.cmp-table caption{text-align:left;padding:18px 20px;color:var(--muted);font-size:13px}.cmp-table th,.cmp-table td{text-align:left;padding:18px 16px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5}.cmp-table th{background:#f8fafc;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.cmp-table td{font-size:14px}.cmp-table tr.cmp-fast td{background:var(--tint)}.cmp-name{font-size:16px;font-weight:800;color:var(--ink)}.cmp-name a{color:inherit}.cmp-badge{display:inline-flex;border-radius:999px;padding:5px 8px;margin:4px 4px 0 0;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.06em}.cmp-badge.open,.cmp-badge.free{background:#ecfdf5;color:#047857}.cmp-badge.mixed{background:#fffbeb;color:#92400e}.cmp-badge.closed{background:#fef2f2;color:#b91c1c}.cmp-source{color:var(--accent);font-size:12px;font-weight:700}.cmp-note{color:var(--muted);font-size:13px;line-height:1.6;margin:16px 2px 0}.cmp-faq{max-width:960px;margin:auto;padding:12px 24px 76px}.cmp-faq h2{font-size:32px;letter-spacing:-.035em}.cmp-faq article{border-top:1px solid var(--line);padding:22px 0}.cmp-faq h3{font-size:18px;margin:0 0 8px}.cmp-faq p{color:var(--muted);line-height:1.65;margin:0}
-@media(max-width:760px){.lp-nav{height:60px}.lp-nav-actions{gap:10px}.lp-nav-link{font-size:13px}.lp-hero{padding-top:72px}.lp-grid{grid-template-columns:1fr}.lp-developers{grid-template-columns:1fr}.lp-footer{flex-direction:column}}
-@media(max-width:900px){.pc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pc-grid{grid-template-columns:1fr}.pc-heading{display:block}.pc-heading p{margin-top:10px}.lp-nav-actions{gap:9px}.lp-nav-actions .lp-nav-link:nth-child(3),.lp-nav-actions .lp-nav-link:nth-child(4){display:none}}
+@media(max-width:980px){.lp-partner-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.lp-nav{height:60px}.lp-nav-actions{gap:10px}.lp-nav-link{font-size:13px}.lp-hero{padding-top:72px}.lp-grid,.lp-partner-grid{grid-template-columns:1fr}.lp-developers{grid-template-columns:1fr}.lp-footer{flex-direction:column}}
+@media(max-width:900px){.pc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pc-grid{grid-template-columns:1fr}.pc-heading{display:block}.pc-heading p{margin-top:10px}.lp-nav-actions{gap:9px}.lp-nav-actions .lp-nav-link:nth-child(3),.lp-nav-actions .lp-nav-link:nth-child(5){display:none}}
 """
 
 FEATURE_CATALOG = (
@@ -133,6 +143,17 @@ COMPARISON_FAQS = (
 )
 
 
+def partner_section():
+    return Section(
+        Div(Span("Partners", cls="lp-kicker"), H2("Connect with trusted integration specialists."), P("Identity, software delivery, data engineering and applied-AI expertise for FastSME implementations."), cls="lp-partners-head"),
+        Div(*[
+            A(Div(Img(src=logo, alt=f"{name} logo", loading="lazy", cls="lp-partner-logo"), Span("Integration Partner", cls="lp-partner-type"), cls="lp-partner-top"), H3(name), P(description), Span("Visit website ↗", cls="lp-partner-visit"), href=url, target="_blank", rel="noopener noreferrer", cls="lp-partner")
+            for name, url, logo, description in PARTNERS
+        ], cls="lp-partner-grid"),
+        id="partners", cls="lp-partners",
+    )
+
+
 def _public_nav():
     return Nav(
         A(Span("F", cls="lp-mark"), Span("FastHRM"), href="/", cls="lp-brand"),
@@ -140,6 +161,7 @@ def _public_nav():
             A("Features", href="/features", cls="lp-nav-link"),
             A("How we compare", href="/compare", cls="lp-nav-link"),
             A("Careers", href="/careers", cls="lp-nav-link"),
+            A("Partners", href="/#partners", cls="lp-nav-link"),
             A("Developers", href="/developers", cls="lp-nav-link"),
             Button("Sign In", type="button", onclick="authOpen('login')", cls="lp-signin"),
             cls="lp-nav-actions",
@@ -191,6 +213,7 @@ def landing_page(open_auth=False):
                                       P("Everything you need for " + title.lower() + ", in one focused workspace."),
                                       cls="lp-card") for i, title in enumerate(features, 1)],
                             cls="lp-grid"), cls="lp-band"),
+                partner_section(),
                 Section(Div(Span("Developers", cls="lp-kicker"),
                             H2("Build on FastHRM."),
                             P("Explore the public read API, typed schemas, examples, and token-gated integration writes.")),
