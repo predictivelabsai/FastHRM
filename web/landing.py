@@ -301,10 +301,10 @@ CMP_ROWS = (
     ("core",        ("yes", "yes", "yes", "yes", "yes", "yes")),
     ("leave",       ("yes", "yes", "yes", "yes", "yes", "yes")),
     ("time",        ("yes", "yes", "yes", "yes", "yes", "yes")),
-    ("shifts",      ("soon", "yes", "yes", "yes", "yes", "yes")),
+    ("shifts",      ("yes", "yes", "yes", "yes", "yes", "yes")),
     ("epayroll",    ("yes", "yes", "yes", "yes", "no",  "yes")),
-    ("expenses",    ("soon", "yes", "yes", "yes", "no",  "yes")),
-    ("selfservice", ("soon", "yes", "yes", "yes", "yes", "yes")),
+    ("expenses",    ("yes", "yes", "yes", "yes", "no",  "yes")),
+    ("selfservice", ("yes", "yes", "yes", "yes", "yes", "yes")),
     ("ats",         ("yes", "no",  "no",  "no",  "no",  "no")),
     ("perf",        ("yes", "no",  "no",  "no",  "no",  "no")),
     ("ai",          ("yes", "no",  "no",  "no",  "yes", "no")),
@@ -314,22 +314,74 @@ CMP_ROWS = (
 )
 CMP_GLYPH = {"yes": "✓", "soon": "◐", "no": "✕"}
 
+GLOBAL_PRODUCTS = ("FastHR", "Gusto", "BambooHR", "Rippling", "Deel",
+                   "Zoho People", "Odoo HR")
+GLOBAL_ROW_STATES = {
+    "core": ("yes", "yes", "yes", "yes", "yes", "yes", "yes"),
+    "leave": ("yes", "yes", "yes", "yes", "yes", "yes", "yes"),
+    "time": ("yes", "yes", "yes", "yes", "yes", "yes", "yes"),
+    "payroll": ("yes", "yes", "yes", "yes", "yes", "no", "yes"),
+    "expenses": ("yes", "no", "no", "yes", "yes", "no", "yes"),
+    "selfservice": ("yes", "yes", "yes", "yes", "yes", "yes", "yes"),
+    "ats": ("yes", "no", "yes", "no", "no", "no", "yes"),
+    "perf": ("yes", "no", "yes", "yes", "no", "yes", "yes"),
+    "ai": ("yes", "no", "no", "yes", "no", "no", "no"),
+    "api": ("yes", "yes", "yes", "yes", "yes", "yes", "soon"),
+    "oss": ("yes", "no", "no", "no", "no", "no", "soon"),
+    "selfhost": ("yes", "no", "no", "no", "no", "no", "soon"),
+}
+GLOBAL_ROWS = tuple(GLOBAL_ROW_STATES.items())
 
-def _compare_table(c):
-    prods = list(CMP_PRODUCTS)
-    labels = c["cmp2_labels"]
-    legend = dict(c["cmp2_legend"])
+COMPARE_TOGGLE_JS = """
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-compare-toggle]').forEach(function (toggle) {
+    var root = toggle.closest('[data-compare-switcher]');
+    var panels = root.querySelectorAll('[data-compare-panel]');
+    toggle.addEventListener('click', function () {
+      var selected = toggle.getAttribute('data-compare-toggle');
+      root.querySelectorAll('[data-compare-toggle]').forEach(function (button) {
+        var active = button.getAttribute('data-compare-toggle') === selected;
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      panels.forEach(function (panel) {
+        var active = panel.getAttribute('data-compare-panel') === selected;
+        panel.hidden = !active;
+        panel.setAttribute('aria-hidden', active ? 'false' : 'true');
+      });
+    });
+  });
+});
+"""
 
-    head = Tr(Th("", cls="ct-feat"),
-              *[Th(Span(p),
-                   cls="ct-fh" if i == 0 else "")
-                for i, p in enumerate(prods)])
+
+def _glyph_compare_table(c, rows, products, labels, prices, legend,
+                         items=None, heading=None, sub=None, note=None,
+                         cta=None, table_label=None, caption=None):
+    prods = list(products)
+
+    headers = [Th(caption or "", cls="ct-feat")]
+    for i, product in enumerate(prods):
+        item = next((item for item in items or []
+                     if item["name"] == product), None)
+        sources = []
+        if item:
+            sources.append(A(c["cmp_pg_source"], href=item["source"],
+                             target="_blank", rel="noopener noreferrer",
+                             cls="pg-source"))
+            if item.get("license_source"):
+                sources.append(A(c["cmp_pg_license"],
+                                 href=item["license_source"], target="_blank",
+                                 rel="noopener noreferrer", cls="pg-source"))
+        headers.append(Th(A(product, href=item["source"], target="_blank",
+                            rel="noopener noreferrer", cls="pg-name"),
+                          *sources, cls="ct-fh" if i == 0 else "") if item else
+                      Th(Span(product), cls="ct-fh" if i == 0 else ""))
 
     body = []
-    for key, states in CMP_ROWS:
+    for key, states in rows:
         cells = []
         for i, s in enumerate(states):
-            title = legend.get(s, s)
+            title = legend[s]
             cells.append(Td(Span(CMP_GLYPH[s], cls=f"ct-mark ct-{s}", title=title,
                                  **{"aria-label": title}),
                             cls="ct-fh" if i == 0 else ""))
@@ -337,22 +389,51 @@ def _compare_table(c):
 
     price_row = Tr(
         Td(c["cmp2_price_label"], cls="ct-feat"),
-        *[Td(v, cls="ct-fh" if i == 0 else "") for i, v in enumerate(c["cmp2_prices"])],
+        *[Td(v, cls="ct-fh" if i == 0 else "")
+          for i, v in enumerate(prices)],
         cls="ct-pricerow")
 
     legend_row = Div(
         *[Span(Span(CMP_GLYPH[k], cls=f"ct-mark ct-{k}"), " ", lbl, cls="ct-legend-item")
-          for k, lbl in c["cmp2_legend"]],
+          for k, lbl in legend.items()],
         cls="ct-legend")
 
     return Div(
-        Div(fs_eyebrow(c["cmp2_eyebrow"]), H2(c["cmp2_h2"]), P(c["cmp2_sub"]), cls="lh-head"),
-        Div(Table(Thead(head), Tbody(*body, price_row), cls="ct"),
+        Div(fs_eyebrow(c["cmp2_eyebrow"]), H2(heading or c["cmp2_h2"]),
+            P(sub or c["cmp2_sub"]), cls="lh-head") if heading or not items else None,
+        Div(Table(Caption(caption) if caption else None, Thead(Tr(*headers)),
+                  Tbody(*body, price_row), cls="ct"),
             Span(cls="ct-scroll-hint", aria_hidden="true"), cls="ct-wrap", tabindex="0",
-            role="region", aria_label=c["cmp2_table_label"]),
-        Div(legend_row, Span(c["cmp2_note"]), A(c["cmp2_cta"], href="/compare", cls="ct-cta"),
+            role="region", aria_label=table_label or c["cmp2_table_label"]),
+        Div(legend_row, Span(note or c["cmp2_note"]),
+            A(cta or c["cmp2_cta"], href="/compare", cls="ct-cta") if cta is not False else None,
             cls="ct-foot"),
         cls="fs-wrap")
+
+
+def _compare_table(c):
+    return _glyph_compare_table(
+        c, CMP_ROWS, CMP_PRODUCTS, c["cmp2_labels"], c["cmp2_prices"],
+        dict(c["cmp2_legend"]), heading=c["cmp2_h2"], sub=c["cmp2_sub"],
+        note=c["cmp2_note"], cta=c["cmp2_cta"],
+        table_label=c["cmp2_table_label"], caption=None,
+    )
+
+
+def _global_compare_table(c, heading=None, include_heading=True, items=None):
+    items = list(items or c["comparisons"])
+    items.sort(key=lambda item: item["name"] != "FastHR")
+    products = tuple(item["name"] for item in items)
+    return _glyph_compare_table(
+        c, GLOBAL_ROWS, products, c["cmp_global_labels"],
+        [c["cmp2_prices"][0]] + [""] * (len(products) - 1),
+        dict(c["cmp_global_legend"]), items=items,
+        heading=heading or c["cmp_pg_global_heading"] if include_heading else None,
+        sub=c["cmp_global_sub"] if include_heading else None,
+        note=c["cmp_global_note"], cta=False,
+        table_label=c["cmp_global_table_label"],
+        caption=c["cmp_pg_caption"] if include_heading else None,
+    )
 
 
 def _dashboard_mock(c):
@@ -487,7 +568,34 @@ def landing_page(open_auth=False, lang="et"):
         P(c["price_example"], cls="lh-price-example"),
         cls="fs-wrap"), id="pricing", cls="lh-sec")
 
-    compare = Section(_compare_table(c), cls="lh-sec lh-alt lh-cmp-section")
+    estonia_active = lang == "et"
+    estonia_table = Div(
+        _glyph_compare_table(
+            c, CMP_ROWS, CMP_PRODUCTS, c["cmp2_labels"], c["cmp2_prices"],
+            dict(c["cmp2_legend"]), heading=c["cmp2_h2"], sub=c["cmp2_sub"],
+            note=c["cmp2_note"], cta=c["cmp2_cta"],
+            table_label=c["cmp2_table_label"],
+        ), cls="lh-compare-panel", id="landing-compare-estonia",
+        data_compare_panel="estonia", aria_hidden="false" if estonia_active else "true",
+        hidden=not estonia_active)
+    global_table = Div(
+        _global_compare_table(c), cls="lh-compare-panel", id="landing-compare-global",
+        data_compare_panel="global", aria_hidden="true" if estonia_active else "false",
+        hidden=estonia_active)
+    compare = Section(
+        Div(
+            H2(c["cmp_toggle_heading"], cls="sr-only"),
+            Div(
+                Button(c["cmp_toggle_estonia"], type="button",
+                       data_compare_toggle="estonia", aria_pressed="true" if estonia_active else "false"),
+                Button(c["cmp_toggle_global"], type="button",
+                       data_compare_toggle="global", aria_pressed="false" if estonia_active else "true"),
+                cls="lh-compare-tabs", role="group",
+                aria_label=c["cmp_toggle_label"],
+            ),
+            estonia_table, global_table,
+            cls="fs-wrap", data_compare_switcher="true",
+        ), cls="lh-sec lh-alt lh-cmp-section")
 
     faq = Section(Div(
         Div(fs_eyebrow(c["faq_eyebrow"]), H2(c["faq_h2"]), cls="lh-head"),
@@ -516,6 +624,7 @@ def landing_page(open_auth=False, lang="et"):
             nav,
             Script(MOBILE_NAV_JS),
             Script(TABLE_SCROLL_JS),
+            Script(COMPARE_TOGGLE_JS),
             Main(hero, logos, features, demo, statutory, pricing, compare, faq, cta,
                  id="main-content"),
             footer,
@@ -578,6 +687,12 @@ PUBLIC_PAGE_CSS = """
 .pg-faq p{color:var(--muted);max-width:70ch}
 .lh-sec#pricing{padding-bottom:clamp(30px,5vw,56px)}
 .lh-cmp-section{padding-top:clamp(30px,5vw,56px);padding-bottom:clamp(30px,5vw,56px)}
+.lh-compare-tabs{display:inline-flex;gap:4px;margin-bottom:24px;padding:4px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--card)}
+.lh-compare-tabs button{min-height:44px;padding:8px 16px;border:0;border-radius:var(--radius-pill);background:transparent;color:var(--muted);font:inherit;font-weight:700;cursor:pointer}
+.lh-compare-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
+.lh-compare-tabs button:focus-visible{outline:2.5px solid var(--accent-strong);outline-offset:2px}
+.lh-compare-panel[hidden]{display:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .lh-faq-section{padding-bottom:clamp(30px,5vw,56px)}
 @media(max-width:900px){.pg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){
@@ -737,7 +852,18 @@ def _mobile_compare_cards(c: dict, comparisons):
 
 
 def _sourced_compare_table(c: dict, comparisons=None, heading=None):
-    """Transpose the sourced records, retaining their full text and limitations."""
+    """Render a sourced comparison in the shared capability-table format."""
+    if comparisons == c.get("comparison_estonia"):
+        return _glyph_compare_table(
+            c, CMP_ROWS, CMP_PRODUCTS, c["cmp2_labels"], c["cmp2_prices"],
+            dict(c["cmp2_legend"]), items=comparisons, heading=heading,
+            sub=c["cmp2_sub"], note=c["cmp2_note"], cta=False,
+            table_label=c["cmp2_table_label"], caption=c["cmp_pg_caption"],
+        )
+    return _global_compare_table(c, heading, items=comparisons)
+
+    # Kept below for compatibility with old imports; the return above is the
+    # canonical renderer used by all public routes.
     legend = dict(c["cmp_pg_legend"])
     comparisons = comparisons if comparisons is not None else c["comparisons"]
     headers = [Th(c["cmp_pg_headers"][0], cls="ct-feat", scope="col")]
@@ -823,8 +949,15 @@ def comparison_page(lang: str = "et"):
             Script(TABLE_SCROLL_JS),
             Main(
                 _page_hero(c, "cmp_pg", c["cmp_pg_chips"]),
-                _sourced_compare_table(c, c["comparison_estonia"], c["cmp_pg_estonia_heading"]),
-                _sourced_compare_table(c, c["comparisons"], c["cmp_pg_global_heading"]),
+                _glyph_compare_table(
+                    c, CMP_ROWS, CMP_PRODUCTS, c["cmp2_labels"], c["cmp2_prices"],
+                    dict(c["cmp2_legend"]), items=c["comparison_estonia"],
+                    heading=c["cmp_pg_estonia_heading"], sub=c["cmp2_sub"],
+                    note=c["cmp2_note"], cta=False,
+                    table_label=c["cmp2_table_label"],
+                    caption=c["cmp_pg_caption"],
+                ),
+                _global_compare_table(c, c["cmp_pg_global_heading"]),
                 Section(
                     H2(c["cmp_pg_faq_h"]),
                     Div(*[Article(H3(question), P(answer))

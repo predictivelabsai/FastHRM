@@ -88,7 +88,7 @@ def test_public_landing_uses_owner_requested_copy_and_fast_hr_header(
 
 
 @pytest.mark.parametrize("lang", ["et", "en"])
-def test_public_landing_uses_runtime_mock_version_and_filled_competitor_prices(
+def test_public_landing_uses_runtime_mock_version_and_only_shows_fast_hr_price(
     tmp_path, monkeypatch, lang,
 ):
     landing, _ = _public_modules(tmp_path, monkeypatch)
@@ -102,7 +102,39 @@ def test_public_landing_uses_runtime_mock_version_and_filled_competitor_prices(
     prices = landing.t(lang)["cmp2_prices"]
     assert len(prices) == 6
     assert prices[0] in rendered
-    assert all(prices[1:])
+    assert prices[1:] == [""] * 5
+
+
+@pytest.mark.parametrize(("lang", "active", "inactive"), [
+    ("et", "estonia", "global"), ("en", "global", "estonia"),
+])
+def test_landing_comparison_switcher_localizes_and_defaults_by_language(
+    tmp_path, monkeypatch, lang, active, inactive,
+):
+    landing, _ = _public_modules(tmp_path, monkeypatch)
+    rendered = str(landing.landing_page(lang=lang))
+    copy = landing.t(lang)
+    assert copy["cmp_toggle_estonia"] in rendered
+    assert copy["cmp_toggle_global"] in rendered
+    assert 'data-compare-switcher="true"' in rendered
+    assert f'data-compare-panel="{active}"' in rendered
+    assert f'data-compare-panel="{inactive}"' in rendered
+    assert "data-compare-toggle" in rendered
+    assert "aria-pressed" in rendered
+    assert "aria-hidden" in rendered
+    assert "GLOBAL_PRODUCTS" not in rendered
+
+
+def test_comparison_tables_use_glyph_rows_and_leave_competitor_prices_empty(
+    tmp_path, monkeypatch,
+):
+    landing, _ = _public_modules(tmp_path, monkeypatch)
+    rendered = str(landing.comparison_page())
+    assert rendered.count("class=\"ct-pricerow\"") == 2
+    assert rendered.count("class=\"ct-mark ct-yes\"") > 20
+    assert "Quote-based" not in rendered
+    assert "Inquiry-based or quote-based" not in rendered
+    assert "Official source" in rendered or "Ametlik allikas" in rendered
 
 
 @pytest.mark.parametrize("lang", ["et", "en"])
