@@ -11,6 +11,7 @@ from fasthtml.common import *
 import db
 import people
 import benefits
+import learning
 
 
 PORTAL_CSS = """
@@ -116,7 +117,7 @@ def pay_page(employee):
               if row["employee_id"] == employee["id"]]
     benefit_body = Table(Tr(Th("Soodustus / Benefit"), Th("Tööandja kulu / Employer contribution")),
                          *[Tr(Td(row["name"]), Td(f"{row['employer_contribution']:,.2f} EUR"))
-                           for row in active] or [Tr(Td("Aktiivseid hüvesid pole / No active benefits.", colspan="2"))],
+                           for row in active] or [Tr(Td("Aktiivseid soodustusi pole / No active benefits.", colspan="2"))],
                          cls="me-table")
     return _shell("pay", employee, Div(H1("My pay"), P("Payslips and pay history", cls="me-muted"), cls="me-title"),
                   _card("Payslips", body, "me-full"),
@@ -172,4 +173,8 @@ def onboarding_page(employee):
     goals = people.goals(owner_type="employee", owner_id=employee["id"], status="All")
     task_list = Ul(*[Li(Span(t["title"]), _status(t["status"])) for t in tasks] or [Li("No onboarding tasks yet.")], cls="me-list")
     goal_list = Ul(*[Li(Span(g["title"]), _status(g["status"])) for g in goals] or [Li("No active goals yet.")], cls="me-list")
-    return _shell("onboarding", employee, Div(H1("Onboarding & goals"), P("Your progress at FastHRM", cls="me-muted"), cls="me-title"), _card("Onboarding tasks", task_list, "me-half"), _card("Goals", goal_list, "me-half"))
+    plans = learning.plans_for(employee["id"])
+    certifications = learning.list_for(employee["id"])
+    learning_list = Ul(*[Li(Span(p["course_name"]), Span(f"{p['progress']}% · {p['status']}", cls="me-pill")) for p in plans] or [Li("Arengukava puudub / No learning plans yet.")], cls="me-list")
+    cert_list = Ul(*[Li(Span(c["name"]), Span(c["expires_on"] or "—", cls="me-pill")) for c in certifications] or [Li("Sertifikaate pole / No certifications yet.")], cls="me-list")
+    return _shell("onboarding", employee, Div(H1("Onboarding & goals"), P("Your progress at FastHRM", cls="me-muted"), cls="me-title"), _card("Onboarding tasks", task_list, "me-half"), _card("Goals", goal_list, "me-half"), _card("Minu arengukava / My learning", learning_list, "me-half"), _card("Sertifikaadid / Certifications", cert_list, "me-half"))

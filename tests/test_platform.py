@@ -162,6 +162,41 @@ def test_benefit_plan_crud_enrolment_reopen_and_department_eligibility(fresh_db)
     assert benefits.list_plans(active_only=True) == []
 
 
+def test_learning_course_crud_assignment_and_completion(fresh_db):
+    import learning
+
+    eid = _statutory_employee(fresh_db)
+    course_id = learning.save_course("Workplace safety", "compliance", "Internal")
+    assert learning.courses(True)[0]["name"] == "Workplace safety"
+    plan_id = learning.assign(eid, course_id, "hr@example.test", "2026-07-01")
+    assert learning.assign(eid, course_id, "hr@example.test", "2026-07-01") == plan_id
+    assert len(learning.plans_for(eid)) == 1
+    assert learning.set_progress(plan_id, 100)
+    plan = learning.plans_for(eid)[0]
+    assert plan["status"] == "Completed" and plan["completed_on"] == "2026-06-11"
+    assert learning.kpis()["completed_this_year"] == 1
+    assert learning.deactivate_course(course_id)
+    assert learning.courses(True) == []
+
+
+def test_learning_certification_expiry_and_bilingual_pages(fresh_db):
+    import learning
+    import web_app
+    from starlette.responses import RedirectResponse
+    from web import selfservice
+
+    eid = _statutory_employee(fresh_db)
+    learning.add_certification(eid, "First aid", "2025-06-01", "2026-07-01")
+    learning.add_certification(eid, "Long-term certificate", expires_on="2028-01-01")
+    assert [row["name"] for row in learning.expiring_certifications(60)] == ["First aid"]
+    assert "Koolitus ja areng" in str(learning.staff_page("et"))
+    assert "Learning &amp; development" in str(learning.staff_page("en"))
+    assert isinstance(web_app._guard({}, "learning", learning.staff_page), RedirectResponse)
+    portal = str(selfservice.onboarding_page(fresh_db.employee(eid)))
+    assert "Minu arengukava / My learning" in portal
+    assert "First aid" in portal
+
+
 def test_benefit_pay_run_lines_are_employer_cost_and_idempotent(fresh_db):
     eid = _statutory_employee(fresh_db)
     import benefits

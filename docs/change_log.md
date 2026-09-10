@@ -2,6 +2,21 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Learning and development
+
+### Added
+
+- Shipped Learning & development with a course catalogue, employee learning plans, progress tracking, certifications, and expiry visibility.
+
+### Data and verification
+
+- Added additive migration `0014_learning.sql`; no new configuration or dependencies.
+- Updated the public feature catalogue with shipped product messaging. Verified with the full pytest suite.
+
+### Roadmap
+
+- Marked Learning & development complete.
+
 ## 2026-09-10 — Payslip and pay-run completion
 
 ### Added

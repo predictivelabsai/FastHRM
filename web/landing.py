@@ -37,7 +37,7 @@ FEATURE_CATALOG = (
     ("Expenses & travel", "Expense claims, employee advances, approvals and travel requests.", "/expenses", True),
     ("Shifts & time clocks", "Rostering, check-in/out, auto-attendance and location-aware time capture.", "/shifts", True),
     ("Benefits administration", "Benefit plans, eligibility, employee enrolment and employer contributions flow into pay runs.", "/benefits", True),
-    ("Learning & development", "Learning plans, course tracking, certifications and skills development.", None, False),
+    ("Learning & development", "Course catalogue, employee learning plans, progress tracking, certifications and expiry visibility.", "/learning", True),
     ("Workforce planning", "Budgeted positions, scenarios and approval-led headcount planning.", None, False),
     ("Employee self-service", "A dedicated employee portal for pay, leave, time, goals and onboarding.", "/me", True),
     ("Eesti seadusjärgne palk (TÖR, TSD)", "TÖR-i ja TSD ekspordid ning puhkuse- ja töövõimetustasu arvestus on kasutatavad koos palgapäevade ja palgalehtedega.", "/payroll", True),
