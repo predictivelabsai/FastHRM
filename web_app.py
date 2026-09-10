@@ -47,8 +47,9 @@ import recruitment_enterprise
 import recruiting_ops
 import version
 from web.layout import page, LAYOUT_CSS, NAV_ITEMS
-from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings
+from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings, selfservice
 from web.landing import comparison_page, features_page, landing_page
+from web.i18n import resolve_lang
 from web.seo import register_seo_routes
 from web.developer import developer_page
 from web import account_auth, google_auth
@@ -59,7 +60,7 @@ logger = logging.getLogger("fasthr")
 
 VALID_EMAIL = os.getenv("FASTHR_ADMIN_EMAIL", "admin@fasthr.example")
 VALID_PASSWORD = os.getenv("FASTHR_ADMIN_PASSWORD", "FastHR2026$")
-ENV_LABEL = os.getenv("FASTHR_ENV_LABEL", "FastHRM")
+ENV_LABEL = os.getenv("FASTHR_ENV_LABEL", "FastHR")
 SECRET = os.getenv("FASTHR_SECRET", secrets.token_hex(32))
 PORT = int(os.getenv("FASTHR_PORT", "5010"))
 
@@ -73,18 +74,18 @@ def swagger_schema():
 
 
 @rt("/developers", methods=["GET"])
-def developers():
-    return developer_page()
+def developers(session, request):
+    return developer_page(lang=resolve_lang(session, request))
 
 
 @rt("/features", methods=["GET"])
-def features():
-    return features_page()
+def features(session, request):
+    return features_page(lang=resolve_lang(session, request))
 
 
 @rt("/compare", methods=["GET"])
-def compare():
-    return comparison_page()
+def compare(session, request):
+    return comparison_page(lang=resolve_lang(session, request))
 
 
 @rt("/products", methods=["GET"])
@@ -92,11 +93,21 @@ def legacy_products():
     return RedirectResponse("/features", status_code=308)
 
 
-account_auth.register_fasthtml_routes(rt, app_name="FastHRM", session_key="user", success_path="/")
+account_auth.register_fasthtml_routes(rt, app_name="FastHR", session_key="user", success_path="/")
 
 
 def _user(session):
     return session.get("user")
+
+
+def _employee(session):
+    eid = session.get("employee_id")
+    return db.employee(int(eid)) if eid else None
+
+
+def _employee_guard(session):
+    employee = _employee(session)
+    return (employee, None) if employee else (None, RedirectResponse("/me/login?next=/me", status_code=303))
 
 
 def _thread(session):
@@ -301,8 +312,8 @@ def delete(request, member_id: int):
 
 
 def _login_card(error="", email=""):
-    return Title("FastHRM — Sign in"), Style(LAYOUT_CSS), Div(
-        Form(H1("FastHRM"), P("Sign in to your HR workspace"),
+    return Title("FastHR — Sign in"), Style(LAYOUT_CSS), Div(
+        Form(H1("FastHR"), P("Sign in to your HR workspace"),
              Input(name="email", type="email", placeholder="Email", value=email, required=True),
              Input(name="password", type="password", placeholder="Password", required=True),
              P(error, cls="error") if error else None,
@@ -312,10 +323,10 @@ def _login_card(error="", email=""):
 
 
 @rt("/login")
-def get(session):
+def get(session, request):
     if _user(session):
         return RedirectResponse("/", status_code=303)
-    return landing_page(open_auth=True)
+    return landing_page(open_auth=True, lang=resolve_lang(session, request))
 
 
 @rt("/login")
@@ -361,14 +372,141 @@ def get(session):
     return RedirectResponse("/login", status_code=303)
 
 
+@rt("/me/login")
+def get(session, error: str = ""):
+    if _employee(session):
+        return RedirectResponse("/me", status_code=303)
+    return selfservice.login_page(error)
+
+
+@rt("/me/login")
+async def post(session, request):
+    form = await request.form()
+    employee = db.authenticate_employee(str(form.get("email", "")), str(form.get("password", "")))
+    if not employee:
+        return selfservice.login_page("Email or password is incorrect.")
+    session["employee_id"] = employee["id"]
+    return RedirectResponse("/me", status_code=303)
+
+
+@rt("/me/logout")
+def get(session):
+    session.pop("employee_id", None)
+    return RedirectResponse("/me/login", status_code=303)
+
+
+@rt("/me")
+def get(session):
+    employee, denied = _employee_guard(session)
+    return denied or selfservice.dashboard(employee)
+
+
+@rt("/me/pay")
+def get(session):
+    employee, denied = _employee_guard(session)
+    return denied or selfservice.pay_page(employee)
+
+
+@rt("/me/pay/{pid}")
+def get(session, pid: int):
+    employee, denied = _employee_guard(session)
+    return denied or selfservice.payslip_page(employee, pid)
+
+
+@rt("/me/leave")
+def get(session):
+    employee, denied = _employee_guard(session)
+    return denied or selfservice.leave_page(employee)
+
+
+@rt("/me/leave/apply")
+async def post(session, request):
+    employee, denied = _employee_guard(session)
+    if denied:
+        return denied
+    form = await request.form()
+    try:
+        db.apply_leave(employee["id"], str(form.get("leave_type", "")), str(form.get("from_date", "")),
+                       str(form.get("to_date", "")), str(form.get("reason", "")))
+    except (TypeError, ValueError) as exc:
+        return selfservice.leave_page(employee) + (P(f"Leave not saved: {exc}"),)
+    return RedirectResponse("/me/leave", status_code=303)
+
+
+@rt("/me/time")
+def get(session):
+    employee, denied = _employee_guard(session)
+    return denied or selfservice.time_page(employee)
+
+
+@rt("/me/time/clock-in")
+def post(session):
+    employee, denied = _employee_guard(session)
+    if denied:
+        return denied
+    db.clock_in(employee["id"], source="Mobile")
+    return RedirectResponse("/me/time", status_code=303)
+
+
+@rt("/me/time/clock-out")
+def post(session):
+    employee, denied = _employee_guard(session)
+    if denied:
+        return denied
+    db.clock_out(employee["id"], source="Mobile")
+    return RedirectResponse("/me/time", status_code=303)
+
+
+@rt("/me/expenses")
+def get(session):
+    employee, denied = _employee_guard(session)
+    return denied or selfservice.expenses_page(employee)
+
+
+@rt("/me/expenses/claim")
+async def post(session, request):
+    employee, denied = _employee_guard(session)
+    if denied:
+        return denied
+    form = await request.form()
+    try:
+        db.create_expense_claim(employee["id"], int(form.get("category_id", 0)), str(form.get("claim_date", "")),
+                                str(form.get("description", "")), float(form.get("amount", 0)))
+    except (TypeError, ValueError) as exc:
+        return selfservice.expenses_page(employee) + (P(f"Claim not saved: {exc}"),)
+    return RedirectResponse("/me/expenses", status_code=303)
+
+
+@rt("/me/expenses/travel")
+async def post(session, request):
+    employee, denied = _employee_guard(session)
+    if denied:
+        return denied
+    form = await request.form()
+    try:
+        db.request_travel(employee["id"], str(form.get("destination", "")), str(form.get("purpose", "")),
+                          str(form.get("from_date", "")), str(form.get("to_date", "")),
+                          float(form.get("estimated_cost", 0)))
+    except (TypeError, ValueError) as exc:
+        return selfservice.expenses_page(employee) + (P(f"Travel not saved: {exc}"),)
+    return RedirectResponse("/me/expenses", status_code=303)
+
+
+@rt("/me/onboarding")
+def get(session):
+    employee, denied = _employee_guard(session)
+    return denied or selfservice.onboarding_page(employee)
+
+
 @rt("/")
 def get(session, request):
+    lang = resolve_lang(session, request)
     branded = recruitment_enterprise.resolve_brand(host=request.headers.get("host", ""))
     if branded and branded.get("site_slug"):
         locale = branded.get("default_locale") or "en"
         site = recruitment_enterprise.public_career_site(branded["site_slug"], locale)
         if not site:
-            return landing_page() if not _user(session) else _guard(session, "dashboard", views.dashboard)
+            return landing_page(lang=lang) if not _user(session) else _guard(session, "dashboard", views.dashboard)
         site = {**site, "name": site.get("name") or site.get("brand_name"),
                 "brand_color": site.get("primary_color") or site.get("brand_color"),
                 "logo_url": site.get("brand_logo") or site.get("logo_url")}
@@ -376,7 +514,7 @@ def get(session, request):
         return careers.careers_page(site, recruitment_enterprise.public_site_jobs(branded["site_slug"], locale),
                                     careers_path=path, job_prefix=path + "/jobs")
     if not _user(session):
-        return landing_page()
+        return landing_page(lang=lang)
     return _guard(session, "dashboard", views.dashboard)
 
 
@@ -384,8 +522,13 @@ def get(session, request):
 
 @rt("/careers")
 def get():
-    recruitment.process_publication_schedules()
-    return careers.careers_page(recruitment.career_site(), recruitment.public_jobs())
+    # Public careers landing retired; job/application routes remain live.
+    return RedirectResponse("/", status_code=302)
+
+
+@rt("/pricing")
+def get():
+    return RedirectResponse("/#pricing", status_code=302)
 
 
 @rt("/sites/{site_slug}/{locale}")
@@ -507,7 +650,7 @@ async def post(request, site_slug: str, locale: str, slug: str):
 
 
 def _public_recruiting_shell(title: str, content, *, description: str = "", image_url: str = ""):
-    return (Title(f"{title} · FastHRM"),
+    return (Title(f"{title} · FastHR"),
             Meta(name="description", content=description or title),
             Meta(property="og:title", content=title),
             Meta(property="og:description", content=description or title),
@@ -862,6 +1005,169 @@ def post(session, req_id: int):
 @rt("/attendance")
 def get(session):
     return _guard(session, "attendance", views.attendance_view)
+
+
+@rt("/shifts")
+def get(session, week: str = ""):
+    return _guard(session, "shifts", lambda: views.shifts_roster(week))
+
+
+@rt("/shifts/new")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    try:
+        db.create_shift_assignment(int(form.get("employee_id", 0)), int(form.get("shift_type_id", 0)),
+                                   str(form.get("shift_date", "")), str(form.get("location_label", "")),
+                                   str(form.get("notes", "")))
+    except (TypeError, ValueError):
+        return Response("Invalid shift details", status_code=400)
+    return RedirectResponse("/shifts", status_code=303)
+
+
+@rt("/shifts/{assignment_id}/cancel")
+def post(session, assignment_id: int):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    db.cancel_shift_assignment(assignment_id)
+    return RedirectResponse("/shifts", status_code=303)
+
+
+@rt("/expenses")
+def get(session):
+    return _guard(session, "expenses", views.expenses_page)
+
+
+@rt("/expenses/new")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    try:
+        db.create_expense_claim(int(form.get("employee_id", 0)), int(form.get("category_id", 0)),
+                               str(form.get("claim_date", "")), str(form.get("description", "")),
+                               float(form.get("amount", 0)), tax_rate=float(form.get("tax_rate", 0)))
+    except (TypeError, ValueError) as exc:
+        return _guard(session, "expenses", lambda: (P(f"Expense not saved: {exc}", cls="flag"), views.expenses_page()))
+    return RedirectResponse("/expenses", status_code=303)
+
+
+@rt("/expenses/{claim_id}/submit")
+def post(session, claim_id: int):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    db.submit_expense_claim(claim_id)
+    return RedirectResponse("/expenses", status_code=303)
+
+
+@rt("/expenses/{claim_id}/decide")
+def post(session, claim_id: int, decision: str = "", approver_id: int = 0, notes: str = ""):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    db.decide_expense_claim(claim_id, approver_id, decision, notes)
+    return RedirectResponse("/expenses", status_code=303)
+
+
+@rt("/expenses/{claim_id}/reimburse")
+def post(session, claim_id: int):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    db.reimburse_expense_claim(claim_id)
+    return RedirectResponse("/expenses", status_code=303)
+
+
+@rt("/expenses/advance/new")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    try:
+        db.request_advance(int(form.get("employee_id", 0)), float(form.get("requested_amount", 0)),
+                          str(form.get("reason", "")))
+    except (TypeError, ValueError) as exc:
+        return _guard(session, "expenses", lambda: (P(f"Advance not saved: {exc}", cls="flag"), views.expenses_page()))
+    return RedirectResponse("/expenses", status_code=303)
+
+
+@rt("/expenses/advance/{advance_id}/decide")
+def post(session, advance_id: int, decision: str = "", approver_id: int = 0):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    db.decide_advance(advance_id, approver_id, decision)
+    return RedirectResponse("/expenses", status_code=303)
+
+
+@rt("/travel")
+def get(session):
+    return _guard(session, "travel", views.travel_page)
+
+
+@rt("/travel/new")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    try:
+        db.request_travel(int(form.get("employee_id", 0)), str(form.get("destination", "")),
+                         str(form.get("purpose", "")), str(form.get("from_date", "")),
+                         str(form.get("to_date", "")), float(form.get("estimated_cost", 0)),
+                         float(form.get("advance_requested", 0)))
+    except (TypeError, ValueError) as exc:
+        return _guard(session, "travel", lambda: (P(f"Travel request not saved: {exc}", cls="flag"), views.travel_page()))
+    return RedirectResponse("/travel", status_code=303)
+
+
+@rt("/travel/{request_id}/decide")
+def post(session, request_id: int, decision: str = "", approver_id: int = 0):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    if decision == "Resubmit":
+        db.resubmit_travel(request_id)
+    else:
+        db.decide_travel(request_id, approver_id, decision)
+    return RedirectResponse("/travel", status_code=303)
+
+
+def _punch_value(form, name):
+    value = form.get(name)
+    try:
+        return float(value) if value not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
+@rt("/timeclock")
+def get(session):
+    return _guard(session, "timeclock", views.time_clocks)
+
+
+@rt("/timeclock/in")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    try:
+        db.clock_in(int(form.get("employee_id", 0)), int(form["shift_assignment_id"]) if form.get("shift_assignment_id") else None,
+                   str(form.get("source", "Web")), _punch_value(form, "lat"), _punch_value(form, "lng"),
+                   _punch_value(form, "accuracy"), str(form.get("note", "")))
+    except (TypeError, ValueError):
+        return Response("Invalid clock-in details", status_code=400)
+    return RedirectResponse("/timeclock", status_code=303)
+
+
+@rt("/timeclock/out")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    try:
+        db.clock_out(int(form.get("employee_id", 0)), int(form["shift_assignment_id"]) if form.get("shift_assignment_id") else None,
+                    str(form.get("source", "Web")), _punch_value(form, "lat"), _punch_value(form, "lng"),
+                    _punch_value(form, "accuracy"), str(form.get("note", "")))
+    except (TypeError, ValueError):
+        return Response("Invalid clock-out details", status_code=400)
+    return RedirectResponse("/timeclock", status_code=303)
 
 
 # ---------- talent / ATS ----------------------------------------------------
@@ -2343,8 +2649,54 @@ def get(session, period: str = "latest"):
     return _guard(session, "payroll", lambda: views.payroll_list(period))
 
 
+@rt("/payroll/runs")
+def get(session):
+    return _guard(session, "payroll", views.payroll_list)
+
+
+@rt("/payroll/runs/{rid}")
+def get(session, rid: int):
+    return _guard(session, "payroll", lambda: views.pay_run_detail(rid))
+
+
+@rt("/payroll/runs/new")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    period = str(form.get("period", ""))
+    employee_ids = [int(value) for value in form.getlist("employee_ids") if str(value).isdigit()]
+    try:
+        run_id = db.create_pay_run(period, employee_ids)
+    except ValueError:
+        return Response("Invalid pay period", status_code=400)
+    return RedirectResponse(f"/payroll/runs/{run_id}", status_code=303)
+
+
+@rt("/payroll/runs/{rid}/advance")
+def post(session, rid: int):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    next_status = db.PAY_RUN_TRANSITIONS.get(db.scalar("SELECT status FROM pay_runs WHERE id=?", (rid,)))
+    if next_status:
+        db.advance_pay_run(rid, next_status)
+    return RedirectResponse(f"/payroll/runs/{rid}", status_code=303)
+
+
+@rt("/payroll/runs/{rid}/offset")
+def post(session, rid: int, advance_id: int = 0):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    if not _roles_for(session) & {"admin", "hrbp", "accountant"}:
+        return Response("Payroll access is required.", status_code=403)
+    db.offset_employee_advance(rid, advance_id)
+    return RedirectResponse(f"/payroll/runs/{rid}", status_code=303)
+
+
 @rt("/payroll/{pid}")
 def get(session, pid: int):
+    if _employee(session) and not _user(session):
+        return selfservice.payslip_page(_employee(session), pid)
     return _guard(session, "payroll", lambda: views.payslip_detail(pid))
 
 
@@ -2364,7 +2716,7 @@ def get(session):
 @rt("/healthz")
 def healthz():
     """Unauthenticated build probe — confirms which version a deploy is running."""
-    return JSONResponse({"status": "ok", "product": "FastHRM", **version.info(),
+    return JSONResponse({"status": "ok", "product": "FastHR", **version.info(),
                          "migrations": db.scalar(
                              "SELECT COUNT(*) FROM schema_migrations") or 0})
 
@@ -2409,7 +2761,7 @@ def get(session):
 
 @rt("/guide")
 def get(session):
-    body = (views._title("User Guide", "How to drive FastHRM"), Div(NotStr("""
+    body = (views._title("User Guide", "How to drive FastHR"), Div(NotStr("""
 <div class='card'><h3>Dashboard</h3><p>Headcount, attendance, on-leave-today and pending leave, with headcount by department.</p></div>
 <div class='card'><h3>Employees & Departments</h3><p>Searchable directory filtered by department; each employee shows
 leave balance, recent attendance, and payslips. Departments lists headcount, head and annual payroll.</p></div>
@@ -2481,7 +2833,7 @@ def _ensure_db():
         logger.info("No requisitions found — seeding synthetic talent pipeline…")
         import seed_talent
         seed_talent.build()
-    if not db.scalar("SELECT COUNT(*) FROM goals"):
+    if not db.scalar("SELECT COUNT(*) FROM goals WHERE owner_type='company'"):
         logger.info("No performance data found — seeding goals, feedback and lifecycle…")
         import seed_platform
         seed_platform.build()

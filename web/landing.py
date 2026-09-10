@@ -1,5 +1,6 @@
 """Public FastHRM landing, feature, and comparison pages."""
 import json
+from dataclasses import replace
 from urllib.parse import quote
 
 from fasthtml.common import *
@@ -7,55 +8,22 @@ import version
 
 from .account_auth import AUTH_CSS, AUTH_JS, auth_modal
 from .seo import seo_meta
+from .design import (DESIGN_CSS, FONT_LINKS, fs_button, fs_footer,
+                     fs_nav, fs_eyebrow, accent_style)
+from .design.system import FASTHRM, MOBILE_NAV_JS
+from .i18n import t
 
-ACCENT = "#0891b2"
-TINT = "#ecfeff"
 FAVICON = "data:image/svg+xml," + quote(
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#0891b2"/><path fill="white" d="M16 4 28 16 16 28 4 16Z"/><path fill="#0891b2" d="M11 10h11v4h-7v3h6v4h-6v5h-4Z"/></svg>""",
+    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#0b1d17"/><path fill="#c2f24f" d="M16 4 28 16 16 28 4 16Z"/><path fill="#0b1d17" d="M11 10h11v4h-7v3h6v4h-6v5h-4Z"/></svg>""",
     safe="",
 )
-
-PARTNERS = (
-    ("SAASPASS", "https://saaspass.com/", "https://saaspass.com/_next/static/assets/0176aeff921f6359fee88e796be31ace.png", "Full-stack identity and access management spanning MFA, SSO, passwordless access and integration APIs."),
-    ("Sixty Four", "https://sixtyfour.ee/", "https://sixtyfour.ee/favicon.ico", "A senior Tallinn technology studio delivering software, AI consultancy, service design and public-sector programmes."),
-    ("EDI Labs", "https://edilabs.tech/", "https://edilabs.tech/static/favicon.svg", "AI and data engineering for document intelligence, forecasting, geospatial systems and agentic workflows."),
-    ("Predictive Labs", "https://predictivelabs.ai/", "https://predictivelabs.ai/static/favicon.svg", "Auditable AI systems for health, defence, public management, mobility and financial services."),
-    ("Consistente", "https://consistente.tech/", "https://consistente.tech/static/favicon.svg", "Enterprise AI delivery across financial services, healthcare, the public sector and technology."),
-    ("Manmouna Technologies", "https://manmouna.tech/", "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230B1E14'/%3E%3Cpath d='M32 12 52 32 32 52 12 32Z' fill='%2334D399'/%3E%3Cpath d='M32 22 42 32 32 42 22 32Z' fill='%230B1E14'/%3E%3C/svg%3E", "Auditable-by-design AI systems for European public services across health, defence, public management and mobility."),
-)
-
-CSS = """
-:root{--accent:#0891b2;--tint:#ecfeff;--ink:#111827;--muted:#667085;--line:#e7eaf0}
-*{box-sizing:border-box} body{margin:0;background:#fff;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}
-.lp-nav{height:68px;display:flex;align-items:center;justify-content:space-between;max-width:1180px;margin:auto;padding:0 24px;border-bottom:1px solid var(--line)}
-.lp-brand{display:flex;align-items:center;gap:10px;font-weight:750;color:var(--ink);text-decoration:none} .lp-mark{width:30px;height:30px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:white}
-.lp-nav-actions{display:flex;align-items:center;gap:18px} .lp-nav-link{color:var(--muted);text-decoration:none;font-size:14px;font-weight:650} .lp-nav-link:hover{color:var(--accent)}
-.lp-signin,.lp-primary{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:10px 17px;text-decoration:none;font-weight:650;font-size:14px;cursor:pointer} .lp-signin{border:1px solid var(--line);color:var(--ink);background:white} .lp-primary{background:var(--accent);color:white;border:0}
-.lp-hero{max-width:1180px;margin:auto;padding:104px 24px 76px} .lp-kicker{color:var(--accent);font-size:12px;font-weight:750;text-transform:uppercase;letter-spacing:.16em}
-.lp-hero h1{font-size:clamp(42px,7vw,78px);line-height:1.02;letter-spacing:-.055em;max-width:920px;margin:22px 0} .lp-lede{font-size:20px;line-height:1.65;color:var(--muted);max-width:720px}
-.lp-actions{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap} .lp-secondary{color:var(--ink);font-weight:650;text-decoration:none;padding:10px 4px}
-.lp-demo{max-width:960px;margin:0 auto 76px;padding:0 24px} .lp-demo-frame{padding:10px;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 70px rgba(17,24,39,.10)}
-.lp-demo img{display:block;width:100%;height:auto;border-radius:14px;background:var(--tint)} .lp-demo p{margin:13px 0 2px;text-align:center;color:var(--muted);font-size:13px}
-.lp-band{background:var(--tint);border-block:1px solid color-mix(in srgb,var(--accent) 15%,white)} .lp-grid{max-width:1180px;margin:auto;padding:64px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.lp-card{background:rgba(255,255,255,.82);border:1px solid color-mix(in srgb,var(--accent) 15%,white);border-radius:20px;padding:26px} .lp-num{color:var(--accent);font-size:12px;font-weight:750} .lp-card h2{font-size:20px;margin:24px 0 8px} .lp-card p{color:var(--muted);line-height:1.6;margin:0}
-.lp-partners{max-width:1180px;margin:auto;padding:72px 24px;scroll-margin-top:80px}.lp-partners-head{max-width:720px}.lp-partners-head h2{font-size:32px;letter-spacing:-.03em;margin:10px 0 12px}.lp-partners-head p{color:var(--muted);line-height:1.65;margin:0}.lp-partner-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:32px}.lp-partner{min-width:0;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:18px;padding:20px;background:#fff;transition:transform .18s,border-color .18s,box-shadow .18s}.lp-partner:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 40%,white);box-shadow:0 14px 34px rgba(17,24,39,.08)}.lp-partner-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.lp-partner-logo{width:46px;height:46px;object-fit:contain}.lp-partner-type{color:var(--accent);font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.1em;text-align:right}.lp-partner h3{font-size:18px;margin:18px 0 8px}.lp-partner p{color:var(--muted);font-size:13px;line-height:1.55;margin:0}.lp-partner-visit{display:block;color:var(--accent);font-size:12px;font-weight:700;margin-top:16px}
-.lp-developers{max-width:1180px;margin:auto;padding:72px 24px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:32px} .lp-developers h2{font-size:32px;letter-spacing:-.03em;margin:8px 0 12px} .lp-developers p{color:var(--muted);line-height:1.65;max-width:680px;margin:0}
-.lp-footer{max-width:1180px;margin:auto;padding:30px 24px 48px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:20px}.lp-footer-links{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.lp-footer a{color:var(--accent);text-decoration:none}.lp-footer .lp-version{color:var(--muted)}.lp-footer .lp-version:hover{color:var(--accent)}
-.pc-hero{max-width:1180px;margin:auto;padding:82px 24px 44px}.pc-hero h1{font-size:clamp(40px,6vw,68px);line-height:1.04;letter-spacing:-.05em;max-width:900px;margin:20px 0}.pc-summary{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}.pc-chip{border:1px solid var(--line);border-radius:999px;padding:9px 14px;color:var(--muted);font-size:13px;font-weight:650}.pc-chip strong{color:var(--accent)}
-.pc-section{max-width:1180px;margin:auto;padding:24px 24px 66px}.pc-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:22px}.pc-heading h2{font-size:30px;letter-spacing:-.035em;margin:0}.pc-heading p{color:var(--muted);margin:0;max-width:560px;line-height:1.55}.pc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.pc-card{border:1px solid var(--line);border-radius:18px;padding:22px;background:white;display:flex;flex-direction:column;min-height:218px}.pc-card.soon{background:#f8fafc}.pc-meta{display:flex;justify-content:space-between;align-items:center;gap:8px}.pc-status,.pc-price{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;border-radius:999px;padding:6px 9px}.pc-status{color:#047857;background:#ecfdf5}.pc-card.soon .pc-status{color:#92400e;background:#fffbeb}.pc-price{color:var(--accent);background:var(--tint)}.pc-card h3{font-size:19px;margin:25px 0 8px}.pc-card p{color:var(--muted);line-height:1.55;margin:0}.pc-card a{color:var(--accent);font-weight:700;text-decoration:none;margin-top:auto;padding-top:18px;font-size:13px}.pc-note{max-width:1180px;margin:0 auto 50px;padding:0 24px}.pc-note>div{background:var(--tint);border:1px solid color-mix(in srgb,var(--accent) 18%,white);border-radius:18px;padding:22px;line-height:1.6;color:var(--muted)}
-.cmp-wrap{max-width:1180px;margin:auto;padding:12px 24px 68px}.cmp-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:20px}.cmp-table{width:100%;min-width:1500px;border-collapse:collapse;background:white}.cmp-table caption{text-align:left;padding:18px 20px;color:var(--muted);font-size:13px}.cmp-table th,.cmp-table td{text-align:left;padding:18px 16px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5}.cmp-table th{background:#f8fafc;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.cmp-table td{font-size:14px}.cmp-table tr.cmp-fast td{background:var(--tint)}.cmp-name{font-size:16px;font-weight:800;color:var(--ink)}.cmp-name a{color:inherit}.cmp-badge{display:inline-flex;border-radius:999px;padding:5px 8px;margin:4px 4px 0 0;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.06em}.cmp-badge.open,.cmp-badge.free{background:#ecfdf5;color:#047857}.cmp-badge.mixed{background:#fffbeb;color:#92400e}.cmp-badge.closed{background:#fef2f2;color:#b91c1c}.cmp-source{color:var(--accent);font-size:12px;font-weight:700}.cmp-note{color:var(--muted);font-size:13px;line-height:1.6;margin:16px 2px 0}.cmp-faq{max-width:960px;margin:auto;padding:12px 24px 76px}.cmp-faq h2{font-size:32px;letter-spacing:-.035em}.cmp-faq article{border-top:1px solid var(--line);padding:22px 0}.cmp-faq h3{font-size:18px;margin:0 0 8px}.cmp-faq p{color:var(--muted);line-height:1.65;margin:0}
-.lp-pricing{max-width:1180px;margin:auto;padding:72px 24px;scroll-margin-top:80px} .lp-pricing-head{max-width:720px} .lp-pricing-head h2{font-size:32px;letter-spacing:-.03em;margin:10px 0 12px} .lp-pricing-head p{color:var(--muted);line-height:1.65;margin:0} .lp-pricing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:32px} .lp-pricing-card{border:1px solid var(--line);border-radius:18px;padding:26px;background:#fff} .lp-pricing-eyebrow{color:var(--accent);font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.1em} .lp-pricing-card h3{font-size:22px;margin:14px 0 8px} .lp-pricing-price{font-size:36px;font-weight:750;letter-spacing:-.03em;margin:8px 0 12px;color:var(--ink)} .lp-pricing-card>p:last-child{color:var(--muted);line-height:1.6;margin:0}@media(max-width:760px){.lp-pricing-grid{grid-template-columns:1fr}}
-@media(max-width:980px){.lp-partner-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.lp-nav{height:60px}.lp-nav-actions{gap:10px}.lp-nav-link{font-size:13px}.lp-hero{padding-top:72px}.lp-grid,.lp-partner-grid{grid-template-columns:1fr}.lp-developers{grid-template-columns:1fr}.lp-footer{flex-direction:column}}
-@media(max-width:900px){.pc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pc-grid{grid-template-columns:1fr}.pc-heading{display:block}.pc-heading p{margin-top:10px}.lp-nav-actions{gap:9px}.lp-nav-actions .lp-nav-link:nth-child(3),.lp-nav-actions .lp-nav-link:nth-child(5){display:none}}
-"""
 
 FEATURE_CATALOG = (
     ("Core HR", "Employee records, departments, reporting lines and organisation data.", "/employees", True),
     ("Leave & attendance", "Leave balances, requests, approvals and daily attendance reporting.", "/leave", True),
-    ("Payroll & payslips", "Pay runs and itemised employee payslips for operational HR teams.", "/payroll", True),
+    ("Palgalehed ja palgapäevad", "Pay runs and payslips with itemised line details.", "/payroll", True),
     ("Recruiting ATS", "Requisitions, candidates, pipelines, scorecards, approvals and offers.", "/talent/jobs", True),
-    ("Careers publishing", "Branded careers pages and individual, search-ready job specification pages.", "/careers", True),
+    ("Careers publishing", "Branded careers pages and individual, search-ready job specification pages.", None, True),
     ("Candidate CRM", "Talent pools, saved views, profiles, tags, tasks, search and bulk workflows.", "/talent/platform?section=operations", True),
     ("Communications", "Recruiting mailboxes, templates, scheduled messages, automations and surveys.", "/talent/platform?section=communications", True),
     ("Interview scheduling", "Availability, self-service booking and calendar/video integration contracts.", "/talent/platform?section=scheduling", True),
@@ -66,356 +34,808 @@ FEATURE_CATALOG = (
     ("Enterprise recruiting", "Multi-brand sites, localisation, SSO/SCIM adapters and policy controls.", "/talent/platform?section=enterprise", True),
     ("AI for HR", "CV extraction, candidate ranking, screening controls, writing and grounded HR Q&A.", "/ai", True),
     ("Developer API", "Versioned OpenAPI resources for people, recruiting and enterprise integrations.", "/developers", True),
-    ("Expenses & travel", "Expense claims, employee advances, approvals and travel requests.", None, False),
-    ("Shifts & time clocks", "Rostering, check-in/out, auto-attendance and location-aware time capture.", None, False),
+    ("Expenses & travel", "Expense claims, employee advances, approvals and travel requests.", "/expenses", True),
+    ("Shifts & time clocks", "Rostering, check-in/out, auto-attendance and location-aware time capture.", "/shifts", True),
     ("Benefits administration", "Benefit enrolment, eligibility, employer contributions and employee choices.", None, False),
     ("Learning & development", "Learning plans, course tracking, certifications and skills development.", None, False),
     ("Workforce planning", "Budgeted positions, scenarios and approval-led headcount planning.", None, False),
-    ("Employee self-service", "A dedicated employee portal for pay, leave, time, goals and onboarding.", None, False),
-    ("Statutory payroll", "Country-specific tax calculations, filings, benefits, loans and advances.", None, False),
+    ("Employee self-service", "A dedicated employee portal for pay, leave, time, goals and onboarding.", "/me", True),
+    ("Eesti seadusjärgne palk (TÖR, TSD)", "TÖR-i ja TSD sügavamad ekspordid ning puhkuse- ja töövõimetustasu arvestus on teekaardil.", "/payroll", True),
     ("Live provider integrations", "Production adapters for HRIS, calendars, job boards and communications.", None, False),
     ("Granular RBAC & security", "Tenant-scoped authorization, enforced record visibility, 2FA and audit exports.", None, False),
 )
 
-COMPARISONS = (
-    {
-        "name": "FastHRM", "best_for": "SMEs and startups wanting broad HR and recruiting without licence fees",
-        "team": "Small and growing teams", "price": "Free — every listed feature", "price_class": "free",
-        "free_option": "All available features", "source_model": "Yes · MIT", "source_class": "open",
-        "payroll_global": "Payslips and HR workflows; statutory payroll is coming soon",
-        "limits": "Granular RBAC hardening and live provider adapters remain on the roadmap",
-        "source": "https://github.com/predictivelabsai/FastHRM", "highlight": True,
-    },
-    {
-        "name": "Gusto", "best_for": "US startups prioritising full-service payroll, tax and benefits",
-        "team": "Typically 1–50", "price": "$49/month + $6/person", "price_class": "closed",
-        "free_option": "No permanent free plan", "source_model": "No public open-source edition", "source_class": "closed",
-        "payroll_global": "Strong US payroll; international contractor payments are an add-on",
-        "limits": "Primarily US-focused; deeper HR features require higher plans",
-        "source": "https://gusto.com/product/pricing", "highlight": False,
-    },
-    {
-        "name": "BambooHR", "best_for": "Growing teams wanting a polished, dedicated core HRIS",
-        "team": "Typically 10–200", "price": "Core from $10/employee/month", "price_class": "closed",
-        "free_option": "Trial; no permanent free plan", "source_model": "No · proprietary", "source_class": "closed",
-        "payroll_global": "Payroll and benefits are subscribed services; limited global employment scope",
-        "limits": "Per-employee pricing; advanced capabilities and services increase total cost",
-        "source": "https://www.bamboohr.com/pricing/", "highlight": False,
-    },
-    {
-        "name": "Rippling", "best_for": "Fast-scaling teams combining HR, IT, devices, apps and payroll",
-        "team": "Typically 20–500+", "price": "From $8/user/month + $40 base fee", "price_class": "closed",
-        "free_option": "Demo and custom quote", "source_model": "No public open-source edition", "source_class": "closed",
-        "payroll_global": "US and global payroll options with deep workforce automation",
-        "limits": "Required platform plus modular products can raise cost and setup effort",
-        "source": "https://www.rippling.com/solutions/small-businesses", "highlight": False,
-    },
-    {
-        "name": "Deel", "best_for": "Distributed teams hiring employees and contractors internationally",
-        "team": "Any size; global-first", "price": "$49/contractor or $599/EOR employee monthly", "price_class": "closed",
-        "free_option": "Free demo; no general free plan", "source_model": "No public open-source edition", "source_class": "closed",
-        "payroll_global": "EOR, contractors and payroll across 130+ countries",
-        "limits": "EOR and contractor compliance fees add up; core HR is not the main differentiator",
-        "source": "https://www.deel.com/pricing/", "highlight": False,
-    },
-    {
-        "name": "Zoho People", "best_for": "Budget-conscious SMEs and existing Zoho customers",
-        "team": "5–200+", "price": "Free for 5 users; paid from $1.25/user/month annually", "price_class": "mixed",
-        "free_option": "Permanent free plan for 5 users", "source_model": "No public open-source edition", "source_class": "closed",
-        "payroll_global": "Multi-language HR; payroll is a separate Zoho product",
-        "limits": "Advanced attendance, performance and talent features sit in higher tiers",
-        "source": "https://www.zoho.com/people/zohopeople-pricing.html", "highlight": False,
-    },
-    {
-        "name": "Odoo HR", "best_for": "Teams wanting modular HR inside a broader ERP suite",
-        "team": "Small to mid-market", "price": "One App Free; all-app plans from $24.90/user/month annually", "price_class": "mixed",
-        "free_option": "One App Free and Community edition", "source_model": "Community: LGPLv3; Enterprise: proprietary", "source_class": "mixed",
-        "payroll_global": "Broad modular HR/ERP with regional configuration",
-        "limits": "A complete HR stack spans multiple apps; API/customisation require the paid Custom plan",
-        "source": "https://www.odoo.com/pricing", "license_source": "https://www.odoo.com/documentation/18.0/legal/licenses.html", "highlight": False,
-    },
+
+COMPARISON_TABLE_CSS = """
+/* comparison table */
+.ct-wrap{position:relative;overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:var(--shadow-sm);padding-inline:8px;scrollbar-gutter:stable}
+.ct-wrap::after{content:"";position:absolute;z-index:4;top:0;right:0;bottom:0;width:34px;pointer-events:none;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--card) 92%,transparent));opacity:1;transition:opacity var(--step-fast)}
+.ct-wrap.is-at-end::after{opacity:0}
+.ct-scroll-hint{position:absolute;right:8px;bottom:10px;z-index:5;width:18px;height:18px;pointer-events:none;opacity:.7}
+.ct-scroll-hint::before{content:"";display:block;width:8px;height:8px;border-top:2px solid var(--accent-strong);border-right:2px solid var(--accent-strong);transform:rotate(45deg)}
+.ct-wrap.is-at-end .ct-scroll-hint{opacity:0}
+.ct-wrap:focus-visible{outline:2.5px solid var(--accent-strong);outline-offset:4px}
+.ct{width:100%;border-collapse:collapse;min-width:820px}
+.ct th,.ct td{padding:14px 14px;text-align:center;border-top:1px solid var(--line);font-size:14px}
+.ct thead th{border-top:0;font-family:var(--font-display);font-weight:700;padding:20px 14px;color:var(--text)}
+.ct .ct-feat{position:sticky;left:0;z-index:3;text-align:left;font-family:var(--font-body);font-weight:600;font-size:14px;color:var(--text);white-space:nowrap;background-color:var(--card);box-shadow:8px 0 12px -8px rgba(11,29,23,.18);border-right:1px solid var(--line)}
+.ct th.ct-feat{font-size:16px}
+.ct thead .ct-feat{z-index:6}
+.ct-fh{background:color-mix(in srgb,var(--accent) 14%,var(--card))}
+.ct thead .ct-fh{border-radius:12px 12px 0 0}
+.ct thead .ct-fh span{display:block;font-family:var(--font-display);font-weight:700;font-size:16px;
+  letter-spacing:normal;text-transform:none;color:var(--text);margin-top:3px}
+.ct-mark{font-size:17px;font-weight:800;line-height:1}
+.ct-yes{color:var(--accent-strong)}
+.ct-soon{color:#8a5a16}
+.ct-no{color:#8f3028}
+.ct-pricerow td{font-family:var(--font-display);font-weight:800;background:var(--paper);border-top:2px solid var(--line)}
+.ct-pricerow .ct-fh{background:color-mix(in srgb,var(--accent) 26%,var(--card));color:var(--ink);border-radius:0 0 12px 12px}
+.ct-foot{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;margin-top:18px;color:var(--muted);font-size:13px}
+.ct-legend{display:flex;gap:16px;flex-wrap:wrap}
+.ct-legend-item{display:inline-flex;align-items:center;gap:6px}
+.ct-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:4px 0;margin-left:auto;color:var(--accent-strong);font-weight:700;text-decoration:none;white-space:nowrap}
+.ct-cta:hover{text-decoration:underline}
+
+"""
+
+
+LANDING_CSS = """
+/* ---------- hero (dark) ---------- */
+.lh-hero{background:radial-gradient(120% 120% at 82% -10%,var(--ink-3) 0%,var(--ink) 46%,#081611 100%);
+  color:var(--on-ink);position:relative;overflow:hidden}
+.lh-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(60% 40% at 50% 6%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%)}
+.lh-hero-inner{position:relative;z-index:1;text-align:center;padding-block:clamp(56px,9vw,104px) 0;max-width:920px;margin:0 auto}
+.lh-hero h1{font-size:clamp(40px,6.4vw,74px);font-weight:800;line-height:1.04;margin:22px auto 0;max-width:16ch}
+.lh-hi{color:var(--accent)}
+.lh-sub{color:var(--on-ink-muted);font-size:clamp(16px,2vw,20px);line-height:1.6;max-width:60ch;margin:22px auto 0}
+.lh-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:32px 0 16px}
+.lh-trust{color:var(--on-ink-muted);font-size:13px;font-weight:600;letter-spacing:.02em}
+.lh-hero-inner .fs-eyebrow{justify-content:center}
+
+/* ---------- dashboard mockup ---------- */
+.lh-mock-wrap{max-width:1060px;margin:clamp(40px,6vw,64px) auto -90px;padding:0 clamp(18px,4vw,40px);position:relative;z-index:2}
+.lh-mock{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;color:var(--text);text-align:left}
+.lh-mock-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--paper)}
+.lh-dot{width:11px;height:11px;border-radius:50%;background:#d7d3c6}
+.lh-mock-url{margin-left:12px;font-size:12px;color:var(--muted);font-weight:600}
+.lh-mock-body{display:grid;grid-template-columns:230px minmax(0,1fr) 260px;min-height:430px}
+.lh-appbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
+.lh-app-brand{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:13px;font-weight:800}
+.lh-app-dot{width:7px;height:7px;border-radius:50%;background:#3da46c}
+.lh-app-brand-fast{color:var(--accent-strong)}
+.lh-app-brand-hrm{color:var(--ink)}
+.lh-app-meta{display:flex;align-items:center;gap:7px;font-size:9px;font-weight:750;white-space:nowrap}
+.lh-badge{padding:4px 7px;border-radius:999px;background:#e9f7ef;color:#24704a;letter-spacing:.08em}
+.lh-version{padding:4px 7px;border-radius:999px;background:var(--paper-2);color:var(--muted)}
+.lh-logout{padding:4px 8px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--muted);font:inherit}
+.lh-side{background:color-mix(in srgb,var(--paper) 72%,var(--card));border-right:1px solid var(--line);padding:13px 10px;overflow:hidden}
+.lh-side-group{margin-bottom:9px}
+.lh-side-label{display:block;padding:0 8px 4px;color:#89968d;font-size:7px;font-weight:800;letter-spacing:.13em}
+.lh-side a{display:flex;align-items:center;gap:7px;color:#55625b;font-size:9px;font-weight:650;padding:4px 8px;border-left:3px solid transparent;text-decoration:none;white-space:nowrap}
+.lh-side a span{font-size:11px;line-height:1}
+.lh-side a.on{background:#e6f5eb;color:#207248;border-left-color:#43a66b}
+.lh-main{padding:17px 18px;background:#fff;min-width:0}
+.lh-hello{font-family:var(--font-display);font-weight:800;font-size:17px}
+.lh-hello-sub{color:var(--muted);font-family:var(--font-body);font-weight:500;font-size:10px;display:block;margin-top:2px}
+.lh-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:15px 0}
+.lh-kpi{border:1px solid var(--line);padding:9px 10px;min-width:0}
+.lh-kpi.green{border-right-color:#43a66b}.lh-kpi.red{border-right-color:#d46b67}
+.lh-kpi small{display:block;color:var(--muted);font-size:7px;font-weight:800;letter-spacing:.07em}
+.lh-kpi b{font-family:var(--font-display);font-weight:800;font-size:20px;display:block;margin-top:4px}
+.lh-kpi em{font-style:normal;color:var(--muted);font-size:8px;white-space:nowrap}
+.lh-panels{display:grid;grid-template-columns:1.08fr 1fr;gap:10px}
+.lh-panel{border:1px solid var(--line);padding:11px;min-width:0}
+.lh-panel-title{font-family:var(--font-display);font-size:11px;font-weight:700;line-height:1.04;margin:0 0 10px}
+.lh-bar{display:grid;grid-template-columns:74px 1fr 16px;align-items:center;gap:6px;margin:7px 0;font-size:8px;color:var(--muted)}
+.lh-bar i{height:5px;background:#59b47d;border-radius:0 4px 4px 0;display:block}
+.lh-bar b{font-size:8px;color:var(--ink);text-align:right}
+.lh-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-top:1px solid var(--line);font-size:8px;white-space:nowrap}
+.lh-row:first-of-type{border-top:0}
+.lh-row-txt{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.lh-row-txt b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.lh-row-txt small{display:block;color:var(--muted);font-size:8px}
+.lh-tag{margin-left:auto;flex:none;font-size:7px;font-weight:800;padding:3px 5px;border-radius:999px;background:#eaf7ef;color:#28784e}
+.lh-tag.sick{background:#fff0ef;color:#ba5b58}
+.lh-ai{border-left:1px solid var(--line);padding:17px 14px;background:var(--paper-2);display:flex;flex-direction:column;min-width:0}
+.lh-ai-title{font-family:var(--font-display);font-size:14px;font-weight:700;line-height:1.04;margin:0 0 4px}.lh-ai p{color:var(--muted);font-size:9px;line-height:1.4;margin:0 0 13px}
+.lh-chips{display:flex;flex-wrap:wrap;gap:5px}.lh-chip{border:1px solid #cfe5d6;border-radius:999px;padding:5px 7px;color:#347555;background:#f6fcf8;font-size:8px}
+.lh-chat{display:flex;gap:5px;margin-top:auto}.lh-chat input{min-width:0;width:100%;border:1px solid var(--line);padding:6px 7px;font:inherit;font-size:8px;background:#fff}.lh-chat button{border:0;background:#3da46c;color:#fff;padding:0 8px;font-family:var(--font-body);font-size:8px;font-weight:800}
+
+/* ---------- light sections ---------- */
+.lh-sec{padding:clamp(70px,9vw,120px) 0}
+.lh-sec.pad-top{padding-top:clamp(72px,9vw,110px)}
+.lh-alt{background:var(--paper-2)}
+.lh-head{max-width:640px;margin-bottom:clamp(30px,4vw,48px)}
+.lh-head h2{font-size:clamp(28px,4vw,40px);margin:14px 0 12px}
+.lh-head p{color:var(--muted);font-size:clamp(16px,1.6vw,18px)}
+.lh-features-head{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(30px,5vw,64px);align-items:end;max-width:none}
+.lh-features-head .lh-head{margin-bottom:0}
+.lh-features-head>p{margin:0 0 12px;max-width:58ch}
+.lh-head.center{max-width:680px;margin-left:auto;margin-right:auto;text-align:center}
+.lh-head.center .fs-eyebrow{justify-content:center}
+.lh-real-demo-frame{max-width:980px;margin:0 auto;border:1px solid var(--line);border-radius:var(--radius-lg);
+  background:var(--card);box-shadow:var(--shadow-md);overflow:hidden}
+.lh-real-demo-frame .lh-mock-bar{padding:12px 16px}
+.lh-real-demo-body{padding:10px;background:var(--paper-2);border-top:1px solid var(--line)}
+.lh-real-demo-body img{width:100%;height:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+.lh-suite{background:var(--paper-2);border-block:1px solid var(--line);padding:27px 0}
+.lh-suite-inner{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.lh-suite-label{color:var(--muted);font-size:12px;font-weight:800;letter-spacing:normal;max-width:34ch;text-align:center}
+.lh-suite-logos{display:flex;align-items:center;justify-content:flex-end;gap:10px 18px;flex-wrap:wrap;color:var(--muted);font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:-.02em}
+.lh-suite-logos span{font-size:15px}
+
+.lh-feats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.lh-feat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 24px;
+  transition:transform var(--step-fast),box-shadow var(--step-fast)}
+.lh-feat:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.lh-feat h3{margin-bottom:8px}
+.lh-feat p{color:var(--muted);font-size:15px}
+.lh-feat i{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;margin-bottom:16px;
+  background:var(--ink);color:var(--accent);font-style:normal;font-weight:800;font-size:14px;
+  letter-spacing:.02em;font-family:var(--font-display)}
+
+/* statutory, asymmetric split */
+.lh-stat{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(30px,5vw,64px);align-items:start}
+.lh-stat-list{display:grid;grid-template-columns:1fr 1fr;gap:2px 28px}
+.lh-stat-item{padding:18px 0;border-top:1px solid var(--line)}
+.lh-stat-item b{font-family:var(--font-display);font-size:16px;display:flex;align-items:center;gap:9px}
+.lh-stat-item b::before{content:"";width:9px;height:9px;border-radius:2px;background:var(--accent-strong)}
+.lh-stat-item p{color:var(--muted);font-size:14px;margin-top:6px}
+
+/* pricing */
+.lh-prices{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.lh-price{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px}
+.lh-price.feature{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.lh-price .fs-eyebrow{color:var(--accent-strong)}
+.lh-price.feature .fs-eyebrow{color:var(--accent)}
+.lh-price h3{margin:12px 0 4px}
+.lh-price .amt{font-family:var(--font-display);font-weight:800;font-size:40px;letter-spacing:-.03em;margin:8px 0 14px}
+.lh-price.feature .amt .per{color:var(--accent)}
+.lh-price p{color:var(--muted);font-size:15px}
+.lh-price.feature p{color:var(--on-ink-muted)}
+
+/* compare teaser */
+.lh-cmp{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(30px,5vw,52px);
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:30px}
+.lh-cmp-names{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.lh-cmp-names span{border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--muted)}
+
+""" + COMPARISON_TABLE_CSS + """
+/* faq */
+.lh-faqs{max-width:820px}
+.lh-faq{border-top:1px solid var(--line);padding:24px 0}
+.lh-faq:last-child{border-bottom:1px solid var(--line)}
+.lh-faq h3{margin-bottom:8px}
+.lh-faq p{color:var(--muted);font-size:16px;max-width:70ch}
+
+/* cta band */
+.lh-ctaband{background:var(--ink);color:var(--on-ink);border-radius:24px;
+  padding:clamp(44px,7vw,80px) clamp(24px,5vw,64px);text-align:center;position:relative;overflow:hidden}
+.lh-ctaband::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(70% 120% at 50% 0%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 60%)}
+.lh-ctaband>*{position:relative}
+.lh-ctaband h2{font-size:clamp(28px,4vw,40px)}
+.lh-ctaband p{color:var(--on-ink-muted);font-size:18px;margin:16px auto 30px;max-width:52ch}
+.lh-ctaband .lh-actions{margin-bottom:0}
+
+@media(max-width:900px){
+  .lh-feats{grid-template-columns:1fr 1fr}
+  .lh-stat,.lh-cmp,.lh-features-head{grid-template-columns:1fr}
+  .lh-suite-inner{align-items:flex-start;flex-direction:column;gap:12px}
+  .lh-mock-body{grid-template-columns:190px minmax(0,1fr)}
+  .lh-ai{display:none}
+}
+@media(max-width:680px){
+  .lh-feats,.lh-prices,.lh-panels,.lh-stat-list{grid-template-columns:1fr}
+  .lh-kpis{grid-template-columns:1fr 1fr}
+  .lh-mock-body{grid-template-columns:78px minmax(0,1fr)}
+  .lh-side{padding-inline:5px}
+  .lh-side-label{padding-inline:4px;font-size:6px}
+  .lh-side a{padding:5px 4px;font-size:8px;gap:4px;white-space:normal}
+  .lh-side a span{font-size:10px}
+  .lh-main{padding:13px 10px}
+  .lh-kpi b{font-size:16px}
+  .lh-kpi em{font-size:7px}
+  .lh-panels{grid-template-columns:1fr}
+  .lh-mock-wrap{margin-bottom:-60px}
+}
+@media(max-width:760px){
+.lh-hero-inner .fs-eyebrow,.lh-head .fs-eyebrow{font-size:12px}
+  .lh-trust,.lh-suite-label,.ct-foot{font-size:14px}
+  .lh-mock-wrap{padding-inline:12px}
+  .lh-mock-bar{padding:10px 12px}
+  .lh-mock-url{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lh-appbar{min-width:0;padding:10px}
+  .lh-app-meta{min-width:0;overflow:hidden}
+  .lh-mock-secondary{display:none}
+  .lh-main{padding:16px 12px}
+  .lh-hello{font-size:20px}
+  .lh-hello-sub{font-size:12px}
+  .lh-kpi{padding:11px 10px}
+  .lh-kpi small{font-size:10px}
+  .lh-kpi b{font-size:22px}
+  .lh-kpi em{font-size:10px;white-space:normal}
+  .lh-panel{padding:12px}
+  .lh-panel-title{font-size:14px}
+  .lh-bar{grid-template-columns:68px minmax(0,1fr) 18px;font-size:11px;gap:5px}
+  .lh-bar b{font-size:11px}
+  .lh-row{font-size:11px;white-space:normal;align-items:flex-start}
+  .lh-row-txt small{font-size:10px}
+  .lh-tag{font-size:9px}
+  .lh-actions .fs-btn{min-height:44px}
+}
+"""
+
+
+TABLE_SCROLL_JS = """
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.ct-wrap').forEach(function (wrap) {
+    function updateHint() {
+      wrap.classList.toggle('is-at-end', wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 1);
+    }
+    wrap.addEventListener('scroll', updateHint, {passive: true});
+    window.addEventListener('resize', updateHint);
+    updateHint();
+  });
+});
+"""
+
+
+def _lang_switch(lang: str, path: str = "/"):
+    return Div(
+        A("ET", href=f"{path}?lang=et", cls="active" if lang == "et" else ""),
+        A("EN", href=f"{path}?lang=en", cls="active" if lang == "en" else ""),
+        cls="fs-lang",
+    )
+
+
+# Estonian HR competitors compared on the landing page. States per row are ordered
+# (Persona, Wemply, HRM4Baltics, hours24, Yester, FastHRM).
+# Competitor states reflect public information (see docs footnote) and stay honest,
+# where we are behind today, we say "soon" rather than overclaim.
+CMP_PRODUCTS = ("FastHR", "Persona", "Wemply", "HRM4Baltics", "hours24", "Yester")
+CMP_ROWS = (
+    ("core",        ("yes", "yes", "yes", "yes", "yes", "yes")),
+    ("leave",       ("yes", "yes", "yes", "yes", "yes", "yes")),
+    ("time",        ("yes", "yes", "yes", "yes", "yes", "yes")),
+    ("shifts",      ("soon", "yes", "yes", "yes", "yes", "yes")),
+    ("epayroll",    ("yes", "yes", "yes", "yes", "no",  "yes")),
+    ("expenses",    ("soon", "yes", "yes", "yes", "no",  "yes")),
+    ("selfservice", ("soon", "yes", "yes", "yes", "yes", "yes")),
+    ("ats",         ("yes", "no",  "no",  "no",  "no",  "no")),
+    ("perf",        ("yes", "no",  "no",  "no",  "no",  "no")),
+    ("ai",          ("yes", "no",  "no",  "no",  "yes", "no")),
+    ("api",         ("yes", "no",  "yes", "no",  "no",  "no")),
+    ("oss",         ("yes", "no",  "no",  "no",  "no",  "no")),
+    ("selfhost",    ("yes", "no",  "no",  "no",  "no",  "no")),
 )
-
-COMPARISON_FAQS = (
-    ("Is FastHRM free?", "Yes. Every available FastHRM feature is Free, and coming-soon scope is also labelled Free rather than reserved for a paid tier."),
-    ("Is FastHRM open source?", "Yes. FastHRM is published under the MIT licence, can be inspected and modified, and is designed to be self-hosted."),
-    ("Which compared HR systems are open source?", "FastHRM is MIT-licensed open source. Odoo Community is LGPLv3 open source, while Odoo Enterprise is proprietary. BambooHR is proprietary; Gusto, Rippling, Deel and Zoho People do not publish open-source editions."),
-    ("Does free software mean zero operating cost?", "No. Software can be Free while hosting, implementation, support, migration and third-party provider usage still incur costs. The comparison separates software price from those operating choices."),
-    ("Are coming-soon FastHRM features available today?", "No. Coming soon is an availability label, not a pricing tier. The Features page distinguishes shipped functionality from roadmap scope."),
-)
+CMP_GLYPH = {"yes": "✓", "soon": "◐", "no": "✕"}
 
 
+def _compare_table(c):
+    prods = list(CMP_PRODUCTS)
+    labels = c["cmp2_labels"]
+    legend = dict(c["cmp2_legend"])
 
-def pricing_section():
-    return Section(
+    head = Tr(Th("", cls="ct-feat"),
+              *[Th(Span(p),
+                   cls="ct-fh" if i == 0 else "")
+                for i, p in enumerate(prods)])
+
+    body = []
+    for key, states in CMP_ROWS:
+        cells = []
+        for i, s in enumerate(states):
+            title = legend.get(s, s)
+            cells.append(Td(Span(CMP_GLYPH[s], cls=f"ct-mark ct-{s}", title=title,
+                                 **{"aria-label": title}),
+                            cls="ct-fh" if i == 0 else ""))
+        body.append(Tr(Td(labels[key], cls="ct-feat"), *cells))
+
+    price_row = Tr(
+        Td(c["cmp2_price_label"], cls="ct-feat"),
+        *[Td(v, cls="ct-fh" if i == 0 else "") for i, v in enumerate(c["cmp2_prices"])],
+        cls="ct-pricerow")
+
+    legend_row = Div(
+        *[Span(Span(CMP_GLYPH[k], cls=f"ct-mark ct-{k}"), " ", lbl, cls="ct-legend-item")
+          for k, lbl in c["cmp2_legend"]],
+        cls="ct-legend")
+
+    return Div(
+        Div(fs_eyebrow(c["cmp2_eyebrow"]), H2(c["cmp2_h2"]), P(c["cmp2_sub"]), cls="lh-head"),
+        Div(Table(Thead(head), Tbody(*body, price_row), cls="ct"),
+            Span(cls="ct-scroll-hint", aria_hidden="true"), cls="ct-wrap", tabindex="0",
+            role="region", aria_label=c["cmp2_table_label"]),
+        Div(legend_row, Span(c["cmp2_note"]), A(c["cmp2_cta"], href="/compare", cls="ct-cta"),
+            cls="ct-foot"),
+        cls="fs-wrap")
+
+
+def _dashboard_mock(c):
+    """A light, brand-controlled view of the real FastHRM dashboard."""
+    mock = c["dashboard_mock"]
+    groups, bars, leave = mock["groups"], mock["bars"], mock["leave"]
+    return Div(Div(
+        Div(Span(cls="lh-dot"), Span(cls="lh-dot"), Span(cls="lh-dot"),
+            Span("app.fasthr.eu/dashboard", cls="lh-mock-url"), cls="lh-mock-bar"),
         Div(
-            Span("Pricing", cls="lp-kicker"),
-            H2("Simple pricing for every FastSME product."),
-            P("Every Fast* product uses the same two options: bring your own cloud for free, or host with us for €1 per month."),
-            cls="lp-pricing-head",
-        ),
-        Div(
-            Article(
-                Span("BYOC", cls="lp-pricing-eyebrow"),
-                H3("Bring Your Own Cloud"),
-                P("Free", cls="lp-pricing-price"),
-                P("Self-host on your own infrastructure or cloud. Full control of data and upgrades. No per-seat platform fee."),
-                cls="lp-pricing-card",
-            ),
-            Article(
-                Span("Hosted", cls="lp-pricing-eyebrow"),
-                H3("Host with us"),
-                P("€1 / month", cls="lp-pricing-price"),
-                P("We run the product for you on FastSME-managed infrastructure. €1 per product per month."),
-                cls="lp-pricing-card",
-            ),
-            cls="lp-pricing-grid",
-        ),
-        id="pricing", cls="lp-pricing",
+            Div(
+            Div(Span(cls="lh-app-dot"), Span("Fast", cls="lh-app-brand-fast"), Span("HR", cls="lh-app-brand-hrm"),
+                    cls="lh-app-brand"),
+                 Div(Span("FASTR", cls="lh-badge"), Span(version.label(), cls="lh-version lh-mock-secondary"),
+                    Button(mock["logout"], cls="lh-logout"), cls="lh-app-meta"),
+                cls="lh-appbar"),
+            Div(*[Div(Span(label, cls="lh-side-label"),
+                      *[A(Span(icon), name, cls="on" if name == groups[0][1][0][1] else "")
+                        for icon, name in items], cls="lh-side-group")
+                for label, items in groups], cls="lh-side"),
+            Div(
+                Div(mock["dashboard"], Span(mock["dashboard_sub"], cls="lh-hello-sub"),
+                    cls="lh-hello"),
+                Div(
+                    Div(Small(mock["headcount"]), B("64"), Em(mock["departments"]), cls="lh-kpi green"),
+                    Div(Small(mock["present"]), B("56"), Em(mock["on_leave"]), cls="lh-kpi green"),
+                    Div(Small(mock["attendance"]), B("89%"), Em(" "), cls="lh-kpi"),
+                    Div(Small(mock["pending"]), B("10"), Em(mock["awaiting"]), cls="lh-kpi red"),
+                    cls="lh-kpis"),
+                Div(
+                    Div(Div(mock["headcount_chart"], cls="lh-panel-title"),
+                        *[Div(Span(name), I(style=f"width:{width}%"), B(str(count)), cls="lh-bar")
+                          for name, count, width in bars], cls="lh-panel"),
+                    Div(Div(mock["leave_requests"], cls="lh-panel-title"),
+                        *[Div(Div(B(name), cls="lh-row-txt"),
+                              Span(kind, cls=f"lh-tag {tone}"), Span(date), cls="lh-row")
+                          for name, kind, date, tone in leave], cls="lh-panel"),
+                    cls="lh-panels"),
+                cls="lh-main"),
+                Div(Div(mock["ai"], cls="lh-ai-title"), P(mock["ai_prompt"]),
+                Div(Span(mock["chip_leave"], cls="lh-chip"),
+                    Span(mock["chip_team"], cls="lh-chip"), cls="lh-chips"),
+                Form(Input(placeholder=mock["ask"]), Button(mock["send"], type="submit"), cls="lh-chat"),
+                cls="lh-ai"),
+            cls="lh-mock-body"),
+        cls="lh-mock", inert=True, aria_hidden="true"), cls="lh-mock-wrap")
+
+
+def _landing_head(c):
+    return Head(
+        Title(c["meta_title"]), Meta(charset="utf-8"),
+        Meta(name="viewport", content="width=device-width, initial-scale=1"),
+        Meta(name="description", content=c["meta_desc"]),
+        *seo_meta(),
+        Link(rel="icon", type="image/svg+xml", href=FAVICON),
+        *FONT_LINKS,
+        Style(DESIGN_CSS + LANDING_CSS + AUTH_CSS),
+        accent_style(FASTHRM),
     )
 
-def partner_section():
-    return Section(
-        Div(Span("Partners", cls="lp-kicker"), H2("Connect with trusted integration specialists."), P("Identity, software delivery, data engineering and applied-AI expertise for FastSME implementations."), cls="lp-partners-head"),
-        Div(*[
-            A(Div(Img(src=logo, alt=f"{name} logo", loading="lazy", cls="lp-partner-logo"), Span("Integration Partner", cls="lp-partner-type"), cls="lp-partner-top"), H3(name), P(description), Span("Visit website ↗", cls="lp-partner-visit"), href=url, target="_blank", rel="noopener noreferrer", cls="lp-partner")
-            for name, url, logo, description in PARTNERS
-        ], cls="lp-partner-grid"),
-        id="partners", cls="lp-partners",
+
+def landing_page(open_auth=False, lang="et"):
+    c = t(lang)
+    product = replace(FASTHRM, tagline=c["foot_tagline"])
+    nav = fs_nav(
+        product,
+        c["nav"],
+        [_lang_switch(lang),
+         Button(c["signin"], type="button", onclick="authOpen('login')", cls="fs-btn fs-btn-ghost")],
+        menu_label=c["menu"],
     )
 
-
-def _public_nav():
-    return Nav(
-        A(Span("F", cls="lp-mark"), Span("FastHRM"), href="/", cls="lp-brand"),
+    hero = Section(
         Div(
-            A("Features", href="/features", cls="lp-nav-link"),
-            A("How we compare", href="/compare", cls="lp-nav-link"),
-            A("Careers", href="/careers", cls="lp-nav-link"),
-            A("Pricing", href="/#pricing", cls="lp-nav-link"),
-            A("Partners", href="/#partners", cls="lp-nav-link"),
-            A("Developers", href="/developers", cls="lp-nav-link"),
-            Button("Sign In", type="button", onclick="authOpen('login')", cls="lp-signin"),
-            cls="lp-nav-actions",
+            fs_eyebrow(c["hero_eyebrow"], on_ink=True),
+            H1(c["hero_h1_a"], " ", Span(c["hero_h1_hi"], cls="lh-hi")),
+            P(c["hero_sub"], cls="lh-sub"),
+            Div(fs_button(c["hero_cta1"], variant="lime", size="lg", onclick="authOpen('register')"),
+                fs_button(c["hero_cta2"], href="#demo", variant="ghost", size="lg"),
+                cls="lh-actions"),
+            P(c["hero_trust"], cls="lh-trust"),
+            cls="lh-hero-inner fs-wrap",
         ),
-        cls="lp-nav",
+        _dashboard_mock(c),
+        cls="lh-hero",
     )
 
+    logos = Section(Div(Span(c["logos_label"], cls="lh-suite-label"),
+                        Div(*[Span(name) for name in
+                              ["FastMail", "FastOffice", "FastDrive", "FastMeet", "FastAccounts", "FastBooks"]],
+                            cls="fs-logos lh-suite-logos"),
+                        cls="lh-suite-inner fs-wrap"), cls="lh-suite")
 
-def _public_footer(message, link_text, href):
-    """Keep public pages tied to the same runtime build identity as the app shell."""
-    return Footer(
-        Span(message),
+    features = Section(Div(
+        Div(Div(fs_eyebrow(c["feat_eyebrow"]), H2(c["feat_h2"]), cls="lh-head"),
+            P(c["feat_sub"]), cls="lh-features-head"),
+        Div(*[Div(I(f"{i + 1:02d}"), H3(title), P(desc), cls="lh-feat")
+              for i, (title, desc) in enumerate(c["features"])], cls="lh-feats"),
+        cls="fs-wrap"), cls="lh-sec")
+
+    demo = Section(Div(
+        Div(H2(c["demo_h2"]), P(c["demo_sub"]), cls="lh-head center"),
         Div(
-            A(link_text, href=href),
-            A("View on GitHub ↗", href="https://github.com/predictivelabsai/FastHRM", target="_blank", rel="noopener noreferrer"),
-            A(version.label(), href="/about", cls="lp-version", title=version.detail()),
-            cls="lp-footer-links",
-        ),
-        cls="lp-footer",
+            Div(Span(cls="lh-dot"), Span(cls="lh-dot"), Span(cls="lh-dot"),
+                Span("app.fasthr.eu/dashboard", cls="lh-mock-url"), cls="lh-mock-bar"),
+            Div(Picture(
+                Source(type="image/webp",
+                       srcset=("/static/product-demo-880.webp 880w, "
+                               "/static/product-demo-1100.webp 1100w"),
+                       sizes="(min-width: 1100px) 1060px, 92vw"),
+                Img(src="/static/product-demo.gif", alt=c["demo_alt"], loading="lazy",
+                    decoding="async", width=1100, height=689),
+            ), cls="lh-real-demo-body"),
+            cls="lh-real-demo-frame"),
+        cls="fs-wrap"), id="demo", cls="lh-sec")
+
+    statutory = Section(Div(
+        Div(
+            Div(fs_eyebrow(c["stat_eyebrow"]), H2(c["stat_h2"]), P(c["stat_sub"]), cls="lh-head"),
+            Div(*[Div(B(name), P(desc), cls="lh-stat-item") for name, desc in c["statutory"]],
+                cls="lh-stat-list"),
+            cls="lh-stat"),
+        cls="fs-wrap"), cls="lh-sec lh-alt")
+
+    pricing = Section(Div(
+        Div(fs_eyebrow(c["price_eyebrow"]), H2(c["price_h2"]), P(c["price_sub"]), cls="lh-head center"),
+        Div(
+            *[Div(fs_eyebrow(eb), H3(title), Div(amt, cls="amt"), P(desc),
+                  cls="lh-price feature" if i == 1 else "lh-price")
+               for i, (eb, title, amt, desc) in enumerate(c["price_cards"])],
+            cls="lh-prices"),
+        P(c["price_example"], cls="lh-price-example"),
+        cls="fs-wrap"), id="pricing", cls="lh-sec")
+
+    compare = Section(_compare_table(c), cls="lh-sec lh-alt lh-cmp-section")
+
+    faq = Section(Div(
+        Div(fs_eyebrow(c["faq_eyebrow"]), H2(c["faq_h2"]), cls="lh-head"),
+        Div(*[Div(H3(q), P(a), cls="lh-faq") for q, a in c["faqs"]], cls="lh-faqs"),
+        cls="fs-wrap"), cls="lh-sec lh-faq-section")
+
+    cta = Section(Div(Div(
+        H2(c["cta_h2"]), P(c["cta_sub"]),
+        Div(fs_button(c["cta_btn"], variant="lime", size="lg", onclick="authOpen('register')"),
+            fs_button(c["cta_btn2"], href=FASTHRM.github_url, variant="ghost", size="lg",
+                      target="_blank", rel="noopener noreferrer"),
+            cls="lh-actions"),
+        cls="lh-ctaband"), cls="fs-wrap"), cls="lh-sec")
+
+    footer = fs_footer(
+        product,
+        c["foot_cols"],
+        c["foot_rights"],
+        [version.label()],
     )
 
-
-def landing_page(open_auth=False):
-    features = ['Employee records', 'Leave and attendance', 'Payroll and payslips',
-                'Recruitment and AI CV screening', 'Goals and performance', 'Onboarding to exit']
     return Html(
-        Head(Title("FastHRM · FastSME"), Meta(charset="utf-8"),
-             Meta(name="viewport", content="width=device-width, initial-scale=1"),
-             Meta(name="description", content="Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead."),
-             *seo_meta(),
-             Link(rel="icon", type="image/svg+xml", href=FAVICON),
-             Link(rel="preconnect", href="https://fonts.googleapis.com"),
-             Link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;750&display=swap"),
-             Style(CSS + AUTH_CSS)),
+        _landing_head(c),
         Body(
-            _public_nav(),
-            Main(
-                Section(Span("People operations", cls="lp-kicker"), H1("A clearer home for every people process."),
-                        P("Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead.", cls="lp-lede"),
-                        Div(Button("Sign In or Register", type="button", onclick="authOpen('login')", cls="lp-primary"),
-                            A("Explore the open-source suite →", href="https://fastsme.com/products", cls="lp-secondary"),
-                            cls="lp-actions"), cls="lp-hero"),
-                Section(Div(Img(src="/static/product-demo.gif",
-                                alt="FastHRM product tour — people operations, public careers, "
-                                    "recruiting workflows, analytics and AI-assisted hiring",
-                                loading="eager", width="1100", height="689"),
-                            P("Product tour · people, time, pay, public careers and recruiting automation"),
-                            cls="lp-demo-frame"), cls="lp-demo", aria_label="FastHRM product tour"),
-                Section(Div(*[Article(Span(f"0{i}", cls="lp-num"), H2(title),
-                                      P("Everything you need for " + title.lower() + ", in one focused workspace."),
-                                      cls="lp-card") for i, title in enumerate(features, 1)],
-                            cls="lp-grid"), cls="lp-band"),
-                pricing_section(),
-                partner_section(),
-                Section(Div(Span("Developers", cls="lp-kicker"),
-                            H2("Build on FastHRM."),
-                            P("Explore the public read API, typed schemas, examples, and token-gated integration writes.")),
-                        A("Read the API documentation →", href="/developers", cls="lp-primary"),
-                        cls="lp-developers"),
-            ),
-            _public_footer(
-                "FastHRM is part of the open-source FastSME suite.",
-                "View all products",
-                "https://fastsme.com/products",
-            ),
-            auth_modal("FastHRM"),
+            A("Skip to content", href="#main-content", cls="fs-skip"),
+            nav,
+            Script(MOBILE_NAV_JS),
+            Script(TABLE_SCROLL_JS),
+            Main(hero, logos, features, demo, statutory, pricing, compare, faq, cta,
+                 id="main-content"),
+            footer,
+            auth_modal("FastHR", lang=lang),
             Script(AUTH_JS),
             Script("document.addEventListener('DOMContentLoaded',()=>authOpen('login'));" if open_auth else ""),
         ),
+        lang=c["html_lang"],
     )
 
 
-def features_page():
+PUBLIC_PAGE_CSS = """
+.pg-page .fs-lang a.active{color:var(--ink)}
+.pg-page .fs-nav.on-ink .fs-lang a.active{background:var(--accent);color:var(--ink)}
+.pg-hero{background:var(--ink);color:var(--on-ink);padding:clamp(52px,8vw,96px) 0}
+.pg-hero h1{font-size:clamp(38px,6vw,70px);max-width:19ch;margin:22px 0;font-weight:800;overflow-wrap:anywhere}
+.pg-lede{max-width:65ch;color:var(--on-ink-muted);font-size:clamp(17px,2vw,20px)}
+.pg-summary{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.pg-chip{border:1px solid var(--ink-line);border-radius:var(--radius-pill);
+  padding:9px 15px;font-size:14px;color:var(--on-ink-muted)}
+.pg-chip strong{color:var(--accent)}
+.pg-section{padding-top:clamp(40px,6vw,72px);padding-bottom:clamp(40px,6vw,72px)}
+.pg-heading{display:grid;grid-template-columns:1fr 1.2fr;gap:24px;margin-bottom:32px;align-items:start}
+.pg-heading h2,.pg-faq h2{font-size:clamp(28px,4vw,40px)}
+.pg-heading p{color:var(--muted);max-width:65ch}
+.pg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.pg-card{padding:26px;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--card);display:flex;flex-direction:column;min-width:0}
+.pg-card.soon{background:var(--paper)}
+.pg-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center}
+.pg-status{padding:5px 10px;border-radius:var(--radius-pill);font-size:12px;font-weight:700;
+  background:var(--accent);color:var(--ink)}
+.pg-card.soon .pg-status{background:var(--paper-2);color:var(--muted)}
+.pg-price{color:var(--accent-strong);font-size:13px;font-weight:700}
+.pg-card h3{margin:24px 0 10px}
+.pg-card p{color:var(--muted);font-size:15px}
+.pg-card a{align-self:flex-start;margin-top:auto;padding-top:20px;
+  color:var(--accent-strong);font-weight:700;text-underline-offset:4px}
+.pg-note{border-top:1px solid var(--line);margin-top:32px;padding-top:24px;color:var(--muted);max-width:70ch}
+.pg-note strong{color:var(--text)}
+.pg-compare{min-width:1150px;table-layout:fixed}
+.pg-compare caption{text-align:left;padding:20px;color:var(--muted);font-size:13px}
+.pg-compare th,.pg-compare td{vertical-align:top;text-align:left;line-height:1.5;padding-inline:10px}
+.pg-compare .ct-feat{width:190px;min-width:190px;white-space:normal}
+.pg-compare thead th:not(.ct-feat){min-width:190px}
+.pg-compare thead th{font-size:18px}
+.pg-compare .pg-source{display:inline-flex;align-items:center;min-height:40px;padding-block:8px;font-family:var(--font-body);font-size:12px;
+  font-weight:600;color:var(--accent-strong);margin-top:8px;text-underline-offset:3px}
+.pg-compare .pg-name{display:inline-flex;align-items:center;min-height:40px;padding-block:8px;color:var(--text);text-decoration:underline;text-decoration-color:var(--line);
+  text-underline-offset:4px}
+.pg-compare-section h2{font-size:clamp(28px,4vw,40px);margin-bottom:22px}
+.pg-compare .ct-pricerow th{background:var(--paper);border-top:2px solid var(--line)}
+.pg-compare .ct-mark{display:inline-block;margin-right:7px}
+.pg-compare .ct-no,.pg-legend .ct-no,.pg-mobile-row .ct-no{color:#8f3028}
+.pg-compare .ct-soon,.pg-legend .ct-soon{color:#8a5a16}
+.pg-faq{border-top:1px solid var(--line)}
+.pg-faq-list{max-width:820px;margin-top:32px}
+.pg-faq article{padding:24px 0;border-top:1px solid var(--line)}
+.pg-faq h3{margin-bottom:12px}
+.pg-faq p{color:var(--muted);max-width:70ch}
+.lh-sec#pricing{padding-bottom:clamp(30px,5vw,56px)}
+.lh-cmp-section{padding-top:clamp(30px,5vw,56px);padding-bottom:clamp(30px,5vw,56px)}
+.lh-faq-section{padding-bottom:clamp(30px,5vw,56px)}
+@media(max-width:900px){.pg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){
+  .pg-grid,.pg-heading{grid-template-columns:1fr}
+  .pg-page .fs-nav-inner{height:auto;min-height:70px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
+  .pg-page .fs-nav-right{gap:8px;flex-wrap:wrap}
+  .pg-page .fs-btn{padding:11px 15px}
+}
+@media(max-width:639px){
+  body > main p{padding-inline:clamp(18px,4vw,40px)}
+  .pg-compare-wrap{display:none}
+  .pg-mobile-compare{display:grid;gap:14px}
+  .pg-mobile-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);padding:18px}
+  .pg-mobile-card h3{margin:0 0 4px}
+  .pg-name,.pg-source{display:inline-flex;align-items:center;padding-block:8px}
+  .pg-mobile-sources{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:12px}
+  .pg-mobile-sources .pg-source{margin-top:0;min-height:44px}
+  .pg-mobile-row{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px;padding:10px 0;border-top:1px solid var(--line);line-height:1.4}
+  .pg-mobile-row b{font-size:13px;color:var(--muted)}
+   .pg-mobile-row span{font-size:14px}
+   .pg-mobile-row .ct-mark{margin-right:5px}
+   .pg-mobile-row .ct-no{color:#8f3028}
+}
+@media(min-width:640px){.pg-mobile-compare{display:none}}
+"""
+
+
+def public_head(c: dict, prefix: str, path: str, *structured_data,
+                extra_css="", include_comparison_css=True, title=None,
+                description=None):
+    title = title or c[f"{prefix}_meta_title"]
+    description = description or c[f"{prefix}_meta_desc"]
+    return Head(
+        Title(title), Meta(charset="utf-8"),
+        Meta(name="viewport", content="width=device-width, initial-scale=1"),
+        Meta(name="description", content=description),
+        *seo_meta(path=path, title=title, description=description),
+        *structured_data,
+        Link(rel="icon", type="image/svg+xml", href=FAVICON),
+        *FONT_LINKS,
+        Style(DESIGN_CSS + extra_css
+              + (COMPARISON_TABLE_CSS if include_comparison_css else "")
+              + PUBLIC_PAGE_CSS),
+        accent_style(FASTHRM),
+    )
+
+
+def public_nav(c: dict, path: str):
+    return Div(
+        fs_nav(
+            FASTHRM, c["nav"],
+            [_lang_switch(c["html_lang"], path),
+             fs_button(c["signin"], href=f"/login?lang={c['html_lang']}",
+                       variant="ghost")],
+            menu_label=c["menu"],
+        ),
+        Script(MOBILE_NAV_JS),
+    )
+
+
+def public_footer(c: dict):
+    return fs_footer(
+        replace(FASTHRM, tagline=c["foot_tagline"]),
+        c["foot_cols"], c["foot_rights"],
+        [version.label()],
+    )
+
+
+# Compatibility aliases for existing public page call sites.
+_page_head = public_head
+_page_nav = public_nav
+_page_footer = public_footer
+
+
+def _page_hero(c: dict, prefix: str, chips):
+    return Section(Div(
+        fs_eyebrow(c[f"{prefix}_eyebrow"], on_ink=True),
+        H1(c[f"{prefix}_h1"]),
+        P(c[f"{prefix}_lede"], cls="pg-lede"),
+        Div(*[Span(Strong(value), " ", label, cls="pg-chip")
+              for value, label in chips], cls="pg-summary"),
+        cls="fs-wrap"), cls="pg-hero")
+
+
+def features_page(lang: str = "et"):
+    c = t(lang)
     available = sum(1 for feature in FEATURE_CATALOG if feature[3])
     coming = len(FEATURE_CATALOG) - available
     cards = []
     for name, description, href, implemented in FEATURE_CATALOG:
-        action = A("Open feature →", href=href) if href else None
-        cards.append(
-            Article(
-                Div(
-                    Span("Available" if implemented else "Coming soon", cls="pc-status"),
-                    Span("Free", cls="pc-price"),
-                    cls="pc-meta",
-                ),
-                H3(name),
-                P(description),
-                action,
-                cls="pc-card" + ("" if implemented else " soon"),
-            )
-        )
+        if name == "Palgalehed ja palgapäevad":
+            name, description = c["feat_payroll_workflow_name"], c["feat_payroll_workflow_desc"]
+        elif name == "Eesti seadusjärgne palk (TÖR, TSD)":
+            name, description = c["feat_payroll_statutory_name"], c["feat_payroll_statutory_desc"]
+        action = A(c["feat_pg_open"], href=href) if href else None
+        cards.append(Article(
+            Div(
+                Span(c["feat_pg_status_avail"] if implemented
+                     else c["feat_pg_status_soon"], cls="pg-status"),
+                Span(c["feat_pg_free"], cls="pg-price"),
+                cls="pg-meta",
+            ),
+            H3(name, lang="en"), P(description, lang="en"), action,
+            cls="pg-card" + ("" if implemented else " soon"),
+        ))
+    hero = _page_hero(c, "feat_pg", [
+        (str(available), c["feat_pg_chip_avail"]),
+        (str(coming), c["feat_pg_chip_soon"]),
+        (c["feat_pg_chip_free_s"], c["feat_pg_chip_free"]),
+    ])
+    catalogue = Section(
+        Div(H2(c["feat_pg_cat_h"]), P(c["feat_pg_cat_p"]), cls="pg-heading"),
+        Div(*cards, cls="pg-grid"),
+        P(Strong(c["feat_pg_note_s"]), c["feat_pg_note"], cls="pg-note"),
+        cls="pg-section fs-wrap",
+    )
     return Html(
-        Head(
-            Title("FastHRM Features & Pricing · Free"),
-            Meta(charset="utf-8"),
-            Meta(name="viewport", content="width=device-width, initial-scale=1"),
-            Meta(name="description", content="Explore every FastHRM feature. All available and planned modules are Free."),
-            *seo_meta(
-                path="/features",
-                title="FastHRM Features & Pricing · Free",
-                description="Explore available and coming-soon FastHRM features. Every module is Free.",
-            ),
-            Link(rel="icon", type="image/svg+xml", href=FAVICON),
-            Link(rel="preconnect", href="https://fonts.googleapis.com"),
-            Link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;750&display=swap"),
-            Style(CSS + AUTH_CSS),
-        ),
-        Body(
-            _public_nav(),
-            Main(
-                Section(
-                    Span("Features & pricing", cls="lp-kicker"),
-                    H1("Every people feature. Free."),
-                    P("Use the modules that are ready today and see what is coming next. There are no paid tiers or per-module upgrades.", cls="lp-lede"),
-                    Div(
-                        Span(Strong(str(available)), " available features", cls="pc-chip"),
-                        Span(Strong(str(coming)), " coming soon", cls="pc-chip"),
-                        Span(Strong("Free"), " across the catalogue", cls="pc-chip"),
-                        cls="pc-summary",
-                    ),
-                    cls="pc-hero",
-                ),
-                Section(
-                    Div(H2("Feature catalogue"), P("Availability reflects the current FastHRM implementation. Coming-soon modules are visible so teams can plan without mistaking roadmap scope for shipped software."), cls="pc-heading"),
-                    Div(*cards, cls="pc-grid"),
-                    cls="pc-section",
-                ),
-                Section(Div(Strong("Pricing: BYOC Free · Host with us €1 / month. "), "Self-host for free, or host with us for €1 per product per month. “Coming soon” describes delivery status only, not a future paid plan."), cls="pc-note"),
-            ),
-            _public_footer(
-                "FastHRM is part of the open-source FastSME suite.",
-                "Developer API",
-                "/developers",
-            ),
-            auth_modal("FastHRM"),
-            Script(AUTH_JS),
-        ),
+        _page_head(c, "feat_pg", "/features"),
+        Body(A("Skip to content", href="#main-content", cls="fs-skip"),
+             _page_nav(c, "/features"), Main(hero, catalogue, id="main-content"),
+             _page_footer(c),
+             cls="pg-page"),
+        lang=c["html_lang"],
     )
 
 
-def comparison_page():
-    rows = []
-    for item in COMPARISONS:
-        source_links = [A("Official source ↗", href=item["source"], target="_blank", rel="noreferrer", cls="cmp-source")]
+def _mobile_compare_cards(c: dict, comparisons):
+    legend = dict(c["cmp_pg_legend"])
+    fields = ("best_for", "team", "price", "free_option", "source_model",
+              "payroll_global", "limits")
+    cards = []
+    for item in comparisons:
+        sources = [A(c["cmp_pg_source"], href=item["source"], target="_blank",
+                     rel="noopener noreferrer", cls="pg-source")]
         if item.get("license_source"):
-            source_links.append(A("Licence ↗", href=item["license_source"], target="_blank", rel="noreferrer", cls="cmp-source"))
-        rows.append(
-            Tr(
-                Td(Div(item["name"], cls="cmp-name"), *source_links),
-                Td(item["best_for"]),
-                Td(item["team"]),
-                Td(Span(item["price"], cls=f"cmp-badge {item['price_class']}")),
-                Td(item["free_option"]),
-                Td(Span(item["source_model"], cls=f"cmp-badge {item['source_class']}")),
-                Td(item["payroll_global"]),
-                Td(item["limits"]),
-                cls="cmp-fast" if item["highlight"] else "",
-            )
-        )
+            sources.append(A(c["cmp_pg_license"], href=item["license_source"],
+                             target="_blank", rel="noopener noreferrer",
+                             cls="pg-source"))
+        rows = []
+        for label, field in zip(c["cmp_pg_headers"][1:], fields):
+            value = item[field]
+            if field == "price" and not value:
+                value = c["cmp_pg_price_values"].get(item["name"], value)
+            content = [Span(value, lang="en")]
+            if field == "source_model":
+                state = {"open": "yes", "mixed": "soon", "closed": "no"}[
+                    item["source_class"]]
+                content.insert(0, Span(CMP_GLYPH[state], cls=f"ct-mark ct-{state}",
+                                       title=legend[state], **{"aria-label": legend[state]}))
+            rows.append(Div(Strong(label), Div(*content), cls="pg-mobile-row"))
+        cards.append(Article(
+            H3(A(item["name"], href=item["source"], target="_blank",
+                 rel="noopener noreferrer", cls="pg-name")),
+            Div(*sources, cls="pg-mobile-sources"),
+            Div(*rows), cls="pg-mobile-card"))
+    return Div(*cards, cls="pg-mobile-compare")
+
+
+def _sourced_compare_table(c: dict, comparisons=None, heading=None):
+    """Transpose the sourced records, retaining their full text and limitations."""
+    legend = dict(c["cmp_pg_legend"])
+    comparisons = comparisons if comparisons is not None else c["comparisons"]
+    headers = [Th(c["cmp_pg_headers"][0], cls="ct-feat", scope="col")]
+    for item in comparisons:
+        sources = [A(c["cmp_pg_source"], href=item["source"], target="_blank",
+                     rel="noopener noreferrer", cls="pg-source")]
+        if item.get("license_source"):
+            sources.append(A(c["cmp_pg_license"], href=item["license_source"],
+                             target="_blank", rel="noopener noreferrer",
+                             cls="pg-source"))
+        headers.append(Th(A(item["name"], href=item["source"], target="_blank",
+                            rel="noopener noreferrer", cls="pg-name"), *sources, scope="col",
+                          cls="ct-fh" if item["highlight"] else ""))
+
+    fields = ("best_for", "team", "price", "free_option", "source_model",
+              "payroll_global", "limits")
+    rows = []
+    for label, field in zip(c["cmp_pg_headers"][1:], fields):
+        cells = []
+        for item in comparisons:
+            value = item[field]
+            if field == "price" and not value:
+                value = c["cmp_pg_price_values"].get(item["name"], value)
+            content = [Span(value, lang="en")]
+            # These marks describe licence availability only. Keep nuanced
+            # payroll, pricing and free-plan conditions in the original text.
+            if field == "source_model":
+                state = {"open": "yes", "mixed": "soon", "closed": "no"}[
+                    item["source_class"]]
+                content.insert(0, Span(
+                    CMP_GLYPH[state], cls=f"ct-mark ct-{state}",
+                    title=legend[state], **{"aria-label": legend[state]},
+                ))
+            cells.append(Td(*content, cls="ct-fh" if item["highlight"] else ""))
+        rows.append(Tr(Th(label, cls="ct-feat", scope="row"), *cells,
+                       cls="ct-pricerow" if field == "price" else ""))
+
+    return Div(
+        H2(heading) if heading else None,
+        Div(Table(
+            Caption(c["cmp_pg_caption"]), Thead(Tr(*headers)), Tbody(*rows),
+            cls="ct pg-compare"), Span(cls="ct-scroll-hint", aria_hidden="true"),
+            cls="ct-wrap pg-compare-wrap", tabindex="0", role="region",
+            **{"aria-label": c["cmp_pg_table_label"]}),
+        _mobile_compare_cards(c, comparisons),
+        Div(Div(*[
+            Span(Span(CMP_GLYPH[state], cls=f"ct-mark ct-{state}",
+                      aria_hidden="true"), " ", label, cls="ct-legend-item")
+            for state, label in c["cmp_pg_legend"]
+        ], cls="ct-legend pg-legend"), cls="ct-foot"),
+        P(c["cmp_pg_note"], cls="pg-note"),
+        cls="pg-section fs-wrap pg-compare-section",
+    )
+
+
+def comparison_page(lang: str = "et"):
+    c = t(lang)
     faq_schema = {
         "@context": "https://schema.org", "@type": "FAQPage",
         "mainEntity": [
             {"@type": "Question", "name": question, "acceptedAnswer": {"@type": "Answer", "text": answer}}
-            for question, answer in COMPARISON_FAQS
+            for question, answer in c["comparison_faqs"]
         ],
     }
     list_schema = {
-        "@context": "https://schema.org", "@type": "ItemList", "name": "FastHRM alternatives comparison",
+        "@context": "https://schema.org", "@type": "ItemList", "name": "FastHR alternatives comparison",
         "itemListElement": [
             {"@type": "ListItem", "position": index, "name": item["name"], "url": item["source"]}
-            for index, item in enumerate(COMPARISONS, 1)
+            for index, item in enumerate(c["comparisons"], 1)
         ],
     }
     return Html(
-        Head(
-            Title("FastHRM vs Open-Source and Proprietary HRM Software"),
-            Meta(charset="utf-8"),
-            Meta(name="viewport", content="width=device-width, initial-scale=1"),
-            Meta(name="description", content="Compare FastHRM with Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo HR across price, source model, payroll, and scope."),
-            *seo_meta(
-                path="/compare",
-                title="FastHRM Comparison · Free and Open-Source HRM",
-                description="Compare FastHRM with six leading open-source, open-core, and proprietary HR platforms.",
-            ),
-            Script(NotStr(json.dumps(faq_schema, separators=(",", ":"))), type="application/ld+json"),
-            Script(NotStr(json.dumps(list_schema, separators=(",", ":"))), type="application/ld+json"),
-            Link(rel="icon", type="image/svg+xml", href=FAVICON),
-            Link(rel="preconnect", href="https://fonts.googleapis.com"),
-            Link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;750&display=swap"),
-            Style(CSS + AUTH_CSS),
+        _page_head(
+            c, "cmp_pg", "/compare",
+            Script(NotStr(json.dumps(faq_schema, separators=(",", ":"))),
+                   type="application/ld+json"),
+            Script(NotStr(json.dumps(list_schema, separators=(",", ":"))),
+                   type="application/ld+json"),
         ),
         Body(
-            _public_nav(),
+            A("Skip to content", href="#main-content", cls="fs-skip"),
+            _page_nav(c, "/compare"),
+            Script(TABLE_SCROLL_JS),
             Main(
+                _page_hero(c, "cmp_pg", c["cmp_pg_chips"]),
+                _sourced_compare_table(c, c["comparison_estonia"], c["cmp_pg_estonia_heading"]),
+                _sourced_compare_table(c, c["comparisons"], c["cmp_pg_global_heading"]),
                 Section(
-                    Span("How we compare", cls="lp-kicker"),
-                    H1("Free and open by default."),
-                    P("A source-linked comparison of FastHRM with six close alternatives. Software price, source availability and operating costs are shown separately.", cls="lp-lede"),
-                    Div(Span(Strong("Free"), " FastHRM features", cls="pc-chip"), Span(Strong("MIT"), " open-source licence", cls="pc-chip"), Span(Strong("No"), " paid tiers", cls="pc-chip"), cls="pc-summary"),
-                    cls="pc-hero",
+                    H2(c["cmp_pg_faq_h"]),
+                    Div(*[Article(H3(question), P(answer))
+                          for question, answer in c["comparison_faqs"]],
+                        cls="pg-faq-list", lang=c["html_lang"]),
+                    cls="pg-faq pg-section fs-wrap",
                 ),
-                Section(
-                    Div(
-                        Table(
-                            Caption("Public pricing and licensing observed 8 August 2026. Prices exclude implementation, infrastructure, support and optional services unless stated."),
-                            Thead(Tr(Th("Platform"), Th("Best for"), Th("Ideal team"), Th("Starting price"), Th("Free option"), Th("Open source"), Th("Payroll / global"), Th("Limitations"))),
-                            Tbody(*rows),
-                            cls="cmp-table",
-                        ),
-                        cls="cmp-scroll",
-                    ),
-                    P("Comparison is based on official vendor pages linked in each row. “Free” describes the software or named plan, not unavoidable infrastructure or implementation work.", cls="cmp-note"),
-                    cls="cmp-wrap",
-                ),
-                Section(H2("Questions people ask"), *[Article(H3(question), P(answer)) for question, answer in COMPARISON_FAQS], cls="cmp-faq"),
+                id="main-content",
             ),
-            _public_footer(
-                "FastHRM is Free and open source.",
-                "See every feature",
-                "/features",
-            ),
-            auth_modal("FastHRM"),
-            Script(AUTH_JS),
+            _page_footer(c),
+            cls="pg-page",
         ),
+        lang=c["html_lang"],
     )

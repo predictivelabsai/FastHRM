@@ -8,16 +8,15 @@ from starlette.responses import Response
 
 import recruitment
 
-PRODUCT = 'FastHRM'
-BASE_URL = 'https://hrm.fastsme.com'
+PRODUCT = 'FastHR'
+BASE_URL = 'https://fasthr.eu'
 DESCRIPTION = 'Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead.'
-KEYWORDS = ('FastHRM', 'open source people operations', 'people operations software', 'SME people operations', 'Employee records', 'Leave and attendance', 'Payroll and payslips', 'FastSME', 'open source business software')
+KEYWORDS = ('FastHR', 'open source people operations', 'people operations software', 'SME people operations', 'Employee records', 'Leave and attendance', 'Payroll and payslips', 'FastSME', 'open source business software')
 FEATURES = ('Employee records', 'Leave and attendance', 'Payroll and payslips', 'Recruiting ATS', 'Performance management', 'Employee lifecycle')
 SITEMAP_ENTRIES = (
     ('/', 'weekly', '1.0'),
     ('/features', 'weekly', '0.9'),
     ('/compare', 'weekly', '0.8'),
-    ('/careers', 'daily', '0.8'),
     ('/developers', 'monthly', '0.6'),
     ('/privacy', 'yearly', '0.3'),
 )
@@ -84,7 +83,7 @@ async def sitemap():
 
 
 async def llms():
-    body = f"""# FastHRM
+    body = f"""# FastHR
 
 > Free, MIT-licensed people operations, recruiting, performance, and employee lifecycle software for SMEs and startups.
 
@@ -93,13 +92,13 @@ async def llms():
 - [Home]({BASE_URL}/): Product overview and access.
 - [Features]({BASE_URL}/features): Available and coming-soon capabilities; every listed feature is Free.
 - [How we compare]({BASE_URL}/compare): Source-linked comparison with Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo HR.
-- [Careers]({BASE_URL}/careers): Published roles and individual job specification pages.
+- [Jobs]({BASE_URL}/jobs/...): Published roles and individual job specification pages.
 - [Developers]({BASE_URL}/developers): Public API resources, examples, OpenAPI, Swagger UI, and ReDoc.
 - [Privacy]({BASE_URL}/privacy): Candidate privacy information.
 
 ## Key facts
 
-- FastHRM is open source under the MIT licence: https://github.com/predictivelabsai/FastHRM
+- FastHR is open source under the MIT licence: https://github.com/predictivelabsai/FastHRM
 - Every available feature is Free; coming-soon labels describe availability, not paid tiers.
 - Public job pages are discoverable through {BASE_URL}/sitemap.xml.
 - API reads are public; supported writes require a configured bearer token.

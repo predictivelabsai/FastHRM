@@ -107,7 +107,7 @@ def operations_page(*, actor: str):
                  Input(type="datetime-local", name="window_start", required=True),
                  Input(type="datetime-local", name="window_end", required=True),
                  Input(name="timezone", value="UTC"),
-                 Select(Option("FastHRM video", value="fasthr"), Option("Teams", value="ms_graph"),
+                 Select(Option("FastHR video", value="fasthr"), Option("Teams", value="ms_graph"),
                         Option("Google Meet", value="google_calendar"), name="provider"),
                  Button("Invite to self-schedule", cls="btn"), method="post",
                  action="/talent/bulk-interviews", cls="inline-form"), cls="card"),
@@ -155,7 +155,7 @@ document.querySelectorAll('.pipeline-drop').forEach(col=>{col.addEventListener('
                  Label(Input(type="checkbox", name="can_view_salary", value="1"), " Salary access"),
                  Button("Add member", cls="btn"), method="post", action=f"/talent/jobs/{job_id}/members", cls="inline-form"), cls="card"),
         Div(Div(H3("Application form, internal audience, and scheduling"), cls="card-header"),
-            P("Attached form: ", Strong(attached_form["name"] if attached_form else "Standard FastHRM form")),
+            P("Attached form: ", Strong(attached_form["name"] if attached_form else "Standard FastHR form")),
             Form(Select(Option("Standard form", value="0"),
                         *[Option(f["name"], value=str(f["id"]), selected=bool(attached_form and f["id"] == attached_form["id"])) for f in application_forms],
                         name="form_id"), Button("Attach", cls="btn"), method="post",
@@ -338,7 +338,7 @@ def scheduling_page(*, actor: str):
             Form(Input(type="number", name="application_id", placeholder="Application ID", required=True),
                  Input(name="interviewer_emails", placeholder="one@example.com,two@example.com", required=True),
                  Input(type="datetime-local", name="window_start", required=True), Input(type="datetime-local", name="window_end", required=True),
-                 Input(name="timezone", value="UTC"), Select(Option("FastHRM video", value="fasthr"), Option("Teams", value="ms_graph"), Option("Google Meet", value="google_calendar"), name="provider"),
+                 Input(name="timezone", value="UTC"), Select(Option("FastHR video", value="fasthr"), Option("Teams", value="ms_graph"), Option("Google Meet", value="google_calendar"), name="provider"),
                  Button("Create link", cls="btn primary"), method="post", action="/talent/scheduling-links", cls="inline-form"), cls="card"),
         Div(Div(H3("Bookings"), cls="card-header"),
             *[P(Strong(b["starts_at"]), f" · {b['timezone']} · ", A("Meeting", href=b["meeting_url"] or "#"), f" · {b['status']}") for b in bookings] or [P("No bookings.")], cls="card"),
@@ -663,7 +663,7 @@ def campaign_public_page(campaign: dict):
                                      alt=campaign["asset"].get("alt_text") or "") if campaign.get("asset") else None,
                                  H1(content.get("headline") or campaign["name"]), cls="campaign-hero"))
         elif kind == "apply":
-            nodes.append(Section(A("View open role", href=campaign.get("job_url") or "/careers",
+            nodes.append(Section(A("View open role", href=campaign.get("job_url") or "/",
                                    cls="btn primary"), cls="campaign-apply"))
         else:
             nodes.append(Section(P(content.get("body") or "Explore this opportunity and meet the team."),

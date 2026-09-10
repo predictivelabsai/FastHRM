@@ -74,7 +74,7 @@ docker compose up --build      # http://localhost:5010
   deductions breakdown.
 - **Requisitions** (`/talent/jobs`) — open roles with a live pipeline: stage
   counts, applicant list, and one-click stage moves (every move audited).
-- **Public careers** (`/careers`, `/jobs/<slug>`) — branded role sub-pages,
+- **Public careers** (`/jobs/<slug>`) — branded role sub-pages,
   application forms, consent capture, preview, publishing and scheduled closure.
 - **Recruiting platform** (`/talent/platform`) — project workflows, recruiter
   tasks, talent CRM, communications and automation, self-scheduling, job-board

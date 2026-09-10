@@ -480,7 +480,7 @@ def campaign(slug: str) -> dict | None:
                 posting = db.one(
                     "SELECT slug FROM job_postings WHERE job_id=? AND publication_status='Published'",
                     (row["job_id"],))
-                row["job_url"] = f"/jobs/{posting['slug']}" if posting else "/careers"
+                row["job_url"] = f"/jobs/{posting['slug']}" if posting else "/"
     return row
 
 

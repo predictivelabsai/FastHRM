@@ -10,6 +10,7 @@ def test_applies_all_migrations_to_empty_db(fresh_db):
     assert "0002_ats_core" in versions
     assert "0004_recruitment_publishing" in versions
     assert "0005_recruitment_platform" in versions
+    assert "0007_shifts_time" in versions
 
     tables = {r["name"] for r in fresh_db.rows("SELECT name FROM sqlite_master WHERE type='table'")}
     for t in ("employees", "leave_requests", "payslips",          # baseline

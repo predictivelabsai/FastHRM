@@ -18,43 +18,48 @@ from urllib.request import Request as UrlRequest, urlopen
 from fasthtml.common import *
 from starlette.responses import JSONResponse, RedirectResponse
 
+from .i18n import t
+
 AUTH_CSS = """
-.auth-overlay{position:fixed;inset:0;z-index:1000;background:rgba(17,24,39,.46);display:none;align-items:center;justify-content:center;padding:20px}
-.auth-overlay.visible{display:flex}.auth-dialog{width:min(400px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 24px 70px rgba(15,23,42,.22);position:relative}
-.auth-close{position:absolute;right:16px;top:14px;border:0;background:transparent;font-size:24px;color:#6b7280;cursor:pointer}
-.auth-tabs{display:flex;border-bottom:1px solid #e5e7eb;margin-bottom:20px}.auth-tab{flex:1;border:0;background:transparent;padding:10px 8px;color:#6b7280;font-weight:650;cursor:pointer;border-bottom:2px solid transparent}
-.auth-tab.active{color:#111827;border-bottom-color:var(--accent)}.auth-title{font-size:14px;color:#6b7280;margin:0 0 16px}
-.auth-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:9px;background:#fff;color:#111827;text-decoration:none;font-weight:650;font-size:14px}
-.auth-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:#9ca3af;font-size:12px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#e5e7eb;flex:1}
-.auth-field{width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:9px;font:inherit;font-size:14px;margin-bottom:12px}.auth-field:focus{outline:2px solid color-mix(in srgb,var(--accent) 22%,white);border-color:var(--accent)}
-.auth-submit{width:100%;padding:11px 14px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}.auth-link{border:0;background:transparent;color:var(--accent);padding:0;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
-.auth-forgot{display:block;margin:-3px 0 15px;text-align:right}.auth-msg{min-height:18px;margin:10px 0 0;font-size:13px;color:#b42318}.auth-msg.ok{color:#15803d}.auth-help{font-size:12px;line-height:1.5;color:#6b7280;margin:12px 0 0}
+.auth-overlay{position:fixed;inset:0;z-index:1000;background:color-mix(in srgb,var(--ink) 46%,transparent);display:none;align-items:center;justify-content:center;padding:20px}
+.auth-overlay.visible{display:flex}.auth-dialog{width:min(400px,100%);max-height:calc(100vh - 40px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:0 24px 70px color-mix(in srgb,var(--ink) 22%,transparent);position:relative;color:var(--text)}
+.auth-close{position:absolute;right:16px;top:14px;border:0;background:transparent;font-size:24px;color:var(--muted);cursor:pointer}
+.auth-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:20px}.auth-tab{flex:1;border:0;background:transparent;padding:10px 8px;color:var(--muted);font-weight:650;cursor:pointer;border-bottom:2px solid transparent}
+.auth-tab.active{color:var(--ink);border-bottom-color:var(--accent)}.auth-title{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--ink);margin:0 0 16px}
+.auth-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 22px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--card);color:var(--ink);text-decoration:none;font-weight:600;font-size:15px}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:12px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:var(--line);flex:1}
+.auth-field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);color:var(--ink);font:inherit;font-size:14px;margin-bottom:12px}.auth-field:focus{outline:2px solid color-mix(in srgb,var(--accent) 22%,white);border-color:var(--accent)}
+.auth-submit{width:100%;padding:13px 22px;border:1.5px solid var(--accent);border-radius:var(--radius-pill);background:var(--accent);color:var(--ink);font-family:var(--font-body);font-size:15px;font-weight:600;line-height:1;cursor:pointer}.auth-submit:hover{filter:brightness(1.05)}
+.auth-link{border:0;background:transparent;color:var(--accent-strong);padding:0;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}.auth-link:hover{color:var(--ink)}
+.auth-forgot{display:block;margin:-3px 0 15px;text-align:right}.auth-msg{min-height:18px;margin:10px 0 0;font-size:13px;color:var(--accent-strong)}.auth-msg.ok{color:var(--accent-strong)}.auth-help{font-size:12px;line-height:1.5;color:var(--muted);margin:12px 0 0}.auth-trust{font-size:12px;line-height:1.4;color:var(--muted);margin:12px 0 0;text-align:center}.auth-field-wrap label{display:block;font-size:12px;font-weight:650;color:var(--text);margin:0 0 5px}.auth-error{min-height:16px;margin:-5px 0 10px;font-size:12px;color:var(--accent-strong)}
 """
 
 _GOOGLE_ICON = """<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z" fill="#4285F4"/><path d="M9 18c2.43 0 4.47-.81 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33A9 9 0 0 0 9 18z" fill="#34A853"/><path d="M3.96 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3-2.33z" fill="#FBBC05"/><path d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58A8.64 8.64 0 0 0 9 0 9 9 0 0 0 .96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z" fill="#EA4335"/></svg>"""
 
 AUTH_JS = """
-function authOpen(tab='login'){document.getElementById('auth-overlay').classList.add('visible');authTab(tab)}
-function authClose(){document.getElementById('auth-overlay').classList.remove('visible')}
+let authReturnFocus=null;
+function authOpen(tab='login'){const overlay=document.getElementById('auth-overlay');authReturnFocus=document.activeElement;overlay.classList.add('visible');overlay.removeAttribute('aria-hidden');authTab(tab);requestAnimationFrame(()=>{const first=overlay.querySelector('[data-auth-panel]:not([hidden]) input:not([type=hidden]), [data-auth-panel]:not([hidden]) button');(first||overlay.querySelector('.auth-dialog'))?.focus()})}
+function authClose(){const overlay=document.getElementById('auth-overlay');overlay.classList.remove('visible');overlay.setAttribute('aria-hidden','true');if(authReturnFocus&&typeof authReturnFocus.focus==='function')authReturnFocus.focus();authReturnFocus=null}
 function authTab(tab){
   ['login','register','forgot'].forEach(x=>{document.getElementById('auth-'+x).hidden=x!==tab});
   document.querySelectorAll('.auth-tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
 }
-function authMessage(id,text,ok=false){const el=document.getElementById(id);el.textContent=text||'';el.classList.toggle('ok',ok)}
+function authMessage(id,text,ok=false){const el=document.getElementById(id);el.textContent=text||'';el.classList.toggle('ok',ok);el.setAttribute('aria-hidden',text?'false':'true')}
 function authNext(){
   const value=new URLSearchParams(location.search).get('next')||'/';
   return value.startsWith('/')&&!value.startsWith('//')?value:'/';
 }
-async function authPost(path, formId, msgId){
+async function authPost(path, formId, msgId, fieldId){
   authMessage(msgId,'');
   const body=new FormData(document.getElementById(formId));if(!body.has('next'))body.append('next',authNext());
-  const response=await fetch(path,{method:'POST',body:body,headers:{'Accept':'application/json'}});
+  let response;try{response=await fetch(path,{method:'POST',body:body,headers:{'Accept':'application/json'}})}catch(e){authMessage(msgId,document.getElementById('auth-overlay').dataset.errorRequest);return false}
   let data={};try{data=await response.json()}catch(e){}
-  authMessage(msgId,data.message||data.error||(response.ok?'Done':'Request failed'),response.ok);
+  authMessage(msgId,data.message||data.error||(response.ok?document.getElementById('auth-overlay').dataset.successDone:document.getElementById('auth-overlay').dataset.errorRequest),response.ok);
+  if(fieldId)document.getElementById(fieldId)?.setAttribute('aria-invalid',response.ok?'false':'true');
   if(response.ok&&data.redirect)setTimeout(()=>location.assign(data.redirect),250);
   return response.ok;
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')authClose()});
+document.addEventListener('keydown',e=>{const overlay=document.getElementById('auth-overlay');if(!overlay||!overlay.classList.contains('visible'))return;if(e.key==='Escape'){authClose();return}if(e.key!=='Tab')return;const focusable=[...overlay.querySelectorAll('button:not([disabled]),a[href],input:not([disabled])')].filter(x=>!x.closest('[hidden]'));if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});
 document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('a.auth-google').forEach(link=>link.href='/auth/google?next='+encodeURIComponent(authNext()));
 });
@@ -67,60 +72,66 @@ def _safe_next(value, fallback="/"):
     return value if value.startswith("/") and not value.startswith("//") else fallback
 
 
-def auth_modal(app_name: str):
+def auth_modal(app_name: str, lang: str = "et"):
+    c = t(lang)
+
+    def field(field_id, name, label, placeholder, **attrs):
+        return Div(Label(label, **{"for": field_id}),
+                   Input(id=field_id, name=name, placeholder=placeholder,
+                         **attrs, cls="auth-field"), cls="auth-field-wrap")
+
     return Div(
         Div(
-            Button("×", type="button", aria_label="Close sign in", cls="auth-close", onclick="authClose()"),
+            Button("×", type="button", aria_label=c["auth_close"], cls="auth-close", onclick="authClose()"),
             Div(
-                Button("Sign In", type="button", data_tab="login", cls="auth-tab active", onclick="authTab('login')"),
-                Button("Register", type="button", data_tab="register", cls="auth-tab", onclick="authTab('register')"),
-                cls="auth-tabs",
-            ),
+                Button(c["auth_signin"], type="button", data_tab="login", cls="auth-tab active", onclick="authTab('login')"),
+                Button(c["auth_register"], type="button", data_tab="register", cls="auth-tab", onclick="authTab('register')"),
+                cls="auth-tabs"),
             Div(
-                P(f"Sign in to your {app_name} account", cls="auth-title"),
-                A(NotStr(_GOOGLE_ICON), Span("Continue with Google"), href="/auth/google", cls="auth-google"),
-                Div("or", cls="auth-divider"),
+                P(c["auth_login_title"].format(app_name=app_name), cls="auth-title"),
+                A(NotStr(_GOOGLE_ICON), Span(c["auth_google"]), href="/auth/google", cls="auth-google",
+                  data_en_label=t("en")["auth_google"]),
+                Div(c["auth_or"], cls="auth-divider"),
                 Form(
-                    Input(name="email", type="email", placeholder="Email", autocomplete="email", required=True, cls="auth-field"),
-                    Input(name="password", type="password", placeholder="Password", autocomplete="current-password", required=True, cls="auth-field"),
-                    Button("Forgot password?", type="button", cls="auth-link auth-forgot", onclick="authTab('forgot')"),
-                    Button("Sign In", type="submit", cls="auth-submit"),
-                    onsubmit="event.preventDefault();authPost('/auth/local/login',this.id,'auth-login-msg')",
-                    id="auth-login-form",
-                ),
-                Div(id="auth-login-msg", cls="auth-msg", role="status"),
-                id="auth-login",
-            ),
+                    Input(type="hidden", name="lang", value=lang),
+                    field("auth-login-email", "email", c["auth_email_label"], c["auth_email_placeholder"], type="email", autocomplete="email", required=True),
+                    field("auth-login-password", "password", c["auth_password_label"], c["auth_password_placeholder"], type="password", autocomplete="current-password", required=True),
+                    Div(id="auth-login-msg", cls="auth-msg", role="alert", aria_live="polite"),
+                    Button(c["auth_forgot"], type="button", cls="auth-link auth-forgot", onclick="authTab('forgot')"),
+                    Button(c["auth_signin"], type="submit", cls="auth-submit"),
+                    onsubmit="event.preventDefault();authPost('/auth/local/login',this.id,'auth-login-msg','auth-login-password')",
+                    id="auth-login-form"),
+                id="auth-login", data_auth_panel="true"),
             Div(
-                P(f"Create your {app_name} account", cls="auth-title"),
+                P(c["auth_register_title"].format(app_name=app_name), cls="auth-title"),
                 Form(
-                    Input(name="name", placeholder="Name", autocomplete="name", required=True, cls="auth-field"),
-                    Input(name="email", type="email", placeholder="Email", autocomplete="email", required=True, cls="auth-field"),
-                    Input(name="password", type="password", placeholder="Password (minimum 10 characters)", autocomplete="new-password", minlength="10", required=True, cls="auth-field"),
-                    Button("Register", type="submit", cls="auth-submit"),
-                    onsubmit="event.preventDefault();authPost('/auth/local/register',this.id,'auth-register-msg')",
-                    id="auth-register-form",
-                ),
-                Div(id="auth-register-msg", cls="auth-msg", role="status"),
-                P("We will email you a verification link before the account can sign in.", cls="auth-help"),
-                id="auth-register", hidden=True,
-            ),
+                    Input(type="hidden", name="lang", value=lang),
+                    field("auth-register-name", "name", c["auth_name_label"], c["auth_name_placeholder"], autocomplete="name", required=True),
+                    field("auth-register-email", "email", c["auth_email_label"], c["auth_email_placeholder"], type="email", autocomplete="email", required=True),
+                    field("auth-register-password", "password", c["auth_password_label"], c["auth_password_placeholder"], type="password", autocomplete="new-password", minlength="10", required=True),
+                    Div(id="auth-register-msg", cls="auth-msg", role="alert", aria_live="polite"),
+                    Button(c["auth_register"], type="submit", cls="auth-submit"),
+                    onsubmit="event.preventDefault();authPost('/auth/local/register',this.id,'auth-register-msg','auth-register-password')",
+                    id="auth-register-form"),
+                P(c["hero_trust"], cls="auth-trust"),
+                P(c["auth_verify_note"], cls="auth-help"),
+                id="auth-register", hidden=True, data_auth_panel="true"),
             Div(
-                P("Reset your password", cls="auth-title"),
+                P(c["auth_forgot_title"], cls="auth-title"),
                 Form(
-                    Input(name="email", type="email", placeholder="Email", autocomplete="email", required=True, cls="auth-field"),
-                    Button("Send reset link", type="submit", cls="auth-submit"),
-                    onsubmit="event.preventDefault();authPost('/auth/local/forgot',this.id,'auth-forgot-msg')",
-                    id="auth-forgot-form",
-                ),
-                Div(id="auth-forgot-msg", cls="auth-msg", role="status"),
-                Button("Back to sign in", type="button", cls="auth-link", onclick="authTab('login')"),
-                id="auth-forgot", hidden=True,
-            ),
-            cls="auth-dialog", role="dialog", aria_modal="true", aria_label=f"{app_name} account",
-        ),
-        id="auth-overlay", cls="auth-overlay", onclick="if(event.target===this)authClose()",
-    )
+                    Input(type="hidden", name="lang", value=lang),
+                    field("auth-forgot-email", "email", c["auth_email_label"], c["auth_email_placeholder"], type="email", autocomplete="email", required=True),
+                    Div(id="auth-forgot-msg", cls="auth-msg", role="alert", aria_live="polite"),
+                    Button(c["auth_send_reset"], type="submit", cls="auth-submit"),
+                    onsubmit="event.preventDefault();authPost('/auth/local/forgot',this.id,'auth-forgot-msg','auth-forgot-email')",
+                    id="auth-forgot-form"),
+                Button(c["auth_back_signin"], type="button", cls="auth-link", onclick="authTab('login')"),
+                id="auth-forgot", hidden=True, data_auth_panel="true"),
+            cls="auth-dialog", role="dialog", aria_modal="true", aria_label=f"{app_name} account"),
+        id="auth-overlay", cls="auth-overlay", aria_hidden="true",
+        data_error_request=c["auth_error_request"], data_success_done=c["auth_success_done"],
+        data_error_login=c["auth_error_login"],
+        onclick="if(event.target===this)authClose()")
 
 
 class AccountStore:
@@ -337,6 +348,18 @@ def _send_email(to, subject, html_body):
 accounts = AccountStore()
 
 
+def _localize_auth_message(message: str, lang: str, *, success: bool = False) -> str:
+    c = t(lang)
+    messages = {
+        "Use a valid email and a password of at least 10 characters.": c["auth_error_email_password"],
+        "Too many attempts. Please try again later.": c["auth_error_rate_limit"],
+        "Verification email could not be sent. Please try again shortly.": c["auth_error_mail"],
+        "Check your email to verify your account.": c["auth_success_verify"],
+        "If this address can be registered, a verification email is on its way.": c["auth_success_registered"],
+    }
+    return messages.get(message, message)
+
+
 def reset_page(token, error=""):
     return Html(
         Head(Title("Reset password"), Meta(name="viewport", content="width=device-width, initial-scale=1"), Style(AUTH_CSS)),
@@ -346,7 +369,7 @@ def reset_page(token, error=""):
                  Input(name="password", type="password", minlength="10", required=True, placeholder="Password (minimum 10 characters)", cls="auth-field"),
                  Button("Reset password", type="submit", cls="auth-submit"),
                  method="post", action="/auth/local/reset"),
-            cls="auth-dialog"), style="min-height:100vh;display:grid;place-items:center;background:#f8fafc"),
+            cls="auth-dialog"), style="min-height:100vh;display:grid;place-items:center;background:var(--paper-2)"),
     )
 
 
@@ -363,22 +386,24 @@ def register_fasthtml_routes(rt, *, app_name, session_key=None, success_path="/"
     async def local_register(request):
         form = await request.form()
         ok, message = accounts.register(form.get("email"), form.get("password"), form.get("name"))
-        return JSONResponse({"message": message}, status_code=200 if ok else 400)
+        lang = form.get("lang", "et")
+        return JSONResponse({"message": _localize_auth_message(message, lang, success=ok)}, status_code=200 if ok else 400)
 
     @rt("/auth/local/login", methods=["POST"])
     async def local_login(request, sess):
         form = await request.form()
         account = accounts.login(form.get("email"), form.get("password"))
+        lang = form.get("lang", "et")
         if not account:
-            return JSONResponse({"error": "Invalid email, password, or unverified account."}, status_code=401)
+            return JSONResponse({"error": t(lang)["auth_error_login"]}, status_code=401)
         establish_session(sess, account)
-        return JSONResponse({"message": "Signed in.", "redirect": _safe_next(form.get("next"), success_path)})
+        return JSONResponse({"message": t(lang)["auth_success_signed_in"], "redirect": _safe_next(form.get("next"), success_path)})
 
     @rt("/auth/local/forgot", methods=["POST"])
     async def local_forgot(request):
         form = await request.form()
         accounts.forgot(form.get("email"))
-        return JSONResponse({"message": "If an account exists, a reset link has been sent."})
+        return JSONResponse({"message": t(form.get("lang", "et"))["auth_success_reset"]})
 
     @rt("/auth/local/verify/{token}", methods=["GET"])
     def local_verify(token: str, sess):
@@ -413,22 +438,24 @@ def register_fastapi_routes(app, *, app_name, session_key=None, success_path="/"
     async def local_register(request):
         form = await request.form()
         ok, message = accounts.register(form.get("email"), form.get("password"), form.get("name"))
-        return JSONResponse({"message": message}, status_code=200 if ok else 400)
+        lang = form.get("lang", "et")
+        return JSONResponse({"message": _localize_auth_message(message, lang, success=ok)}, status_code=200 if ok else 400)
 
     @app.post("/auth/local/login")
     async def local_login(request):
         form = await request.form()
         account = accounts.login(form.get("email"), form.get("password"))
+        lang = form.get("lang", "et")
         if not account:
-            return JSONResponse({"error": "Invalid email, password, or unverified account."}, status_code=401)
+            return JSONResponse({"error": t(lang)["auth_error_login"]}, status_code=401)
         establish_session(request.session, account)
-        return JSONResponse({"message": "Signed in.", "redirect": _safe_next(form.get("next"), success_path)})
+        return JSONResponse({"message": t(lang)["auth_success_signed_in"], "redirect": _safe_next(form.get("next"), success_path)})
 
     @app.post("/auth/local/forgot")
     async def local_forgot(request):
         form = await request.form()
         accounts.forgot(form.get("email"))
-        return JSONResponse({"message": "If an account exists, a reset link has been sent."})
+        return JSONResponse({"message": t(form.get("lang", "et"))["auth_success_reset"]})
 
     @app.get("/auth/local/verify/{token}")
     def local_verify(request, token: str):

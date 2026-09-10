@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import random
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import db
+import people
 
 RNG = random.Random(20260611)
 TODAY = db.TODAY
@@ -40,7 +41,7 @@ def _d(days_ago):
 def build():
     db.init_schema()
     with db.cursor() as conn:
-        for t in ("chat_messages", "payslips", "attendance", "leave_requests", "leave_balances", "employees", "departments"):
+        for t in ("goal_checkins", "goals", "onboarding_tasks", "expense_claims", "employee_advances", "travel_requests", "expense_categories", "clock_punches", "shift_assignments", "shift_locations", "shift_types", "chat_messages", "payslip_lines", "payslips", "pay_runs", "attendance", "leave_requests", "leave_balances", "employees", "departments"):
             conn.execute(f"DELETE FROM {t}")
         conn.executemany("INSERT INTO departments(name) VALUES (?)", [(d,) for d in DEPTS])
         dept_ids = {r["name"]: r["id"] for r in conn.execute("SELECT id,name FROM departments").fetchall()}
@@ -79,6 +80,20 @@ def build():
                     conn.execute("UPDATE employees SET manager_id=? WHERE id=?", (mgr["id"], m["id"]))
         emp_ids = [e["id"] for e in emp_rows]
         salary_by = {e["id"]: e["base_salary"] for e in emp_rows}
+        for eid in emp_ids[:4]:
+            conn.execute("UPDATE employees SET status='Active' WHERE id=?", (eid,))
+
+    # Demo portal credentials (synthetic only):
+    # Aisha Okafor, Liam Nguyen, Sofia Rossi and Noah Andersen use
+    # portal.demo@fasthr.example-style addresses and password PortalDemo2026!
+    for eid in emp_ids[:4]:
+        db.set_employee_password(eid, "PortalDemo2026!")
+
+    for eid in emp_ids[:4]:
+        people.start_onboarding(eid)
+        people.create_goal(title="Make a strong start", owner_id=eid, metric="Progress",
+                           target=100, current=35, unit="%", period="2026 H1",
+                           due_date="2026-06-30")
 
     # leave balances
     balances = []
@@ -132,31 +147,109 @@ def build():
     with db.cursor() as conn:
         conn.executemany("INSERT INTO attendance(employee_id,att_date,status,hours) VALUES (?,?,?,?)", att)
 
-    # payslips — last 4 months
-    pays = []
+    # Shifts and time clocks — deterministic demo data, rebuilt with the rest
+    # of the synthetic database so repeated seed runs are idempotent.
+    with db.cursor() as conn:
+        conn.executemany("""INSERT INTO shift_types(name,start_time,end_time,break_minutes,hourly_rate_multiplier,color)
+                           VALUES (?,?,?,?,?,?)""", [
+            ("Day", "09:00", "17:00", 30, 1.0, "#4f7cff"),
+            ("Evening", "14:00", "22:00", 30, 1.1, "#a855f7"),
+            ("Night", "22:00", "06:00", 45, 1.25, "#334155"),
+            ("Split", "09:00", "17:00", 60, 1.0, "#f59e0b"),
+        ])
+        conn.executemany("INSERT INTO shift_locations(label,latitude,longitude,radius_m) VALUES (?,?,?,?)", [
+            ("Tallinn HQ", 59.4370, 24.7536, 180),
+            ("Warehouse B", 59.4230, 24.7920, 250),
+        ])
+        type_ids = {r["name"]: r["id"] for r in conn.execute("SELECT id,name FROM shift_types")}
+        shift_ids = [e["id"] for e in emp_rows if e["id"] in emp_ids[:12]]
+
+    assignments = []
+    for index, eid in enumerate(shift_ids):
+        for offset in range(-10, 11):
+            d = TODAY + timedelta(days=offset)
+            if d.weekday() >= 5:
+                continue
+            kind = ["Day", "Evening", "Night", "Split"][(index + offset) % 4]
+            status = "Scheduled" if d > TODAY else "Completed"
+            if index == 0 and offset == -8:
+                status = "Missed"
+            aid = db.create_shift_assignment(eid, type_ids[kind], d.isoformat(),
+                                              "Tallinn HQ" if index % 3 else "Warehouse B")
+            assignments.append((aid, eid, d, kind, status))
+    for aid, eid, d, kind, status in assignments:
+        with db.cursor() as conn:
+            conn.execute("UPDATE shift_assignments SET status=? WHERE id=?", (status, aid))
+        if status != "Completed":
+            continue
+        start_hour = {"Day": 9, "Evening": 14, "Night": 22, "Split": 9}[kind]
+        start = datetime(d.year, d.month, d.day, start_hour, 0)
+        end = start + timedelta(hours=7, minutes=30 if kind != "Night" else 15)
+        db.clock_in(eid, aid, "Web", 59.4370, 24.7536, 12, punched_at=start.isoformat(sep=" "))
+        db.clock_out(eid, aid, "Web", 59.4370, 24.7536, 12, punched_at=end.isoformat(sep=" "))
+
+    # Pay runs — the three most recent completed periods before TODAY.
     periods = []
     y, m = 2026, 6
-    for _ in range(4):
+    for _ in range(3):
         m -= 1
         if m == 0:
             m, y = 12, y - 1
         periods.append(f"{y:04d}-{m:02d}")
-    for eid in emp_ids:
-        monthly_gross = salary_by[eid] / 12
-        for per in periods:
-            gross = round(monthly_gross * RNG.uniform(0.98, 1.05), 2)
-            tax = round(gross * RNG.uniform(0.18, 0.32), 2)
-            pension = round(gross * 0.05, 2)
-            other = round(gross * RNG.uniform(0, 0.03), 2)
-            net = round(gross - tax - pension - other, 2)
-            pays.append((eid, per, gross, tax, pension, other, net, "Paid"))
-    with db.cursor() as conn:
-        conn.executemany(
-            """INSERT INTO payslips(employee_id,period,gross,tax,pension,other_ded,net,status)
-               VALUES (?,?,?,?,?,?,?,?)""", pays)
+    statuses = ["Paid", "Approved", "In Review"]
+    active_ids = [e for e in emp_ids if db.scalar("SELECT status FROM employees WHERE id=?", (e,)) == "Active"]
+    for per, status in zip(periods, ["In Review", "Approved", "Paid"]):
+        run_id = db.create_pay_run(per, active_ids)
+        for next_status in db.PAY_RUN_STATUSES[1:]:
+            if db.PAY_RUN_STATUSES.index(next_status) <= db.PAY_RUN_STATUSES.index(status):
+                db.advance_pay_run(run_id, next_status)
 
-    print(f"FastHRM seeded → {db.DB_PATH}")
-    print(f"  {n} employees · {len(DEPTS)} depts · {len(reqs)} leave requests · {len(att)} attendance · {len(pays)} payslips")
+    # Expenses, advances and travel — deterministic synthetic Phase 3 data.
+    categories = [
+        ("Travel & accommodation", 1, 250.0, 1800.0), ("Mileage", 1, None, 600.0),
+        ("Meals", 1, 35.0, 450.0), ("Office supplies", 1, None, 500.0),
+        ("Software", 0, None, 1000.0), ("Training", 1, None, 1500.0),
+        ("Client entertainment", 1, 150.0, 800.0), ("Other", 1, None, None),
+    ]
+    with db.cursor() as conn:
+        conn.executemany("INSERT INTO expense_categories(name,requires_receipt,daily_limit,monthly_limit) VALUES (?,?,?,?)", categories)
+        cat_ids = {r["name"]: r["id"] for r in conn.execute("SELECT id,name FROM expense_categories")}
+        descriptions = ["Hotel in Tallinn", "Client visit mileage", "Lunch during workshop", "Printer paper",
+                        "Figma team subscription", "First aid training", "Customer dinner", "Taxi to station"]
+        cat_names = ["Travel & accommodation", "Mileage", "Meals", "Office supplies", "Software", "Training", "Client entertainment", "Other"]
+        claim_rows = []
+        claim_statuses = ["Submitted", "Approved", "Reimbursed", "Rejected", "Draft"]
+        for i in range(20):
+            cat_name = cat_names[i % len(cat_names)]
+            amount = round((420 if cat_name == "Travel & accommodation" else 0) +
+                           (0.35 * (35 + i * 7) if cat_name == "Mileage" else RNG.uniform(12, 95)), 2)
+            claim_rows.append((emp_ids[i % 16], cat_ids[cat_name], _d((i * 5) % 88), descriptions[i % len(descriptions)],
+                               amount, "EUR", 0.22 if cat_name not in ("Mileage", "Other") else 0,
+                               claim_statuses[i % len(claim_statuses)], emp_ids[(i + 20) % len(emp_ids)] if i % 5 in (0, 1, 2) else None,
+                               _d((i * 5 + 2) % 88) if i % 5 in (0, 1, 2) else None,
+                               _d((i * 5 + 4) % 88) if i % 5 == 2 else None, "Synthetic seed claim"))
+        conn.executemany("""INSERT INTO expense_claims(employee_id,category_id,claim_date,description,amount,currency,tax_rate,status,approver_id,decided_at,reimbursed_at,notes)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", claim_rows)
+        conn.executemany("""INSERT INTO employee_advances(employee_id,requested_amount,approved_amount,currency,reason,status,requested_at,decided_at,notes)
+                           VALUES (?,?,?,?,?,?,datetime('now'),?,?)""", [
+            (emp_ids[2], 800, None, "EUR", "Conference travel", "Requested", None, "Awaiting approval"),
+            (emp_ids[0], 1200, 1200, "EUR", "Relocation support", "Approved", _d(18), "Approved seed advance"),
+            (emp_ids[11], 450, None, "EUR", "Equipment purchase", "Repaid", _d(70), "Repaid seed advance"),
+        ])
+        conn.executemany("""INSERT INTO travel_requests(employee_id,destination,purpose,from_date,to_date,estimated_cost,advance_requested,status,approver_id,decided_at,notes)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?)""", [
+            (emp_ids[1], "Tartu", "Customer workshop", _d(4), _d(2), 260, 100, "Submitted", None, None, "Synthetic seed request"),
+            (emp_ids[4], "Helsinki", "Partner planning", _d(15), _d(13), 720, 300, "Approved", emp_ids[30], _d(20), "Synthetic seed request"),
+            (emp_ids[8], "Riga", "Sales conference", _d(28), _d(25), 980, 400, "Returned", emp_ids[31], _d(30), "Add agenda"),
+            (emp_ids[12], "Vilnius", "Team offsite", _d(42), _d(39), 650, 0, "Rejected", emp_ids[32], _d(45), "Synthetic seed request"),
+            (emp_ids[15], "Pärnu", "Planning day", _d(60), _d(59), 180, 0, "Approved", emp_ids[33], _d(63), "Synthetic seed request"),
+        ])
+
+    pays = db.scalar("SELECT COUNT(*) FROM payslips") or 0
+
+    print(f"FastHRM seeded -> {db.DB_PATH}")
+    print(f"  {n} employees · {len(DEPTS)} depts · {len(reqs)} leave requests · {len(att)} attendance · "
+          f"{len(assignments)} shifts · {pays} payslips · 3 pay runs · 20 expense claims · 5 travel requests")
 
 
 if __name__ == "__main__":
