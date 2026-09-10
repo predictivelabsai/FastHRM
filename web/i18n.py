@@ -205,6 +205,11 @@ COPY = {
         "feat_payroll_workflow_desc": "Palgapäevad ja töötajate palgalehed koos rea-põhise jaotusega.",
         "feat_payroll_statutory_name": "Eesti seadusjärgne palk (TÖR, TSD)",
         "feat_payroll_statutory_desc": "TÖR-i ja TSD ekspordid ning puhkuse- ja töövõimetustasu arvestus on kasutusel.",
+        "benefits_name": "Soodustused",
+        "benefits_plan": "Soodustus",
+        "benefits_enrol": "Registreeru",
+        "benefits_employer": "Tööandja kulu",
+        "benefits_desc": "Tööandjapoolsed soodustused: registreerimine ja tööandja kulu palgaarvestuses.",
         "cmp_pg_meta_title": "FastHR vs avatud ja proprietaarne HR-tarkvara",
         "cmp_pg_meta_desc": "Võrdle FastHR-i Gusto, BambooHR, Rippling, Deel, Zoho People "
                             "ja Odoo HR-iga litsentsimudeli, palga ja ulatuse osas.",
@@ -475,6 +480,11 @@ COPY = {
         "feat_payroll_workflow_desc": "Pay runs and employee payslips with line-item breakdowns.",
         "feat_payroll_statutory_name": "Estonian statutory payroll (TÖR, TSD)",
         "feat_payroll_statutory_desc": "TÖR and TSD exports are available. Holiday pay and incapacity pay calculations are available.",
+        "benefits_name": "Benefits",
+        "benefits_plan": "Benefit plan",
+        "benefits_enrol": "Enrol",
+        "benefits_employer": "Employer contribution",
+        "benefits_desc": "Benefit plans, eligibility, employee enrolment and employer contributions flow into pay runs.",
         "cmp_pg_meta_title": "FastHR vs Open-Source and Proprietary HRM Software",
         "cmp_pg_meta_desc": "Compare FastHR with Gusto, BambooHR, Rippling, Deel, Zoho "
                             "People, and Odoo HR across licensing model, payroll, and scope.",

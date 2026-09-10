@@ -40,6 +40,7 @@ import db
 import talent
 import people
 import integrations
+import benefits
 import recruitment
 import recruitment_communications
 import recruitment_ecosystem
@@ -2675,6 +2676,48 @@ def post(session, role_id: int):
     with db.cursor() as conn:
         conn.execute("DELETE FROM account_roles WHERE id=?", (role_id,))
     return settings.roles_table()
+
+
+@rt("/benefits")
+def get(session, request):
+    return _guard(session, "benefits",
+                  lambda: benefits.staff_page(resolve_lang(session, request)))
+
+
+@rt("/benefits/plans", methods=["POST"])
+def post(session, name: str = "", category: str = "other",
+         employer_contribution: float = 0, contribution_frequency: str = "monthly",
+         eligibility: str = "all_active", department_id: int = 0, plan_id: int = 0):
+    if not _user(session):
+        return RedirectResponse("/login?next=/benefits", status_code=303)
+    if not can(_roles_for(session), "benefits", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    benefits.save_plan(name, category, employer_contribution, contribution_frequency,
+                       eligibility, department_id or None, plan_id or None)
+    return RedirectResponse("/benefits", status_code=303)
+
+
+@rt("/benefits/enrol", methods=["POST"])
+def post(session, plan_id: int, employee_id: int, action: str = "enrol"):
+    if not _user(session):
+        return RedirectResponse("/login?next=/benefits", status_code=303)
+    if not can(_roles_for(session), "benefits", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    if action == "enrol":
+        benefits.enrol(plan_id, employee_id)
+    else:
+        benefits.unenrol(plan_id, employee_id)
+    return RedirectResponse("/benefits", status_code=303)
+
+
+@rt("/benefits/plans/{plan_id}/deactivate", methods=["GET"])
+def get(session, plan_id: int):
+    if not _user(session):
+        return RedirectResponse("/login?next=/benefits", status_code=303)
+    if not can(_roles_for(session), "benefits", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    benefits.deactivate_plan(plan_id)
+    return RedirectResponse("/benefits", status_code=303)
 
 
 @rt("/payroll")

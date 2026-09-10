@@ -6,6 +6,7 @@
 - [x] Completed final public release polish: runtime version in the landing mockup, filled competitor pricing cells, `/pricing` anchor redirect, and scoped dead-CSS cleanup (2026-09-10).
 - [x] Live provider integrations: shipped live credential checks for Slack, GitHub, Greenhouse, BambooHR, Checkr, and Teams, plus BambooHR directory export and Slack pipeline-digest test posting; OAuth-heavy adapters remain pending interactive authorization or partner approval (2026-09-10).
 - [x] Granular RBAC: per-role, per-module view and edit permissions with an admin settings matrix (migration `0012_granular_rbac.sql`) (2026-09-10).
+- [x] Benefits administration: benefit plans, all-active or department eligibility, employee enrolment, employer contributions, employee portal visibility, and pay-run employer-cost lines (migration `0013_benefits.sql`) (2026-09-10).
 
 - [x] Phase 2 HR operations: payslips and pay runs shipped (2026-09-10).
 - [x] Phase 3 workforce operations: shift scheduling / rostering, time clock / check-in/out, and auto-attendance shipped (2026-09-10).

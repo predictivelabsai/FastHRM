@@ -136,6 +136,63 @@ def test_pay_run_adds_benefits_once_and_keeps_tsd_gross(fresh_db):
     assert f";{slip['gross']:.2f};" in payload
 
 
+def test_benefit_plan_crud_enrolment_reopen_and_department_eligibility(fresh_db):
+    import benefits
+
+    with fresh_db.cursor() as conn:
+        conn.execute("INSERT INTO departments(name) VALUES ('Engineering')")
+        engineering = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute("INSERT INTO departments(name) VALUES ('Sales')")
+        sales = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute("INSERT INTO employees(first_name,last_name,status,dept_id) VALUES ('A','One','Active',?)", (engineering,))
+        engineering_employee = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute("INSERT INTO employees(first_name,last_name,status,dept_id) VALUES ('B','Two','Active',?)", (sales,))
+        sales_employee = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    plan = benefits.save_plan("Sport", "sport", 40, eligibility="department", department_id=engineering)
+    enrolment = benefits.enrol(plan, engineering_employee, "2026-01-01")
+    assert benefits.enrol(plan, engineering_employee, "2026-01-01") == enrolment
+    assert [row["employee_id"] for row in benefits.active_enrolments("2026-05-01")] == [engineering_employee]
+    assert benefits.enrol(plan, sales_employee, "2026-01-01")
+    assert [row["employee_id"] for row in benefits.active_enrolments("2026-05-01")] == [engineering_employee]
+    assert benefits.unenrol(plan, engineering_employee, "2026-05-31")
+    assert not benefits.active_enrolments("2026-06-01")
+    benefits.enrol(plan, engineering_employee, "2026-06-01")
+    assert len(benefits.enrolments_for(engineering_employee)) == 1
+    assert benefits.deactivate_plan(plan)
+    assert benefits.list_plans(active_only=True) == []
+
+
+def test_benefit_pay_run_lines_are_employer_cost_and_idempotent(fresh_db):
+    eid = _statutory_employee(fresh_db)
+    import benefits
+
+    plan = benefits.save_plan("Health", "health", 75)
+    benefits.enrol(plan, eid, "2026-01-01")
+    rid = fresh_db.create_pay_run("2026-05", [eid])
+    fresh_db.prepare_pay_run(rid)
+    slip = fresh_db.one("SELECT * FROM payslips WHERE run_id=?", (rid,))
+    lines = fresh_db.payslip_lines(slip["id"])
+    benefit_lines = [line for line in lines if "Benefit: Health" in line["label"]]
+    assert len(benefit_lines) == 1
+    assert benefit_lines[0]["amount"] == 75
+    assert "Employer cost" in benefit_lines[0]["base"]
+    assert slip["net"] == round(slip["gross"] * (1 - .22 - .02 - .016), 2)
+
+
+def test_benefit_staff_page_and_portal_card_render_bilingually(fresh_db):
+    import benefits
+    from web import selfservice
+
+    eid = _statutory_employee(fresh_db)
+    plan = benefits.save_plan("Lunch", "other", 25)
+    benefits.enrol(plan, eid, "2026-01-01")
+    assert "Soodustused" in str(benefits.staff_page("et"))
+    assert "Benefits" in str(benefits.staff_page("en"))
+    portal = str(selfservice.pay_page(fresh_db.employee(eid)))
+    assert "Minu soodustused / My benefits" in portal
+    assert "Lunch" in portal and "25.00 EUR" in portal
+
+
 def test_statutory_export_history_and_route_auth(fresh_db):
     from web import statutory
 

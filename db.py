@@ -569,6 +569,8 @@ def incapacity_pay(employee_id: int, sick_start: str | date,
 
 def _prepare_payslip_benefits(conn, payslip_id: int, employee_id: int, period: str):
     """Add approved leave-derived earning lines once and refresh totals."""
+    from benefits import monthly_cost
+
     year, month = (int(part) for part in period.split("-"))
     month_start = date(year, month, 1)
     month_end = date(year, month, calendar.monthrange(year, month)[1])
@@ -604,8 +606,8 @@ def _prepare_payslip_benefits(conn, payslip_id: int, employee_id: int, period: s
         additions.append(("Earning", holiday_label, round(holiday_amount, 2), f"{holiday_days:g} kp"))
     if sick_days and sick_label not in existing:
         additions.append(("Earning", sick_label, round(sick_amount, 2), f"{sick_days:g} kp"))
-    if not additions:
-        return
+    # Continue even when there are no leave lines: benefit cost lines are
+    # prepared independently below.
     conn.executemany("""INSERT INTO payslip_lines(payslip_id,kind,label,amount,base)
                         VALUES (?,?,?,?,?)""", [(payslip_id, *line) for line in additions])
     extra = round(sum(line[2] for line in additions), 2)
@@ -624,6 +626,22 @@ def _prepare_payslip_benefits(conn, payslip_id: int, employee_id: int, period: s
     for label, amount in line_amounts.items():
         conn.execute("UPDATE payslip_lines SET amount=? WHERE payslip_id=? AND label=?",
                      (amount, payslip_id, label))
+
+    # Employer-paid contributions are informational employer-cost lines. They
+    # deliberately do not enter gross, taxable pay, deductions, or net pay.
+    existing = {row["label"] for row in conn.execute(
+        "SELECT label FROM payslip_lines WHERE payslip_id=?", (payslip_id,))}
+    benefit_lines = []
+    for benefit in monthly_cost(conn, employee_id, period):
+        label = (f"Soodustus: {benefit['name']} (tööandja maksab) / "
+                 f"Benefit: {benefit['name']} (employer paid)")
+        if label not in existing:
+            benefit_lines.append(("Deduction", label, benefit["employer_amount"],
+                                  "Employer cost · not deducted from net pay"))
+    if benefit_lines:
+        conn.executemany("""INSERT INTO payslip_lines(payslip_id,kind,label,amount,base)
+                            VALUES (?,?,?,?,?)""",
+                         [(payslip_id, *line) for line in benefit_lines])
 
 
 def prepare_pay_run(run_id: int) -> int:

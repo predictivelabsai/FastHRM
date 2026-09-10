@@ -10,6 +10,7 @@ from fasthtml.common import *
 
 import db
 import people
+import benefits
 
 
 PORTAL_CSS = """
@@ -104,7 +105,15 @@ def dashboard(employee):
 def pay_page(employee):
     slips = db.payslips_for(employee["id"])
     body = Table(Tr(Th("Period"), Th("Status"), Th("Net"), Th("")), *[Tr(Td(p["period"]), Td(_status(p["status"])), Td(f"{p['net']:,.2f} EUR"), Td(A("View", href=f"/me/pay/{p['id']}", cls="me-btn"))) for p in slips] or [Tr(Td("No payslips yet.", colspan="4"))], cls="me-table")
-    return _shell("pay", employee, Div(H1("My pay"), P("Payslips and pay history", cls="me-muted"), cls="me-title"), _card("Payslips", body, "me-full"))
+    active = [row for row in benefits.active_enrolments(db.TODAY)
+              if row["employee_id"] == employee["id"]]
+    benefit_body = Table(Tr(Th("Soodustus / Benefit"), Th("Tööandja kulu / Employer contribution")),
+                         *[Tr(Td(row["name"]), Td(f"{row['employer_contribution']:,.2f} EUR"))
+                           for row in active] or [Tr(Td("Aktiivseid hüvesid pole / No active benefits.", colspan="2"))],
+                         cls="me-table")
+    return _shell("pay", employee, Div(H1("My pay"), P("Payslips and pay history", cls="me-muted"), cls="me-title"),
+                  _card("Payslips", body, "me-full"),
+                  _card("Minu soodustused / My benefits", benefit_body, "me-full"))
 
 
 def payslip_page(employee, pid):
