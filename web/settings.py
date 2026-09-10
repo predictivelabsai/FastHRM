@@ -44,7 +44,7 @@ def _card(i):
         Div(key_line, style="margin:2px 0;"),
         tested,
         Div(A("Configure", href=f"/settings/integrations/{i['provider']}", cls="btn sm primary"),
-            Button("Test", cls="btn sm",
+            Button("Test live connection", cls="btn sm",
                    **{"hx-post": f"/settings/integrations/{i['provider']}/test",
                       "hx-target": "#int-grid", "hx-swap": "innerHTML"}) if i["key_hint"] else None,
             Button("Sync now", cls="btn sm",
@@ -244,7 +244,7 @@ def integration_detail(provider: str, note: str = ""):
                   style="font-size:13px;display:flex;align-items:center;"),
             style="margin-bottom:14px;"),
         Div(Button("Save credentials", cls="btn primary", type="submit"),
-            Button("Test connection", cls="btn", type="submit", name="test", value="1"),
+            Button("Test live connection", cls="btn", type="submit", name="test", value="1"),
             style="display:flex;gap:8px;"),
         method="post", action=f"/settings/integrations/{provider}")
 

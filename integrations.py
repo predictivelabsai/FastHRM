@@ -14,8 +14,10 @@ import base64
 import hashlib
 import json
 import os
+from pathlib import Path
 
 import db
+from web import providers
 
 # --- provider catalogue -----------------------------------------------------
 
@@ -236,19 +238,9 @@ def log_event(integration_id: int, kind: str, ok: bool, detail: str,
 
 
 # --- connectors -------------------------------------------------------------
-#
-# Each provider has a null implementation: without credentials it reports "not
-# configured" rather than raising, so the product is fully usable with nothing
-# connected. Live API calls are the next step — the credential store, the audit
-# trail and the call sites are what this slice puts in place.
 
 def test_connection(provider: str, *, actor: str = "") -> dict:
-    """Check that credentials are present and well-formed.
-
-    This validates what can be validated locally; it deliberately does not call
-    the provider yet, and says so, rather than reporting a green tick that has
-    not been earned.
-    """
+    """Validate credentials locally, or make one cheap live provider call."""
     row = integration(provider)
     meta = provider_meta(provider)
     if not row or not row["api_key_enc"]:
@@ -266,9 +258,14 @@ def test_connection(provider: str, *, actor: str = "") -> dict:
         note = f"{meta['label']} also needs a {meta['secret_label'].lower()}."
         ok = False
     else:
-        note = (f"Credentials stored and readable ({mask(row['api_key_enc'])}). "
-                f"Live {meta['label']} calls are not enabled in this build.")
-        ok = True
+        adapter = providers.adapter(provider)
+        if adapter:
+            ok, note = adapter(meta, key, decrypt(row["api_secret_enc"]), row["account_ref"] or "")
+        else:
+            note = (f"Credentials stored and readable ({mask(row['api_key_enc'])}), but live calls "
+                    f"are not enabled for {meta['label']} in this build: this provider needs an "
+                    "interactive OAuth authorization step or partner approval.")
+            ok = False
 
     with db.cursor() as conn:
         conn.execute("""UPDATE integrations SET last_test_at=datetime('now'), last_test_ok=?,
@@ -279,13 +276,63 @@ def test_connection(provider: str, *, actor: str = "") -> dict:
 
 
 def sync(provider: str, *, actor: str = "") -> dict:
-    """Placeholder sync: records the attempt and reports honestly."""
+    """Run a provider sync where a live export adapter is available."""
     row = integration(provider)
     meta = provider_meta(provider)
     if not row or row["status"] != "Connected":
         return {"ok": False, "note": f"{meta['label']} is not connected."}
-    note = (f"No live {meta['label']} connector in this build — nothing was fetched. "
-            "The credential store and audit trail are ready for one.")
+    if provider == "bamboohr":
+        from web.providers.base import bamboohr_directory
+        key = decrypt(row["api_key_enc"])
+        ok, note, payload, records = bamboohr_directory(key, row["account_ref"] or "")
+        if ok:
+            data_root = Path(os.getenv("FASTHR_DATA_DIR") or Path(__file__).parent / "data")
+            snapshot_dir = data_root / "integrations" / "bamboohr"
+            snapshot_dir.mkdir(parents=True, exist_ok=True)
+            snapshot_path = snapshot_dir / "directory-latest.json"
+            snapshot_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            note += f" Snapshot saved to {snapshot_path.as_posix()}."
+        with db.cursor() as conn:
+            conn.execute("UPDATE integrations SET last_sync_at=datetime('now') WHERE provider=?", (provider,))
+        log_event(row["id"], "sync", ok, note, records=records, actor=actor)
+        return {"ok": ok, "note": note, "records": records}
+
+    if provider == "slack":
+        import httpx
+        key = decrypt(row["api_key_enc"])
+        channel = row["account_ref"] or ""
+        url = "https://slack.com/api/chat.postMessage"
+        if not channel:
+            note = f"POST {url} was not called: a Slack channel is required in Account / organisation reference."
+            ok = False
+        else:
+            text = "FastHR pipeline digest test message."
+            try:
+                response = httpx.post(url, headers={"Authorization": f"Bearer {key}",
+                                                     "Content-Type": "application/json"},
+                                      json={"channel": channel, "text": text}, timeout=10.0)
+                ok = 200 <= response.status_code < 300
+                note = (f"POST {url} returned HTTP {response.status_code}; pipeline digest test message posted."
+                        if ok else f"POST {url} returned HTTP {response.status_code}; message was not posted.")
+                if ok:
+                    try:
+                        ok = bool(response.json().get("ok"))
+                    except ValueError:
+                        ok = False
+                        note = f"POST {url} returned HTTP {response.status_code}; Slack returned invalid JSON."
+                    if not ok:
+                        note = f"POST {url} returned HTTP {response.status_code}; Slack rejected the message."
+            except httpx.TimeoutException:
+                ok, note = False, f"POST {url} timed out after 10 seconds."
+            except httpx.RequestError:
+                ok, note = False, f"POST {url} failed: provider could not be reached."
+        with db.cursor() as conn:
+            conn.execute("UPDATE integrations SET last_sync_at=datetime('now') WHERE provider=?", (provider,))
+        log_event(row["id"], "sync", ok, note, records=1 if ok else 0, actor=actor)
+        return {"ok": ok, "note": note, "records": 1 if ok else 0}
+
+    note = (f"No live {meta['label']} sync adapter is available; nothing was fetched. "
+            "The connection test remains limited to the provider's supported auth check.")
     with db.cursor() as conn:
         conn.execute("UPDATE integrations SET last_sync_at=datetime('now') WHERE provider=?", (provider,))
     log_event(row["id"], "sync", False, note, actor=actor)
