@@ -348,9 +348,12 @@ def payroll_list(period="latest"):
                 Tbody(*[Tr(Td(A(r["period"], href=f"/payroll/runs/{r['id']}")),
                            Td(_pill(r["status"])), Td(str(r["headcount"]), cls="num"),
                            Td(money(r["gross_total"]), cls="num"), Td(Strong(money(r["net_total"])), cls="num"),
-                           Td(A("Open", href=f"/payroll/runs/{r['id']}", cls="btn sm")))
+                           Td(A("Open", href=f"/payroll/runs/{r['id']}", cls="btn sm"),
+                              A("TÖR eksport", href=f"/payroll/runs/{r['id']}/export/tor", cls="btn sm"),
+                              A("TSD eksport", href=f"/payroll/runs/{r['id']}/export/tsd", cls="btn sm")))
                         for r in runs] or [Tr(Td("No pay runs yet.", colspan="6"))]), cls="tbl")
     return (_title("Pay runs", "Prepare, review, approve and pay monthly payroll.",
+                   A("Ekspordi ajalugu", href="/payroll/exports", cls="btn"),
                    A("+ New pay run", href="#new-pay-run", cls="btn primary")),
             Div(tbl, cls="card"), Div(_pay_run_form(), id="new-pay-run"))
 
@@ -384,8 +387,22 @@ def pay_run_detail(rid):
                                   or [Tr(Td("No approved advances are ready to offset.", colspan="4"))]), cls="tbl"), cls="card")
     return (_title(f"Pay run · {run['period']}",
                    f"{len(run['payslips'])} employees · {money(sum(p['net'] for p in run['payslips']))} net",
-                   A("← Pay runs", href="/payroll", cls="btn"), advance),
-            Div(Div(H3("Payslips"), _pill(run["status"]), cls="card-header"), tbl, cls="card"), offset_card)
+                   A("← Pay runs", href="/payroll", cls="btn"),
+                   A("TÖR eksport", href=f"/payroll/runs/{rid}/export/tor", cls="btn"),
+                   A("TSD eksport", href=f"/payroll/runs/{rid}/export/tsd", cls="btn"), advance),
+            Div(Div(H3("Payslips"), _pill(run["status"]), cls="card-header"), tbl, cls="card"),
+            offset_card)
+
+
+def statutory_exports_page():
+    exports = db.rows("SELECT * FROM statutory_exports ORDER BY created_at DESC,id DESC")
+    table = Table(Thead(Tr(Th("Tüüp"), Th("Periood"), Th("Fail"), Th("Read", cls="num"),
+                         Th("Loodud"), Th(""))),
+                  Tbody(*[Tr(Td(e["kind"]), Td(e["period"]), Td(e["file_name"]),
+                           Td(str(e["row_count"]), cls="num"), Td(e["created_at"] or "—"),
+                           Td(A("Lae alla", href=f"/payroll/exports/{e['id']}", cls="btn sm")))
+                        for e in exports] or [Tr(Td("Ekspordi ajalugu on tühi.", colspan="6"))]), cls="tbl")
+    return (_title("Ekspordi ajalugu", "TÖR-i ja TSD ekspordid."), Div(table, cls="card"))
 
 
 def payslip_detail(pid):
