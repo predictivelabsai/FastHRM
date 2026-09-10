@@ -7,6 +7,51 @@ import calendar
 import pytest
 
 
+def test_granular_rbac_defaults_and_admin_bypass(fresh_db):
+    from web.rbac import can, permissions_for
+
+    assert can({"hrbp"}, "employees")
+    assert not can({"recruiter"}, "payroll")
+    assert can({"recruiter"}, "payroll", "edit") is False
+    assert can({"admin"}, "roles", "edit")
+    assert permissions_for({"admin"})["dashboard"] == {"view": True, "edit": True}
+
+
+def test_granular_rbac_denial_and_toggle(fresh_db):
+    import web_app
+    from web.rbac import can
+
+    with fresh_db.cursor() as conn:
+        conn.execute("INSERT INTO account_roles(account_email,role,scope,created) "
+                     "VALUES ('recruiter@example.com','recruiter','all',datetime('now'))")
+    session = {"user": "recruiter@example.com"}
+    built = []
+    denied = web_app._guard(session, "payroll", lambda: built.append(True))
+    assert not built and "secret" not in str(denied)
+    assert not can({"recruiter"}, "payroll")
+
+    with fresh_db.cursor() as conn:
+        conn.execute("UPDATE role_permissions SET can_view=1 "
+                     "WHERE role_name='recruiter' AND module_key='payroll'")
+    assert can({"recruiter"}, "payroll")
+    with fresh_db.cursor() as conn:
+        conn.execute("UPDATE role_permissions SET can_view=0 "
+                     "WHERE role_name='recruiter' AND module_key='payroll'")
+    assert not can({"recruiter"}, "payroll")
+
+
+def test_roles_settings_is_bilingual_and_requires_login(fresh_db):
+    from starlette.responses import RedirectResponse
+    import web_app
+    from web import settings
+
+    assert "Vaata" in str(settings.roles_page(lang="et"))
+    assert "View" in str(settings.roles_page(lang="en"))
+    response = web_app._guard({}, "roles", settings.roles_page)
+    assert isinstance(response, RedirectResponse)
+    assert "/login" in response.headers["location"]
+
+
 def _statutory_employee(db):
     with db.cursor() as conn:
         conn.execute("""INSERT INTO employees(first_name,last_name,status,date_of_joining,

@@ -4,6 +4,7 @@
 **Comparison source:** [Teamdash pricing and feature matrix](https://www.teamdash.com/pricing/), reviewed 2026-08-08.
 
 - [x] Completed final public release polish: runtime version in the landing mockup, filled competitor pricing cells, `/pricing` anchor redirect, and scoped dead-CSS cleanup (2026-09-10).
+- [x] Granular RBAC: per-role, per-module view and edit permissions with an admin settings matrix (migration `0012_granular_rbac.sql`) (2026-09-10).
 
 - [x] Phase 2 HR operations: payslips and pay runs shipped (2026-09-10).
 - [x] Phase 3 workforce operations: shift scheduling / rostering, time clock / check-in/out, and auto-attendance shipped (2026-09-10).
@@ -55,7 +56,7 @@ This roadmap closes the useful product gaps without copying Teamdash’s packagi
 
 - [x] Publishing actions restricted to admin, HRBP, and recruiter roles (2026-08-08).
 - [x] Versioned job copy, publication audit events, consent proof, upload limits, honeypot, and submission throttling (2026-08-08).
-- [ ] Enforce tenant isolation and scoped RBAC on every page, API query, export, and mutation.
+- [~] Enforce tenant isolation and scoped RBAC on every page, API query, export, and mutation. Staff page access now has granular per-module RBAC; tenant and query-level scoping remain open (2026-09-10).
 - [ ] Invite-only account provisioning; remove unsafe open registration defaults.
 - [ ] Add CSRF protection, distributed rate limiting, MIME/malware scanning, retention-safe file storage, and security event review.
 - [ ] Add admin-visible, exportable audit logs and two-factor authentication.

@@ -9,6 +9,24 @@ Product changes are listed newest first. This file must remain synchronized with
 - Shipped automatic Estonian holiday pay and employer incapacity pay in pay-run preparation, with calendar-day averaging, bilingual payslip lines, and idempotent refreshes.
 - Added migration `0011_holiday_incapacity_pay.sql`; holiday pay flows into gross taxable pay and TSD exports.
 
+## 2026-09-10 — Granular role permissions
+
+### Added
+
+- Shipped per-role, per-module view and edit permissions with an administrator-only
+  Roles settings matrix and bilingual access-denied pages.
+
+### Data and verification
+
+- Added idempotent migration `0012_granular_rbac.sql`; unconfigured modules retain
+  the previous staff access behaviour.
+- Updated the public feature catalogue and roadmap. Verified with the full pytest suite.
+
+### Roadmap
+
+- Marked granular module permissions complete. Tenant isolation and query-level
+  scoping remain open.
+
 ## 2026-09-10 — Pay, time, expenses, and employee self-service
 
 ### Added
