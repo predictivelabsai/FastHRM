@@ -560,6 +560,10 @@ def payslip_lines(payslip_id: int) -> list[dict]:
     return rows("SELECT * FROM payslip_lines WHERE payslip_id=? ORDER BY kind DESC, id", (payslip_id,))
 
 
+def statutory_export(export_id: int):
+    return one("SELECT * FROM statutory_exports WHERE id=?", (export_id,))
+
+
 def offset_employee_advance(run_id: int, advance_id: int) -> bool:
     """Offset one approved advance against a draft run, atomically."""
     with cursor() as conn:

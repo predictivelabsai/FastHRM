@@ -47,7 +47,7 @@ import recruitment_enterprise
 import recruiting_ops
 import version
 from web.layout import page, LAYOUT_CSS, NAV_ITEMS
-from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings, selfservice
+from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings, selfservice, statutory
 from web.landing import comparison_page, features_page, landing_page
 from web.i18n import resolve_lang
 from web.seo import register_seo_routes
@@ -2657,6 +2657,47 @@ def get(session):
 @rt("/payroll/runs/{rid}")
 def get(session, rid: int):
     return _guard(session, "payroll", lambda: views.pay_run_detail(rid))
+
+
+@rt("/payroll/exports")
+def get(session):
+    return _guard(session, "payroll", views.statutory_exports_page)
+
+
+@rt("/payroll/runs/{rid}/export/{kind}")
+def get(session, rid: int, kind: str):
+    if not _user(session):
+        return RedirectResponse(f"/login?next=/payroll/runs/{rid}/export/{kind}", status_code=303)
+    kind = kind.upper()
+    period = db.scalar("SELECT period FROM pay_runs WHERE id=?", (rid,))
+    if not period:
+        return Response("Pay run not found.", status_code=404)
+    try:
+        if kind == "TOR":
+            payload, row_count = statutory.build_tor(period)
+        elif kind == "TSD":
+            payload, row_count, period = statutory.build_tsd(rid)
+        else:
+            return Response("Unknown statutory export.", status_code=404)
+    except ValueError:
+        return Response("Pay run not found.", status_code=404)
+    file_name = f"{kind.lower()}-{period}.csv"
+    statutory.record_export(kind, period, file_name, payload, row_count, _user(session))
+    return Response(payload.encode("utf-8"), media_type="text/csv", headers={
+        "Content-Disposition": f"attachment; filename={file_name}",
+    })
+
+
+@rt("/payroll/exports/{export_id}")
+def get(session, export_id: int):
+    if not _user(session):
+        return RedirectResponse(f"/login?next=/payroll/exports/{export_id}", status_code=303)
+    export = db.statutory_export(export_id)
+    if not export:
+        return Response("Export not found.", status_code=404)
+    return Response(export["payload"].encode("utf-8"), media_type="text/csv", headers={
+        "Content-Disposition": f"attachment; filename={export['file_name']}",
+    })
 
 
 @rt("/payroll/runs/new")

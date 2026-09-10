@@ -6,6 +6,65 @@ import json
 import pytest
 
 
+def _statutory_employee(db):
+    with db.cursor() as conn:
+        conn.execute("""INSERT INTO employees(first_name,last_name,status,date_of_joining,
+                        employment_type,base_salary,personal_code,working_time_ratio,
+                        latest_amendment_date)
+                        VALUES ('Ada','Lovelace','Active','2020-01-01','Permanent',120000,
+                                '39001010001',1,'2026-05-01')""")
+        return conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+
+def test_tor_export_has_required_employee_columns(fresh_db):
+    from web import statutory
+
+    eid = _statutory_employee(fresh_db)
+    payload, count = statutory.build_tor("2026-05")
+    assert count == 1
+    assert payload.startswith("\ufeffEes- ja perekonnanimi;")
+    assert "Isikukood" in payload and "Töösuhte algus" in payload
+    assert "39001010001" in payload and "Ada Lovelace" in payload
+
+
+def test_tsd_export_maps_tax_and_social_tax_lines(fresh_db):
+    from web import statutory
+
+    eid = _statutory_employee(fresh_db)
+    rid = fresh_db.create_pay_run("2026-05", [eid])
+    slip = fresh_db.one("SELECT id FROM payslips WHERE run_id=?", (rid,))
+    with fresh_db.cursor() as conn:
+        conn.execute("INSERT INTO payslip_lines(payslip_id,kind,label,amount,base) VALUES(?,?,?,?,?)",
+                     (slip["id"], "Deduction", "Sotsiaalmaks (33%)", 3300, "33% of gross"))
+    payload, count, period = statutory.build_tsd(rid)
+    assert count == 1 and period == "2026-05"
+    assert "Tulumaks" in payload and "Sotsiaalmaks" in payload
+    assert ";2200.00;" in payload and ";3300.00;" in payload
+
+
+def test_statutory_export_history_and_route_auth(fresh_db):
+    from web import statutory
+
+    from starlette.testclient import TestClient
+    import web_app
+
+    eid = _statutory_employee(fresh_db)
+    rid = fresh_db.create_pay_run("2026-05", [eid])
+    response = TestClient(web_app.app).get(f"/payroll/runs/{rid}/export/tor", follow_redirects=False)
+    assert response.status_code == 303 and "/login" in response.headers["location"]
+    payload, count = statutory.build_tor("2026-05")
+    statutory.record_export("TOR", "2026-05", "tor-2026-05.csv", payload, count, "tester")
+    assert fresh_db.scalar("SELECT COUNT(*) FROM statutory_exports") == 1
+    assert "tor-2026-05.csv" in str(statutory.export_history())
+
+
+def test_statutory_history_page_renders_in_both_languages(fresh_db):
+    from web import views
+
+    assert "Ekspordi ajalugu" in str(views.statutory_exports_page())
+    assert "TÖR-i" in str(views.statutory_exports_page())
+
+
 def _org(db):
     """A minimal org: one department, a manager, and a requisition."""
     with db.cursor() as conn:

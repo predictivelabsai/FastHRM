@@ -26,6 +26,28 @@ Product changes are listed newest first. This file must remain synchronized with
 
 - Marked the shipped Phase 2, Phase 3, and Phase 4 HR operations items complete. Deeper statutory payroll remains open.
 
+## 2026-09-10 — TÖR/TSD statutory exports and comparison rework
+
+### Added
+
+- Added TÖR employment-register and TSD monthly CSV exports with UTF-8 BOM, semicolon separators, and export history with re-downloads.
+- Added payroll-page export actions and the bilingual statutory-payroll marketing copy now describes TÖR and TSD exports as shipped.
+- Shipped comparison rework PRs #3, #4 and #5: landing comparison toggle, pricing copy sweep, and removal of comparison source links.
+
+### Data and configuration
+
+- Added migration `0010_tor_tsd_exports.sql` for statutory export history and nullable employee statutory fields.
+- No new environment configuration.
+
+### Verification
+
+- Added coverage for TÖR columns, TSD tax and social-tax mapping, export history, route authentication, and Estonian/English rendering.
+- Full pytest suite.
+
+### Roadmap
+
+- Marked TÖR/TSD exports shipped; holiday and incapacity pay remain open.
+
 ## 2026-09-10 — Public release polish: runtime version, comparison prices, and pricing route
 
 ### Changed
