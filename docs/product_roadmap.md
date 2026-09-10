@@ -3,6 +3,7 @@
 **Baseline date:** 2026-08-08  
 **Comparison source:** [Teamdash pricing and feature matrix](https://www.teamdash.com/pricing/), reviewed 2026-08-08.
 
+- [x] FastHR logo mark: forward-leaning "F" monogram on the lime FastSME tile, applied as the favicon (public site + app) and the `.fs-mark` brand glyph in the public nav and footer (`static/favicon.svg`, `web/static/favicon.svg`, `web/design/system.py`) (2026-09-10).
 - [x] Public-site mobile polish: single-row top nav with the language switch and sign-in inside the menu, hero fake-dashboard mock hidden on phones, and collapsible per-product comparison cards (feature counts, FastHR expanded) that cut the comparison section length by ~65% (`web/design/system.py`, `web/landing.py`) (2026-09-10).
 - [x] Public-site mobile fixes: non-clipped two-row top navigation with a working ET/EN switcher, stacked per-product comparison cards replacing the overflowing table, a properly styled Estonia/Global toggle, a height-capped dashboard showcase, and a centred FastSME suite banner (`web/design/system.py`, `web/landing.py`) (2026-09-10).
 - [x] Mobile experience for the authenticated app: responsive collapse of the three-pane workspace to a single column, off-canvas drawer navigation with a hamburger and backdrop, slide-in AI assistant overlay, horizontally scrolling data tables, stacked content grids, and coarse-pointer touch targets (CSS/markup in `web/layout.py`) (2026-09-10).

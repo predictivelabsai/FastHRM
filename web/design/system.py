@@ -21,6 +21,19 @@ class Product:
 FASTHRM = Product(name="FastHR", tagline="Estonian HR, payroll & hiring — open source.")
 
 
+# The FastHR logo glyph — a forward-leaning "F" that reads as "Fast". Ink on the
+# lime `.fs-mark` tile (the tile's background + radius come from CSS), so this is
+# the glyph only. Matches static/favicon.svg.
+FS_MARK = (
+    '<svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">'
+    '<g fill="#0b1d17" transform="translate(1.7 0) skewX(-8)">'
+    '<rect x="9" y="8" width="4" height="16" rx="1.4"/>'
+    '<rect x="9" y="8" width="14" height="4" rx="1.4"/>'
+    '<rect x="9" y="14.4" width="10" height="4" rx="1.4"/>'
+    '</g></svg>'
+)
+
+
 # Bricolage Grotesque (display) + Hanken Grotesk (body). Both carry the Estonian
 # glyph set (õ ä ö ü š ž) via Google's latin-ext unicode ranges.
 FONT_LINKS = (
@@ -91,8 +104,9 @@ img{max-width:100%;display:block}
 .fs-nav-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;height:70px}
 .fs-brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;
   font-size:20px;letter-spacing:-.02em;color:inherit;text-decoration:none}
-.fs-mark{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+.fs-mark{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;overflow:hidden;
   background:var(--accent);color:var(--ink);font-weight:800;font-family:var(--font-display)}
+.fs-mark svg{display:block;width:100%;height:100%}
 .fs-nav-links{display:flex;align-items:center;gap:26px}
 .fs-nav-link{font-weight:500;font-size:15px;text-decoration:none;opacity:.82;transition:opacity var(--step-fast)}
 .fs-nav-link:hover{opacity:1}
@@ -196,7 +210,7 @@ def fs_nav(product: Product, links, right, *, on_ink=True, home="/", menu_label=
     right = list(right)
     return Nav(
         Div(
-            A(Span(product.mark, cls="fs-mark"), Span(product.name), href=home, cls="fs-brand"),
+            A(Span(NotStr(FS_MARK), cls="fs-mark"), Span(product.name), href=home, cls="fs-brand"),
             Div(*[A(label, href=href, cls="fs-nav-link") for label, href in links],
                 # On mobile the language switch + sign-in live inside the menu so the
                 # top bar stays a single compact row (brand + hamburger).
@@ -279,7 +293,7 @@ def fs_footer(product: Product, columns, bottom_left, bottom_right):
     return Footer(
         Div(
             Div(
-                Div(A(Span(product.mark, cls="fs-mark"), Span(product.name), href="/", cls="fs-brand"),
+                Div(A(Span(NotStr(FS_MARK), cls="fs-mark"), Span(product.name), href="/", cls="fs-brand"),
                     P(product.tagline), cls="fs-footer-brand"),
                 *[Div(Span(h, cls="fs-foot-h"),
                       *[A(label, href=href) for label, href in items], cls="fs-foot-col")
