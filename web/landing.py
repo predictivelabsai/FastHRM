@@ -77,19 +77,30 @@ COMPARISON_TABLE_CSS = """
 .ct-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:4px 0;margin-left:auto;color:var(--accent-strong);font-weight:700;text-decoration:none;white-space:nowrap}
 .ct-cta:hover{text-decoration:underline}
 
-/* mobile: stacked per-product cards replace the wide scrolling table */
+/* mobile: collapsible per-product cards replace the wide scrolling table */
 .pg-mobile-compare{display:none}
 @media(max-width:640px){
   .pg-compare-wrap{display:none}
-  .pg-mobile-compare{display:grid;gap:14px}
-  .pg-mobile-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);padding:16px 18px 8px;box-shadow:var(--shadow-sm)}
+  .pg-mobile-compare{display:grid;gap:12px}
+  .pg-mobile-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow-sm);overflow:hidden}
   .pg-mobile-card.is-fasthr{border-color:var(--accent-strong);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--accent-strong) 26%,transparent)}
-  .pg-mobile-card h3{margin:0 0 6px;font-family:var(--font-display);font-size:18px}
-  .pg-mobile-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:9px 0;border-top:1px solid var(--line);line-height:1.35;align-items:center}
+  .pg-mobile-summary{display:flex;align-items:center;gap:12px;padding:14px 18px;min-height:44px;cursor:pointer;list-style:none}
+  .pg-mobile-summary::-webkit-details-marker{display:none}
+  .pg-mc-name{flex:1;font-family:var(--font-display);font-weight:700;font-size:17px}
+  .pg-mobile-card.is-fasthr .pg-mc-name{color:var(--accent-strong)}
+  .pg-mc-count{font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pg-mobile-summary::after{content:"";flex:none;width:9px;height:9px;margin-left:2px;
+    border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:rotate(45deg);transition:transform var(--step-fast)}
+  .pg-mobile-card[open] .pg-mobile-summary{border-bottom:1px solid var(--line)}
+  .pg-mobile-card[open] .pg-mobile-summary::after{transform:rotate(-135deg)}
+  .pg-mobile-summary:focus-visible{outline:2.5px solid var(--accent-strong);outline-offset:-3px}
+  .pg-mobile-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:9px 18px;border-top:1px solid var(--line);line-height:1.35;align-items:center}
   .pg-mobile-row:first-of-type{border-top:0}
   .pg-mobile-row b{font-size:13px;color:var(--muted);font-weight:600}
   .pg-mobile-row span{font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600}
   .pg-mobile-row .ct-mark{font-size:15px}
+  .pg-mobile-row.is-price{background:var(--paper)}
   .pg-mobile-row.is-price b,.pg-mobile-row.is-price span{color:var(--text);font-weight:800}
 }
 """
@@ -256,20 +267,11 @@ LANDING_CSS = """
   .lh-ai{display:none}
 }
 @media(max-width:680px){
-  .lh-feats,.lh-prices,.lh-panels,.lh-stat-list{grid-template-columns:1fr}
-  .lh-kpis{grid-template-columns:1fr 1fr}
-  /* drop the illegible mini-sidebar; show the main panel full-width and cap
-     the mockup height so it reads as a preview instead of a tall dead block */
-  .lh-mock-body{grid-template-columns:1fr}
-  .lh-side{display:none}
-  .lh-mock{position:relative;max-height:430px}
-  .lh-mock::after{content:"";position:absolute;left:0;right:0;bottom:0;height:72px;
-    background:linear-gradient(transparent,var(--card));pointer-events:none}
-  .lh-main{padding:16px 14px}
-  .lh-kpi b{font-size:18px}
-  .lh-kpi em{font-size:8px}
-  .lh-panels{grid-template-columns:1fr}
-  .lh-mock-wrap{margin-bottom:-48px}
+  .lh-feats,.lh-prices,.lh-stat-list{grid-template-columns:1fr}
+  /* The fake dashboard mock reads as a cropped, toy-sized screenshot on a
+     phone; hide it here — the hero copy carries the section and the real
+     product demo (GIF) lives in the #demo section below. */
+  .lh-mock-wrap{display:none}
 }
 @media(max-width:560px){
   /* Estonia / Global comparison toggle: full-width segmented control */
@@ -426,14 +428,19 @@ def _glyph_compare_table(c, rows, products, labels, prices, legend,
           for k, lbl in legend.items()],
         cls="ct-legend")
 
-    # Mobile: one card per product with a ✓/◐/✕ row per feature — the wide
-    # scrolling table is unreadable on a phone, so it is hidden below 640px.
+    # Mobile: one collapsible card per product with a ✓/◐/✕ row per feature.
+    # The wide scrolling table is unreadable on a phone (hidden below 640px),
+    # and a flat card per product is very long — so each product is a <details>
+    # collapsed to a name + feature count, with FastHR expanded by default.
     price_label = c["cmp2_price_label"]
+    total = len(rows)
     mobile_cards = []
     for i, product in enumerate(prods):
-        rows_out = []
+        rows_out, yes = [], 0
         for key, states in rows:
             s = states[i]
+            if s == "yes":
+                yes += 1
             rows_out.append(Div(
                 B(labels[key]),
                 Span(Span(CMP_GLYPH[s], cls=f"ct-mark ct-{s}"), " ", legend[s]),
@@ -441,8 +448,11 @@ def _glyph_compare_table(c, rows, products, labels, prices, legend,
         price_val = prices[i] if i < len(prices) else ""
         if price_val:
             rows_out.append(Div(B(price_label), Span(price_val), cls="pg-mobile-row is-price"))
-        mobile_cards.append(Div(H3(product), *rows_out,
-                                cls="pg-mobile-card is-fasthr" if i == 0 else "pg-mobile-card"))
+        summary = Summary(Span(product, cls="pg-mc-name"),
+                          Span(f"{yes}/{total}", cls="pg-mc-count"),
+                          cls="pg-mobile-summary")
+        mobile_cards.append(Details(summary, *rows_out, open=(i == 0),
+                                    cls="pg-mobile-card is-fasthr" if i == 0 else "pg-mobile-card"))
 
     return Div(
         Div(fs_eyebrow(c["cmp2_eyebrow"]), H2(heading or c["cmp2_h2"]),

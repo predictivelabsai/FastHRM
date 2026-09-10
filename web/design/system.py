@@ -105,6 +105,7 @@ img{max-width:100%;display:block}
 .fs-nav.on-ink .fs-lang{border-color:var(--ink-line)}
 .fs-nav.on-ink .fs-lang a.active{background:var(--accent);color:var(--ink)}
 .fs-menu-toggle{display:none}
+.fs-nav-actions-mobile{display:none}
 
 /* ---------- footer ---------- */
 .fs-footer{background:var(--ink);color:var(--on-ink)}
@@ -129,7 +130,7 @@ img{max-width:100%;display:block}
   .fs-footer-top{grid-template-columns:1fr 1fr;gap:28px}
 }
 @media(max-width:760px){
-  .fs-nav-inner{position:relative;gap:8px;flex-wrap:wrap;row-gap:12px;height:auto;min-height:70px;padding-block:12px}
+  .fs-nav-inner{position:relative;gap:8px}
   .fs-brand{min-width:0;flex:0 0 auto;gap:7px;font-size:18px;white-space:nowrap}
   .fs-mark{width:28px;height:28px}
   .fs-menu-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;
@@ -146,11 +147,14 @@ img{max-width:100%;display:block}
     border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 14px 28px rgba(11,29,23,.18)}
   .fs-nav-links.is-open{display:flex;background:color-mix(in srgb,var(--accent) 6%,var(--ink))}
   .fs-nav-link{display:flex;align-items:center;min-height:44px;padding:10px 0;font-size:16px}
-  /* language + sign-in drop to their own full-width row so nothing is clipped */
-  .fs-nav-right{flex:1 0 100%;justify-content:space-between;gap:10px;align-items:center}
-  .fs-nav-right .fs-btn{min-height:44px;padding-inline:14px;white-space:nowrap}
+  /* keep the top bar a single compact row: brand + hamburger only */
+  .fs-nav-right{display:none}
+  /* language + sign-in move into the dropdown menu */
+  .fs-nav-actions-mobile{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;margin-top:6px;padding-top:14px;border-top:1px solid var(--ink-line)}
+  .fs-nav-actions-mobile .fs-btn{min-height:44px;padding-inline:16px;white-space:nowrap}
   .fs-lang{flex:0 0 auto;overflow:visible}
-  .fs-lang a{display:inline-flex;align-items:center;min-height:40px;padding-inline:16px}
+  .fs-lang a{display:inline-flex;align-items:center;min-height:40px;padding-inline:18px}
   .fs-footer-top{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){
@@ -189,10 +193,14 @@ def fs_button(label, href=None, variant="ink", size="", onclick=None, **kw):
 
 def fs_nav(product: Product, links, right, *, on_ink=True, home="/", menu_label="Menu"):
     """Shared public top nav. `links` = [(label, href)], `right` = components."""
+    right = list(right)
     return Nav(
         Div(
             A(Span(product.mark, cls="fs-mark"), Span(product.name), href=home, cls="fs-brand"),
             Div(*[A(label, href=href, cls="fs-nav-link") for label, href in links],
+                # On mobile the language switch + sign-in live inside the menu so the
+                # top bar stays a single compact row (brand + hamburger).
+                Div(*right, cls="fs-nav-actions-mobile"),
                 id="fs-mobile-nav", cls="fs-nav-links"),
             Button(Span(), type="button", aria_expanded="false",
                    aria_controls="fs-mobile-nav", aria_label=menu_label, cls="fs-menu-toggle"),
