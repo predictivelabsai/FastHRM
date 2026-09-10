@@ -2,6 +2,23 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Public-site mobile polish
+
+### Changed
+
+- Top navigation on phones is now a single compact row (brand + hamburger); the language switch and sign-in moved into the dropdown menu, so the sticky bar no longer takes two tall rows and overlaps hero content as you scroll.
+- Hid the decorative fake dashboard mockup in the hero on phones — it read as a cropped, toy-sized screenshot; the hero copy carries the section and the real product demo (GIF) remains in the demo section below.
+- Made the mobile comparison cards collapsible: each product is a `<details>` showing its name and a feature count (e.g. 16/16), with FastHR expanded by default and competitors collapsed, cutting the comparison section from ~4600px to ~1600px on the landing page and roughly halving the `/compare` page.
+
+### Data and verification
+
+- CSS/markup only in `web/design/system.py` (shared nav) and `web/landing.py`; no schema, dependency, or API changes.
+- Verified with headless Chromium at 360/390px across the landing, `/compare`, and `/features` pages (zero horizontal overflow, both languages); confirmed the in-menu ET→EN switch navigates and a collapsed competitor card expands on tap.
+
+### Roadmap
+
+- Added the public-site mobile polish as complete.
+
 ## 2026-09-10 — Mobile fixes for the public site
 
 ### Changed
