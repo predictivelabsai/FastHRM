@@ -2,6 +2,441 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Pay, time, expenses, and employee self-service
+
+### Added
+
+- Shipped pay runs and payslips with line-item breakdowns.
+- Shipped shifts and time clocks with auto-attendance and location-aware check-in.
+- Shipped expense claims, employee advances, approvals, and travel requests.
+- Shipped the employee self-service portal for employee-facing HR workflows.
+
+### Data and configuration
+
+- Added migrations `0006` through `0009` for payroll, shifts and time clocks, expenses and travel, and employee self-service.
+- No new environment configuration.
+
+### Verification
+
+- Updated the public feature catalogue, landing comparison, bilingual comparison data, roadmap, and changelog.
+- Regenerated `swagger.json` from the runtime OpenAPI schema.
+- Full pytest suite passes with 0 failures and 1 skipped opt-in live-model test.
+
+### Roadmap
+
+- Marked the shipped Phase 2, Phase 3, and Phase 4 HR operations items complete. Deeper statutory payroll remains open.
+
+## 2026-09-10 — Public release polish: runtime version, comparison prices, and pricing route
+
+### Changed
+
+- Updated the landing hero mockup to use the runtime version label shared by the public footer.
+- Filled competitor pricing cells with compact inquiry-based labels in Estonian and English.
+- Added a `/pricing` 302 redirect to the landing-page pricing anchor.
+- Removed the obsolete `.fs-footer col-h` selector; `.lh-price-example` remains in use.
+
+### Data and configuration
+
+- No migration, environment configuration, or deployment changes.
+
+### Verification
+
+- Added regression coverage for runtime mock version output, non-empty competitor prices, and the `/pricing` redirect.
+- Full pytest suite.
+
+## 2026-09-10 — Landing copy and comparison header refinement
+
+### Changed
+
+- Replaced the pricing formula with a natural sentence in Estonian and English.
+- Removed the comparison table's “Meie” and “Us” suffixes and restored readable FastHR product-name typography.
+- Replaced the landing FAQ with the canonical five-question free and open-source FAQ, and synchronized the final `/compare` FAQ answer.
+
+### Data and configuration
+
+- No migration, environment configuration, or deployment changes.
+
+### Verification
+
+- Added additive landing copy and comparison-header assertions in `tests/test_public_product_and_docs.py`.
+- Full pytest suite.
+
+## 2026-09-10 — Public suite label sentence case
+
+### Changed
+
+- Updated the landing-page `.lh-suite-label` to sentence case by removing tracked uppercase styling and restoring normal letter spacing; size, weight, colour, centering, width cap, and mobile sizing remain unchanged.
+
+### Data and configuration
+
+- No migration or environment configuration changes.
+
+### Verification
+
+- Updated additive CSS-source assertions in `tests/test_public_product_and_docs.py`.
+- Full pytest suite.
+
+## 2026-09-10 — Public suite label wrapping
+
+### Changed
+
+- Capped the landing-page `.lh-suite-label` at 34ch and tightened letter-spacing to 0.08em so the uppercase FastSME suite descriptor wraps into two centered lines.
+
+### Data and configuration
+
+- No migration, environment configuration, or other typography treatment changed.
+
+### Verification
+
+- Added additive CSS-source assertions in `tests/test_public_product_and_docs.py`.
+- Full pytest suite.
+
+## 2026-09-10 — Public typography consistency pass
+
+### Changed
+
+- Unified public H2/H3 sizing, heading line-height, FAQ answer sizing, mobile eyebrow sizing, comparison table feature-cell typography, auth modal title weight, and mockup chat-button font inheritance across `/`, `/compare`, and `/features`.
+- Added readable text caps for footer legal copy, feature/comparison notes, and comparison FAQ answers, plus safe wrapping for long prose tokens.
+
+### Data and configuration
+
+- No migration, environment configuration, palette/token, mockup-internal, button-variant, trust-line, or logo-strip changes.
+
+### Verification
+
+- Added additive CSS-source regression assertions in `tests/test_public_product_and_docs.py`.
+- Full pytest suite.
+
+## 2026-09-10 — Public careers landing retired
+
+### Changed
+
+- Retired the public `/careers` landing and redirect it to `/`; job and application pages remain unchanged.
+- Removed the retired landing from sitemap and indexing discovery, removed its marketing fallback links, and kept Careers publishing as a shipped feature without a public landing action.
+
+### Data and configuration
+
+- No migration, environment configuration, or styling change was required.
+
+### Verification
+
+- Added a regression assertion for the `/careers` redirect and retained coverage for live careers styling and public discovery routes.
+- Full pytest suite.
+
+## 2026-09-10 — Public touch-target adaptation
+
+### Changed
+
+- Added coarse-pointer hit-area rules for shared public navigation, language toggles, footer links, nav buttons, the landing comparison CTA, and comparison product/source links.
+- Raised always-on footer column links, the comparison CTA, and comparison table links to comfortable touch heights; careers links now use the same 44px minimum.
+- Refined mobile comparison product/source links, developer content buttons, and the careers brand link to preserve 44px touch targets.
+
+### Data and configuration
+
+- No migration, environment configuration, copy, colour, font, or hover behaviour changed.
+
+### Verification
+
+- Added regression assertions for the shared coarse-pointer and always-on touch-target rules.
+- Ran the full pytest suite.
+
+## 2026-09-10 — Public asset loading performance
+
+### Changed
+
+- Switched public pages to the prepared self-hosted Bricolage Grotesque and Hanken Grotesk stylesheet, preloading the two Latin faces painted immediately.
+- Added responsive prepared WebP sources for the below-fold product demo while retaining the GIF fallback.
+
+### Data and configuration
+
+- No migration or environment configuration was required. Existing local font and WebP assets were wired without modification; the GIF remains on disk.
+
+### Verification
+
+- Added a public landing regression test for local font links, WebP sources, and GIF fallback.
+- Ran the full pytest suite and verified no Google Fonts host remains under `web/`.
+
+## 2026-09-10 — Developer shell migration and public-page hardening
+
+### Changed
+
+- Rebuilt `/developers` on the shared FastSME shell, preserving the OpenAPI contract, resources, examples, and token-gated write guidance.
+- Added keyboard skip links to the public pages, corrected the English careers document metadata and FastHR branding, and replaced the auth backdrop literal with a design token.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `pytest tests/test_public_product_and_docs.py -q`
+- `pytest tests/ -q`
+
+## 2026-09-10 — Public mobile gutter root-cause fix
+
+### Changed
+
+- Preserved `.fs-wrap` horizontal gutters in the landing hero and shared footer containers, removed redundant child padding, and kept the public version label as plain text.
+- Added `overflow-wrap:anywhere` to public landing hero H1s so long Estonian words wrap on mobile.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `pytest tests/test_public_product_and_docs.py -q`
+
+## 2026-09-10 — Public comparison ergonomics and mobile gutters batch F
+
+### Changed
+
+- Reduced the desktop comparison table minimum width to 1150px and tightened cell padding so the first two columns fit the 1440px layout before regional scrolling is needed.
+- Made sticky comparison feature cells opaque with a separating edge and shadow, and darkened the no-status mark for WCAG AA contrast on white and cream surfaces across desktop and mobile.
+- Added explicit mobile paragraph gutters for public main content so body text remains clear of the viewport edges on the landing and comparison pages.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `pytest tests/test_public_product_and_docs.py -q`
+
+## 2026-09-10 — Public auth and identity batch E
+
+### Changed
+
+- Restyled the public auth modal with the FastSME design tokens, including card inputs, pill primary actions, token-based secondary states, and the localized trust line.
+- Fixed the login password placeholder to use the password guidance copy instead of duplicating the visible label.
+- Removed public Careers/Värbamine links from navigation and footer columns while leaving the `/careers` route live.
+- Corrected the shared footer legal identity line and rendered public footer version labels as plain text so visitors do not hit the authenticated `/about` page.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `pytest tests/test_public_product_and_docs.py -q`
+
+## 2026-09-10 — Public product copy batch D
+
+### Changed
+
+- Marked Estonian statutory payroll with TÖR and TSD as available today in the feature catalogue.
+- Replaced comparison fallback copy that exposed an internal source filename with clear public price and team wording.
+- Unified comparison soon-status contrast, raised the suite-strip label to 12px, and made the hero mock version a maintained module constant.
+- Confirmed the existing public footer version link still points to `/about`; no new page was added.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `pytest tests/test_public_product_and_docs.py -q`
+
+## 2026-09-09 — Public identity and auth focus fixes
+
+### Changed
+
+- Corrected the landing hero dashboard mockup brand from FastHRM to FastHR.
+- Updated auth modal open focus to skip hidden language inputs and enter the visible panel.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `pytest tests/test_public_product_and_docs.py -q` passes.
+
+## 2026-09-09 — Public adapt and polish follow-up
+
+### Changed
+
+- Refined the comparison affordance with sticky feature columns, mobile comparison cards, scroll locking, and a small mobile status-mark gap.
+- Completed the contrast sweep for the active ET/EN toggle, light-surface kickers, comparison CTA, and source links; targets now use the dark emerald ink variant.
+- Moved auth focus into the first visible input on open and restored focus to the trigger on close while retaining the focus trap and Escape handling.
+- Tightened the landing rhythm after pricing and FAQ, and aligned the footer Product column with the landing navigation order.
+- Differentiated the payslip/pay-run workflow from Estonian statutory payroll in the bilingual feature catalogue; both remain Coming soon while the Phase 2 payroll engine is in progress.
+- Removed the unused landing `stats` copy block and regenerated the committed OpenAPI document to match the current FastHR runtime and canonical domain.
+
+### Verification
+
+- Rendered landing, features, and comparison pages in Estonian and English with `to_xml`; ran the public product/docs regression file successfully.
+
+## 2026-09-09 — FastHR identity and comparison structure
+
+- Renamed the public product identity to FastHR and moved public SEO/canonical
+  references to https://fasthr.eu; internal identifiers and the GitHub
+  repository URL remain unchanged.
+- Added the Predictive Labs Ltd legal identity line to the shared public footer
+  and restyled the FastSME suite strip as an explicit product-family index.
+- Added an Estonia-first, source-linked descriptive comparison section before
+  the global platform table on /compare, with live Estonian payroll wording.
+
+## 2026-09-09 — Public experience batches 1–4 complete
+
+### Changed
+
+- Completed the public localization and hardening pass: ET/EN copy and auth
+  states remain path-aware, labels and recovery states are accessible, and
+  public rendering handles the supported language paths consistently.
+- Clarified public copy and pricing, including the explicit decision to present
+  the Estonian payroll engine as live today with TÖR/TSD registration and
+  e-identity support; payroll-live copy does not imply that all provider
+  integrations are live.
+- Adapted the shared public navigation and page frames for mobile, including a
+  full FastHRM brand label at 375px and touch-sized controls without horizontal
+  page scrolling.
+- Completed the final polish: removed the unused legacy landing layer, aligned
+  the favicon and public footer with FastSME identity, repaired mockup semantics
+  and missing brand styles, and raised comparison, language-toggle, and auth
+  divider contrast to WCAG 2.1 AA targets.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `py_compile` passes for all changed Python files.
+- Landing, `/compare`, and `/features` render through `to_xml` in ET and EN;
+  rendered HTML contains no public-footer `healthz` link and uses the new
+  favicon colours.
+- `pytest tests/test_public_product_and_docs.py -q` passes.
+
+## 2026-09-09 — Clarified pricing and statutory payroll copy
+
+### Changed
+
+- Standardized the public hosted-price wording to one per-person, per-month
+  formulation and added a worked 30-person example near the pricing cards in
+  Estonian and English.
+- Marked Estonian statutory payroll as available today in the landing and
+  `/compare` copy, specifically naming TÖR/TSD registration, the payroll engine,
+  and Estonian e-identity without changing the status of other coming-soon
+  features.
+- Updated the feature catalogue to link statutory payroll to `/payroll` and show
+  it as available. No employee-list Excel import was added because the roadmap
+  does not list one.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `python -m py_compile` passes for the changed Python files.
+- Estonian and English landing and `/compare` pages render through `to_xml`.
+- Public product and documentation tests pass.
+
+## 2026-09-09 — Localized public landing and auth flow
+
+### Changed
+
+- Localized the auth modal, including labels, hints, recovery copy, inline error
+  messages, focus trapping, focus return, and accessible field associations, in
+  Estonian and English. Auth submit buttons now use the ink-on-paper treatment.
+- Moved landing and `/compare` comparison records and FAQs into the shared copy
+  layer, with natural Estonian translations while preserving source URLs and
+  factual values.
+- Localized the landing hero dashboard mockup for Estonian labels, names, and
+  dates. Improved the real-demo section copy in both languages.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `python -m py_compile` passes for all changed Python files.
+- Estonian and English landing and `/compare` pages render through `to_xml`.
+- Render checks pass. The current public/full suite has one legacy assertion
+  that still expects the old English signup title on the default ET page;
+  excluding that conflicting assertion, the full suite is 85 passed, 1 skipped.
+
+## 2026-09-09 — Real product demo on the landing page
+
+### Added
+
+- Added a bilingual real-screen product demo section to the public landing page
+  between the feature cards and the compliance/pricing flow. The existing
+  `/static/product-demo.gif` is framed with the same browser chrome language as
+  the hero mockup and includes intrinsic dimensions to prevent layout shift.
+
+### Data and configuration
+
+- No migration, environment configuration, or new asset was required.
+
+### Verification
+
+- `python -m py_compile web/landing.py web/i18n.py` passes.
+- The landing page renders through `to_xml` in Estonian and English.
+
+## 2026-09-09 — Landing rework + FastSME design system
+
+### Added
+
+- Introduced a shared **FastSME design system** (`web/design/`): tokens (colour,
+  type, spacing, radius, shadow, motion), Bricolage Grotesque + Hanken Grotesk
+  fonts, and reusable public-page primitives (nav, footer, buttons, eyebrow, logo
+  strip). Product colour is injected through a single per-product `--accent` token
+  so the other FastSME products can reuse the system.
+- Added a lightweight **bilingual (Estonian / English) copy layer** (`web/i18n.py`)
+  with `?lang=` + session resolution; Estonian is the default and primary.
+
+### Changed
+
+- Reworked the public home page (`web/landing.py::landing_page`) onto the new
+  design system: a confident dark-hero direction with a lime accent, a stylized
+  HTML/CSS FastHRM dashboard mockup (no screenshot dependency), and localized
+  feature, Estonian-statutory, pricing, comparison, FAQ and CTA sections.
+- Rebuilt the hero dashboard mockup to mirror the real light-theme app: white top
+  bar, grouped sidebar, KPI cards with coloured right edges, headcount bar chart,
+  leave tables with pills, and an AI Assistant panel. Comparison tables now put
+  FastHRM first and show pricing for FastHRM only; the logo-strip/features-heading
+  area is a compact suite band with an asymmetric header, and ET/EN landing copy
+  was humanized without em dashes or AI cliches.
+- Migrated `/features` and `/compare` onto the shared design tokens, fonts,
+  `fs_nav`/`fs_footer`, and dark page heroes with summary chips. Feature cards now
+  use Available/Coming-soon pills; the sourced international comparison table
+  uses `COMPARISON_TABLE_CSS`, highlighting the FastHRM column and pricing row
+  with a ✓/◐/✕ legend.
+- Localized both page frames through the ET/EN `feat_pg_*` and `cmp_pg_*` copy
+  keys in `web/i18n.py`; detailed catalogue data, comparison data, and FAQ text
+  remain English.
+- `/features`, `/compare`, and `/login` now resolve and pass the active language;
+  `/` also passes it through the branded-careers path.
+- Language switch links preserve the current subpage through the shared
+  path-aware `_lang_switch(lang, path)` (for example, `/features?lang=en`).
+- Recorded the full programme in `docs/REWORK-PLAN-2026.md` and the design context
+  in `.impeccable.md`.
+
+### Data and configuration
+
+- No migration or environment configuration is required.
+
+### Verification
+
+- Public-page tests pass (9 passed); the feature-catalogue test covers ET/EN
+  localized labels. The full suite is running separately.
+- Playwright screenshots verified `/features` and `/compare` in both ET and EN.
+
+### Roadmap
+
+- Recorded the completed `/features` and `/compare` migration in the public
+  product and developer experience section of `docs/product_roadmap.md`.
+
+### Not yet done
+
+- Full ET/EN copy pass for the other public pages (careers, developers, privacy,
+  and job pages).
+- Localized translations of detailed feature-catalogue descriptions, FAQ text,
+  and comparison data, currently rendered in English inside localized frames.
+
 ## 2026-08-08 — v0.4.0 build identity
 
 ### Changed

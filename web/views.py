@@ -1,8 +1,10 @@
 """Center-pane renderers for FastHRM."""
 from __future__ import annotations
 
+from datetime import timedelta
+
 from fasthtml.common import (
-    Div, H1, H3, P, Span, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, Button, Select, Option, NotStr, Strong,
+    Div, H1, H3, P, Span, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, Button, Select, Option, Label, NotStr, Strong,
 )
 
 import db
@@ -213,26 +215,177 @@ def attendance_view():
     return _title("Attendance", f"Today — {today}"), kpis, Div(Div(H3("Today's register"), cls="card-header"), tbl, cls="card")
 
 
+# ---------- shifts and time clocks -----------------------------------------
+
+def _week_start(value=None):
+    try:
+        day = db.date.fromisoformat(value) if value else db.TODAY
+    except (TypeError, ValueError):
+        day = db.TODAY
+    return day - timedelta(days=day.weekday())
+
+
+def shifts_roster(week=""):
+    start = _week_start(week)
+    days = [start + timedelta(days=i) for i in range(7)]
+    end = days[-1]
+    assignments = db.roster(start.isoformat(), end.isoformat())
+    by_day = {}
+    for item in assignments:
+        by_day.setdefault((item["employee_id"], item["shift_date"]), []).append(item)
+    employees = db.rows("""SELECT DISTINCT e.id,e.first_name,e.last_name FROM employees e
+                           JOIN shift_assignments s ON s.employee_id=e.id
+                           WHERE s.shift_date BETWEEN ? AND ? ORDER BY e.first_name,e.last_name""",
+                        (start.isoformat(), end.isoformat()))
+    rows_ = []
+    for emp in employees:
+        cells = []
+        for day in days:
+            shifts = by_day.get((emp["id"], day.isoformat()), [])
+            cells.append(Td(*[Div(A(f"{s['shift_name']} {s['start_time']}–{s['end_time']}",
+                                  href=f"/shifts?week={start.isoformat()}",
+                                  style=f"border-left:3px solid {s['color'] or 'var(--accent)'};"),
+                             _pill(s["status"]),
+                             Form(Button("Cancel", type="submit", cls="btn sm"), method="post",
+                                  action=f"/shifts/{s['id']}/cancel") if s["status"] in ("Scheduled", "Missed") else None,
+                             cls="note") for s in shifts] or [Span("—", cls="sub")]))
+        rows_.append(Tr(Td(Strong(_name(emp))), *cells))
+    table = Table(Thead(Tr(Th("Employee"), *[Th(f"{d:%a}<br>{d:%d %b}", cls="num") for d in days])),
+                  Tbody(*rows_ or [Tr(Td("No shifts this week.", colspan="8"))]), cls="tbl")
+    types = db.shift_types()
+    emps = db.employees_min()
+    form = Form(Select(*[Option(_name(e), value=str(e["id"])) for e in emps], name="employee_id", required=True, cls="hr-inp"),
+                Select(*[Option(t["name"], value=str(t["id"])) for t in types], name="shift_type_id", required=True, cls="hr-inp"),
+                Input(type="date", name="shift_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp"),
+                Input(name="location_label", placeholder="Location (e.g. Tallinn HQ)", cls="hr-inp"),
+                Button("Create shift", type="submit", cls="btn primary"), method="post", action="/shifts/new")
+    prev_week, next_week = (start - timedelta(days=7)).isoformat(), (start + timedelta(days=7)).isoformat()
+    return (_title("Shifts & roster", f"Week of {start.isoformat()} — {end.isoformat()}",
+                   A("← Previous", href=f"/shifts?week={prev_week}", cls="btn"),
+                   A("Next →", href=f"/shifts?week={next_week}", cls="btn")),
+            Div(Div(H3("Weekly roster"), cls="card-header"), table, cls="card"),
+            Div(Div(H3("New shift"), P("Add a scheduled shift to the roster.", cls="sub"), cls="card-header"), form, cls="card"))
+
+
+def time_clocks():
+    today = db.TODAY.isoformat()
+    employees = db.employees_min()
+    punches = db.rows("""SELECT p.*, e.first_name,e.last_name FROM clock_punches p
+                         JOIN employees e ON e.id=p.employee_id
+                         WHERE substr(p.punched_at,1,10)=? ORDER BY p.punched_at DESC""", (today,))
+    latest = {}
+    for punch in sorted(punches, key=lambda p: p["punched_at"]):
+        latest[punch["employee_id"]] = punch
+    def state_for(eid):
+        kind = latest.get(eid, {}).get("punch_type")
+        return {"In": "Punched in", "Break Start": "On break", "Break End": "Punched in",
+                "Out": "Punched out"}.get(kind, "Not clocked")
+
+    board = Table(Thead(Tr(Th("Employee"), Th("State"), Th("Last punch"), Th("Source"))),
+                  Tbody(*[Tr(Td(_name(e)), Td(_pill(state_for(e["id"]))),
+                           Td(latest[e["id"]]["punched_at"] if e["id"] in latest else "—"),
+                           Td(latest[e["id"]]["source"] if e["id"] in latest else "—")) for e in employees]), cls="tbl")
+    selector = Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp")
+    widget = Div(Form(selector, Input(type="hidden", name="source", value="Web"), Button("Clock in", type="submit", cls="btn primary"),
+                      method="post", action="/timeclock/in"),
+                 Form(Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp"),
+                      Button("Clock out", type="submit", cls="btn"), method="post", action="/timeclock/out"), cls="actions")
+    recent = Table(Thead(Tr(Th("Employee"), Th("Type"), Th("When"), Th("Site"))),
+                   Tbody(*[Tr(Td(_name(p)), Td(_pill(p["punch_type"])), Td(p["punched_at"]),
+                              Td("On site" if p["on_site"] else ("Off site" if p["on_site"] == 0 else "—"))) for p in punches[:20]] or
+                          [Tr(Td("No punches today.", colspan="4"))]), cls="tbl")
+    gaps = db.auto_attendance_gap_report((db.TODAY - timedelta(days=7)).isoformat(), today)
+    gap_list = [Tr(Td(_name(g)), Td(g["shift_date"]), Td(g["shift_name"])) for g in gaps]
+    return (_title("Time clocks", f"Today's board — {today}"),
+            Div(Div(H3("Clock now"), widget, cls="card-header"), P("Select an employee for this admin view."), cls="card"),
+            Div(Div(H3("Today's clock board"), cls="card-header"), board, cls="card"),
+            Div(Div(H3("Recent punches"), cls="card-header"), recent, cls="card"),
+            Div(Div(H3("Auto-attendance gaps"), P("Scheduled shifts with no clock-in.", cls="sub"), cls="card-header"),
+                Table(Thead(Tr(Th("Employee"), Th("Date"), Th("Shift"))), Tbody(*gap_list or [Tr(Td("No gaps found.", colspan="3"))]), cls="tbl"), cls="card"))
+
+
 # ---------- payroll ---------------------------------------------------------
 
+def _pay_run_form():
+    emps = db.rows("SELECT id,first_name,last_name,designation FROM employees WHERE status='Active' ORDER BY first_name,last_name")
+    periods = []
+    y, m = db.TODAY.year, db.TODAY.month
+    for _ in range(6):
+        m -= 1
+        if m == 0:
+            m, y = 12, y - 1
+        periods.append(f"{y:04d}-{m:02d}")
+    return Div(Div(H3("New pay run"), P("Select a completed pay period and active employees.", cls="sub")),
+               Form(Select(*[Option(p, value=p) for p in periods], name="period", required=True, cls="hr-inp"),
+                    Div(*[Label(Input(type="checkbox", name="employee_ids", value=str(e["id"])),
+                                f" {e['first_name']} {e['last_name']}", style="display:block;padding:3px 0;")
+                         for e in emps], style="max-height:180px;overflow:auto;margin:10px 0;"),
+                    Button("Create draft", type="submit", cls="btn primary"),
+                    method="post", action="/payroll/runs/new"), cls="card")
+
+
 def payroll_list(period="latest"):
-    periods = [r["period"] for r in db.rows("SELECT DISTINCT period FROM payslips ORDER BY period DESC")]
-    if period == "latest" and periods:
-        period = periods[0]
-    seg = Div(*[A(p, href=f"/payroll?period={p}", cls="" + ("active" if period == p else "")) for p in periods], cls="seg")
-    pays = db.rows("""SELECT p.*, e.first_name,e.last_name,d.name dept FROM payslips p
-                      JOIN employees e ON e.id=p.employee_id LEFT JOIN departments d ON d.id=e.dept_id
-                      WHERE p.period=? ORDER BY p.net DESC""", (period,))
-    total = sum(p["net"] for p in pays)
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Dept"), Th("Gross", cls="num"), Th("Tax", cls="num"),
+    if period != "latest":
+        run = db.one("SELECT id FROM pay_runs WHERE period=?", (period,))
+        if run:
+            return pay_run_detail(run["id"])
+        # Preserve links/bookmarks for pre-Phase-1 legacy payslips that have
+        # no pay_run relationship yet.
+        pays = db.rows("""SELECT p.*, e.first_name,e.last_name,d.name dept
+                          FROM payslips p JOIN employees e ON e.id=p.employee_id
+                          LEFT JOIN departments d ON d.id=e.dept_id
+                          WHERE p.period=? ORDER BY p.net DESC""", (period,))
+        tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Gross", cls="num"),
+                             Th("Net", cls="num"), Th("Status"), Th(""))),
+                    Tbody(*[Tr(Td(f"{p['first_name']} {p['last_name']}"), Td(p["dept"] or "—"),
+                               Td(money(p["gross"]), cls="num"), Td(Strong(money(p["net"])), cls="num"),
+                               Td(_pill(p["status"])), Td(A("View", href=f"/payroll/{p['id']}", cls="btn sm")))
+                            for p in pays] or [Tr(Td("No payslips for this period.", colspan="6"))]), cls="tbl")
+        return _title("Payroll", f"{period} — legacy payslips"), Div(tbl, cls="card")
+    runs = db.pay_runs()
+    tbl = Table(Thead(Tr(Th("Period"), Th("Status"), Th("Employees", cls="num"),
+                         Th("Gross", cls="num"), Th("Net", cls="num"), Th(""))),
+                Tbody(*[Tr(Td(A(r["period"], href=f"/payroll/runs/{r['id']}")),
+                           Td(_pill(r["status"])), Td(str(r["headcount"]), cls="num"),
+                           Td(money(r["gross_total"]), cls="num"), Td(Strong(money(r["net_total"])), cls="num"),
+                           Td(A("Open", href=f"/payroll/runs/{r['id']}", cls="btn sm")))
+                        for r in runs] or [Tr(Td("No pay runs yet.", colspan="6"))]), cls="tbl")
+    return (_title("Pay runs", "Prepare, review, approve and pay monthly payroll.",
+                   A("+ New pay run", href="#new-pay-run", cls="btn primary")),
+            Div(tbl, cls="card"), Div(_pay_run_form(), id="new-pay-run"))
+
+
+def pay_run_detail(rid):
+    run = db.pay_run(rid)
+    if not run:
+        return _title("Pay run not found"), P("No such pay run.")
+    tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Gross", cls="num"),
                          Th("Net", cls="num"), Th("Status"), Th(""))),
                 Tbody(*[Tr(Td(f"{p['first_name']} {p['last_name']}"), Td(p["dept"] or "—"),
-                           Td(money(p["gross"]), cls="num"), Td(money(p["tax"]), cls="num"),
-                           Td(Strong(money(p["net"])), cls="num"), Td(_pill(p["status"])),
-                           Td(A("View", href=f"/payroll/{p['id']}", cls="btn sm")))
-                        for p in pays]), cls="tbl")
-    return (_title("Payroll", f"{period} — {len(pays)} payslips · {money(total)} net"), seg,
-            Div(tbl, cls="card"))
+                           Td(money(p["gross"]), cls="num"), Td(Strong(money(p["net"])), cls="num"),
+                           Td(_pill(p["status"])), Td(A("Payslip", href=f"/payroll/{p['id']}", cls="btn sm")))
+                        for p in run["payslips"]] or [Tr(Td("No payslips in this run.", colspan="6"))]), cls="tbl")
+    next_status = db.PAY_RUN_TRANSITIONS.get(run["status"])
+    advance = (Form(Button(f"Move to {next_status}", type="submit", cls="btn primary"),
+                     method="post", action=f"/payroll/runs/{rid}/advance") if next_status else None)
+    offsets = db.rows("""SELECT a.id, a.reason, COALESCE(a.approved_amount,a.requested_amount) amount,
+                                e.first_name||' '||e.last_name employee
+                         FROM employee_advances a JOIN employees e ON e.id=a.employee_id
+                         JOIN payslips p ON p.employee_id=a.employee_id AND p.run_id=?
+                         WHERE a.status='Approved' AND a.offset_run_id IS NULL
+                         ORDER BY e.first_name""", (rid,)) if run["status"] == "Draft" else []
+    offset_card = Div(Div(H3("Approved advances to offset"),
+                          P("Available only while this run is Draft.", style="color:var(--text-mute);font-size:12px;"),
+                          cls="card-header"),
+                      Table(Thead(Tr(Th("Employee"), Th("Reason"), Th("Amount", cls="num"), Th(""))),
+                            Tbody(*[Tr(Td(a["employee"]), Td(a["reason"]), Td(money(a["amount"]), cls="num"),
+                                       Td(Form(Button("Offset", type="submit", cls="btn sm primary"), method="post",
+                                               action=f"/payroll/runs/{rid}/offset?advance_id={a['id']}"))) for a in offsets]
+                                  or [Tr(Td("No approved advances are ready to offset.", colspan="4"))]), cls="tbl"), cls="card")
+    return (_title(f"Pay run · {run['period']}",
+                   f"{len(run['payslips'])} employees · {money(sum(p['net'] for p in run['payslips']))} net",
+                   A("← Pay runs", href="/payroll", cls="btn"), advance),
+            Div(Div(H3("Payslips"), _pill(run["status"]), cls="card-header"), tbl, cls="card"), offset_card)
 
 
 def payslip_detail(pid):
@@ -240,15 +393,103 @@ def payslip_detail(pid):
                   JOIN employees e ON e.id=p.employee_id LEFT JOIN departments d ON d.id=e.dept_id WHERE p.id=?""", (pid,))
     if not p:
         return _title("Payslip not found"), P("No such payslip.")
-    rows_ = [("Gross pay", p["gross"], False), ("Income tax", -p["tax"], True),
-             ("Pension (5%)", -p["pension"], True), ("Other deductions", -p["other_ded"], True),
-             ("Net pay", p["net"], False)]
-    body = Table(Tbody(*[Tr(Td(Strong(label) if label in ("Gross pay", "Net pay") else label),
-                            Td(Strong(money(abs(amt)) if not neg else "− " + money(abs(amt)))
-                               if label == "Net pay" else (("− " if neg else "") + money(abs(amt))),
-                               cls="num", style="color:var(--danger);" if neg else ""))
-                         for label, amt, neg in rows_]), cls="tbl")
+    lines = db.payslip_lines(pid)
+    if lines:
+        earnings = [line for line in lines if line["kind"] == "Earning"]
+        deductions = [line for line in lines if line["kind"] == "Deduction"]
+        line_rows = [Tr(Td(Strong("Earnings")), Td(""))]
+        line_rows += [Tr(Td(line["label"]), Td(money(line["amount"]), cls="num")) for line in earnings]
+        line_rows += [Tr(Td(Strong("Deductions")), Td(""))]
+        line_rows += [Tr(Td(line["label"]), Td("− " + money(line["amount"]), cls="num",
+                                             style="color:var(--danger);")) for line in deductions]
+        line_rows += [Tr(Td(Strong("Net pay")), Td(Strong(money(p["net"])), cls="num"))]
+    else:
+        legacy = [("Gross pay", p["gross"], False), ("Income tax", p["tax"], True),
+                  ("Pension", p["pension"], True), ("Other deductions", p["other_ded"], True),
+                  ("Net pay", p["net"], False)]
+        line_rows = [Tr(Td(Strong(label) if label in ("Gross pay", "Net pay") else label),
+                        Td(Strong(money(amt)) if label == "Net pay" else
+                           (("− " if neg else "") + money(amt)), cls="num",
+                           style="color:var(--danger);" if neg else ""))
+                     for label, amt, neg in legacy]
+    body = Table(Tbody(*line_rows), cls="tbl")
     return (_title(f"Payslip — {p['first_name']} {p['last_name']}", f"{p['period']} · {p['designation']} · {p['dept']}",
                    A("← Payroll", href="/payroll", cls="btn")),
             Div(Div(Div(H3(f"{p['period']} payslip"), _pill(p["status"]), cls="card-header"), body, cls="card",
                     style="max-width:520px;")))
+
+
+# ---------- expenses and travel --------------------------------------------
+
+def _employee_select(name="employee_id"):
+    return Select(*[Option(_name(e), value=str(e["id"])) for e in db.employees_min()],
+                  name=name, required=True, cls="hr-inp")
+
+
+def expenses_page():
+    summary = db.expenses_summary()
+    cats = db.expense_categories()
+    claims = db.open_expenses()
+    advances = db.open_advances()
+    claim_rows = []
+    for c in claims:
+        actions = []
+        if c["status"] == "Submitted":
+            actions = [Form(Button("Approve", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/decide?decision=Approved") ,
+                        Form(Button("Reject", type="submit", cls="btn sm"), method="post",
+                             action=f"/expenses/{c['id']}/decide?decision=Rejected")]
+        elif c["status"] == "Approved":
+            actions = [Form(Button("Reimburse", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/reimburse")]
+        claim_rows.append(Tr(Td(f"{c['first_name']} {c['last_name']}"), Td(c["category"]),
+                             Td(c["claim_date"]), Td(c["description"]), Td(money(c["amount"]), cls="num"),
+                             Td(_pill(c["status"])), Td(*actions, cls="actions")))
+    claim_form = Form(_employee_select(),
+                      Select(*[Option(cat["name"], value=str(cat["id"])) for cat in cats], name="category_id", required=True, cls="hr-inp"),
+                      Input(type="date", name="claim_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp"),
+                      Input(type="number", name="amount", min="0", step="0.01", placeholder="Amount", required=True, cls="hr-inp"),
+                      Input(name="description", placeholder="What was this for?", required=True, cls="hr-inp"),
+                      Input(type="number", name="tax_rate", min="0", max="1", step="0.01", value="0.22", title="Tax rate", cls="hr-inp"),
+                      Button("Save claim", type="submit", cls="btn primary"), method="post", action="/expenses/new")
+    adv_rows = [Tr(Td(f"{a['first_name']} {a['last_name']}"), Td(a["reason"]),
+                   Td(money(a["requested_amount"])), Td(_pill(a["status"])),
+                   Td(Form(Button("Approve", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/advance/{a['id']}/decide?decision=Approved"))) for a in advances]
+    advance_form = Form(_employee_select(), Input(type="number", name="requested_amount", min="0", step="0.01", placeholder="Amount", required=True, cls="hr-inp"),
+                        Input(name="reason", placeholder="Reason", required=True, cls="hr-inp"),
+                        Button("Request advance", type="submit", cls="btn primary"), method="post", action="/expenses/advance/new")
+    return (_title("Expenses & advances", "Claims, approvals and employee advances.", A("Travel →", href="/travel", cls="btn")),
+            Div(kpi_card("Pending total", money(summary["pending_total"])),
+                kpi_card("Approved this month", money(summary["approved_this_month"])),
+                kpi_card("Advances outstanding", money(summary["advances_outstanding"])), cls="kpi-grid"),
+            Div(Div(H3("Expense claims"), cls="card-header"),
+                Table(Thead(Tr(Th("Employee"), Th("Category"), Th("Date"), Th("Description"), Th("Amount", cls="num"), Th("Status"), Th(""))),
+                      Tbody(*claim_rows or [Tr(Td("No open claims.", colspan="7"))]), cls="tbl"), cls="card"),
+            Div(Div(H3("New claim"), cls="card-header"), claim_form, cls="card"),
+            Div(Div(H3("Employee advances"), cls="card-header"),
+                Table(Thead(Tr(Th("Employee"), Th("Reason"), Th("Amount"), Th("Status"), Th(""))),
+                      Tbody(*adv_rows or [Tr(Td("No open advances.", colspan="5"))]), cls="tbl"), advance_form, cls="card"))
+
+
+def travel_page():
+    requests = db.open_travel()
+    rows_ = []
+    for t in requests:
+        actions = []
+        if t["status"] == "Submitted":
+            for label, decision in (("Approve", "Approved"), ("Reject", "Rejected"), ("Return", "Returned")):
+                actions.append(Form(Button(label, type="submit", cls="btn sm"), method="post", action=f"/travel/{t['id']}/decide?decision={decision}"))
+        elif t["status"] == "Returned":
+            actions.append(Form(Button("Resubmit", type="submit", cls="btn sm primary"), method="post", action=f"/travel/{t['id']}/decide?decision=Resubmit"))
+        rows_.append(Tr(Td(f"{t['first_name']} {t['last_name']}"), Td(t["destination"]),
+                        Td(f"{t['from_date']} → {t['to_date']}"), Td(t["purpose"]),
+                        Td(money(t["estimated_cost"])), Td(_pill(t["status"])), Td(*actions)))
+    form = Form(_employee_select(), Input(name="destination", placeholder="Destination", required=True, cls="hr-inp"),
+                Input(name="purpose", placeholder="Purpose", required=True, cls="hr-inp"),
+                Input(type="date", name="from_date", required=True, cls="hr-inp"), Input(type="date", name="to_date", required=True, cls="hr-inp"),
+                Input(type="number", name="estimated_cost", min="0", step="0.01", placeholder="Estimated cost", required=True, cls="hr-inp"),
+                Input(type="number", name="advance_requested", min="0", step="0.01", value="0", placeholder="Advance", cls="hr-inp"),
+                Button("Submit request", type="submit", cls="btn primary"), method="post", action="/travel/new")
+    return (_title("Travel requests", "Plan and approve employee travel.", A("← Expenses", href="/expenses", cls="btn")),
+            Div(Div(H3("Travel requests"), cls="card-header"),
+                Table(Thead(Tr(Th("Employee"), Th("Destination"), Th("Dates"), Th("Purpose"), Th("Estimate"), Th("Status"), Th(""))),
+                      Tbody(*rows_ or [Tr(Td("No travel requests.", colspan="7"))]), cls="tbl"), cls="card"),
+            Div(Div(H3("New travel request"), cls="card-header"), form, cls="card"))

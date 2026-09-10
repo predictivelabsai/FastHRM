@@ -21,7 +21,7 @@ RESOURCES = (
 
 backend = SQLiteBackend(db.DB_PATH, RESOURCES, initialize=db.init_schema)
 api = create_sqlite_api(
-    product="FastHRM", version="1.0.0",
-    description="Open integration access to FastHRM people, recruiting, and enterprise configuration data.",
-    base_url="https://hrm.fastsme.com", backend=backend, resources=RESOURCES,
+    product="FastHR", version="1.0.0",
+    description="Open integration access to FastHR people, recruiting, and enterprise configuration data.",
+    base_url="https://fasthr.eu", backend=backend, resources=RESOURCES,
 )

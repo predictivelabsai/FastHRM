@@ -20,5 +20,11 @@ uploads/
 .playwright-mcp/
 /tmp/
 
+# Local design reference shots (never commit)
+references/
+
+# Impeccable live-server runtime state (ephemeral pid/port/token)
+.impeccable/live/
+
 # OS
 .DS_Store

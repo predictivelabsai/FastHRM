@@ -1,4 +1,2048 @@
 {
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FastHR API",
+    "description": "Open integration access to FastHR people, recruiting, and enterprise configuration data.\n\n**Access model:** reads are public. Selected writes are implemented but disabled unless the deployment configures `FASTSME_API_TOKEN`; write clients then send it as a bearer token.",
+    "contact": {
+      "name": "FastSME",
+      "url": "https://fastsme.com/"
+    },
+    "license": {
+      "name": "MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://fasthr.eu/api",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Api Index",
+        "operationId": "api_index__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Api Index  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Api Health",
+        "operationId": "api_health_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/employees": {
+      "get": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "List employees",
+        "description": "Employee master records and employment state.",
+        "operationId": "list_employees",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeesCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/employees/{item_id}": {
+      "get": {
+        "tags": [
+          "Employees"
+        ],
+        "summary": "Get one employees record",
+        "operationId": "get_employees",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeesResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/departments": {
+      "get": {
+        "tags": [
+          "Departments"
+        ],
+        "summary": "List departments",
+        "description": "Organisation departments.",
+        "operationId": "list_departments",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/departments/{item_id}": {
+      "get": {
+        "tags": [
+          "Departments"
+        ],
+        "summary": "Get one departments record",
+        "operationId": "get_departments",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/leave": {
+      "get": {
+        "tags": [
+          "Leave requests"
+        ],
+        "summary": "List leave requests",
+        "description": "Employee leave requests and approval status.",
+        "operationId": "list_leave",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaverequestsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Leave requests"
+        ],
+        "summary": "Create a leave requests record",
+        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
+        "operationId": "create_leave",
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaverequestsCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaverequestsResource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/leave/{item_id}": {
+      "get": {
+        "tags": [
+          "Leave requests"
+        ],
+        "summary": "Get one leave requests record",
+        "operationId": "get_leave",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaverequestsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/attendance": {
+      "get": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "List attendance",
+        "description": "Daily attendance and recorded hours.",
+        "operationId": "list_attendance",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/attendance/{item_id}": {
+      "get": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Get one attendance record",
+        "operationId": "get_attendance",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs": {
+      "get": {
+        "tags": [
+          "Job openings"
+        ],
+        "summary": "List job openings",
+        "description": "Open requisitions and their hiring state.",
+        "operationId": "list_jobs",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobopeningsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/{item_id}": {
+      "get": {
+        "tags": [
+          "Job openings"
+        ],
+        "summary": "Get one job openings record",
+        "operationId": "get_jobs",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobopeningsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/candidates": {
+      "get": {
+        "tags": [
+          "Candidates"
+        ],
+        "summary": "List candidates",
+        "description": "Candidate profiles, including CV-extracted fields.",
+        "operationId": "list_candidates",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidatesCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/candidates/{item_id}": {
+      "get": {
+        "tags": [
+          "Candidates"
+        ],
+        "summary": "Get one candidates record",
+        "operationId": "get_candidates",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidatesResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/applications": {
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "List applications",
+        "description": "Candidate applications and pipeline stage.",
+        "operationId": "list_applications",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Create a applications record",
+        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
+        "operationId": "create_applications",
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationsCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationsResource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/applications/{item_id}": {
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Get one applications record",
+        "operationId": "get_applications",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/organizations": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "List organizations",
+        "description": "Enterprise recruitment organizations and locale defaults.",
+        "operationId": "list_organizations",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Create a organizations record",
+        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
+        "operationId": "create_organizations",
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationsCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationsResource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/organizations/{item_id}": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get one organizations record",
+        "operationId": "get_organizations",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/brands": {
+      "get": {
+        "tags": [
+          "Recruitment brands"
+        ],
+        "summary": "List recruitment brands",
+        "description": "Brand, domain, and visual identity configuration.",
+        "operationId": "list_brands",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecruitmentbrandsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Recruitment brands"
+        ],
+        "summary": "Create a recruitment brands record",
+        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
+        "operationId": "create_brands",
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecruitmentbrandsCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecruitmentbrandsResource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/brands/{item_id}": {
+      "get": {
+        "tags": [
+          "Recruitment brands"
+        ],
+        "summary": "Get one recruitment brands record",
+        "operationId": "get_brands",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecruitmentbrandsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/career-sites": {
+      "get": {
+        "tags": [
+          "Career sites"
+        ],
+        "summary": "List career sites",
+        "description": "Candidate-facing careers sites.",
+        "operationId": "list_career_sites",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CareersitesCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Career sites"
+        ],
+        "summary": "Create a career sites record",
+        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
+        "operationId": "create_career_sites",
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CareersitesCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CareersitesResource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/career-sites/{item_id}": {
+      "get": {
+        "tags": [
+          "Career sites"
+        ],
+        "summary": "Get one career sites record",
+        "operationId": "get_career_sites",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CareersitesResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/organization-teams": {
+      "get": {
+        "tags": [
+          "Organization teams"
+        ],
+        "summary": "List organization teams",
+        "description": "Country- and department-scoped enterprise recruiting teams.",
+        "operationId": "list_organization_teams",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationteamsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Organization teams"
+        ],
+        "summary": "Create a organization teams record",
+        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
+        "operationId": "create_organization_teams",
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationteamsCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationteamsResource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/organization-teams/{item_id}": {
+      "get": {
+        "tags": [
+          "Organization teams"
+        ],
+        "summary": "Get one organization teams record",
+        "operationId": "get_organization_teams",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationteamsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/job-distributions": {
+      "get": {
+        "tags": [
+          "Job distributions"
+        ],
+        "summary": "List job distributions",
+        "description": "Localized job placements across career sites and brands.",
+        "operationId": "list_job_distributions",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive text search",
+              "title": "Q"
+            },
+            "description": "Case-insensitive text search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobdistributionsCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Job distributions"
+        ],
+        "summary": "Create a job distributions record",
+        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
+        "operationId": "create_job_distributions",
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobdistributionsCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobdistributionsResource"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/job-distributions/{item_id}": {
+      "get": {
+        "tags": [
+          "Job distributions"
+        ],
+        "summary": "Get one job distributions record",
+        "operationId": "get_job_distributions",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobdistributionsResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "components": {
     "schemas": {
       "ApplicationsCollection": {
@@ -7,63 +2051,29 @@
             "items": {
               "$ref": "#/components/schemas/ApplicationsResource"
             },
-            "title": "Data",
-            "type": "array"
+            "type": "array",
+            "title": "Data"
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
+        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "ApplicationsCollection",
-        "type": "object"
+        "title": "ApplicationsCollection"
       },
       "ApplicationsCreate": {
-        "additionalProperties": false,
         "properties": {
-          "applied_on": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Applied On"
-          },
           "candidate_id": {
-            "title": "Candidate Id",
-            "type": "integer"
+            "type": "integer",
+            "title": "Candidate Id"
           },
           "job_id": {
-            "title": "Job Id",
-            "type": "integer"
-          },
-          "rating": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rating"
-          },
-          "rejection_reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rejection Reason"
+            "type": "integer",
+            "title": "Job Id"
           },
           "stage": {
             "anyOf": [
@@ -76,17 +2086,6 @@
             ],
             "title": "Stage"
           },
-          "stage_entered_on": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Stage Entered On"
-          },
           "status": {
             "anyOf": [
               {
@@ -97,17 +2096,7 @@
               }
             ],
             "title": "Status"
-          }
-        },
-        "required": [
-          "candidate_id",
-          "job_id"
-        ],
-        "title": "ApplicationsCreate",
-        "type": "object"
-      },
-      "ApplicationsResource": {
-        "properties": {
+          },
           "applied_on": {
             "anyOf": [
               {
@@ -119,11 +2108,7 @@
             ],
             "title": "Applied On"
           },
-          "candidate_id": {
-            "title": "Candidate Id",
-            "type": "integer"
-          },
-          "created": {
+          "stage_entered_on": {
             "anyOf": [
               {
                 "type": "string"
@@ -132,8 +2117,41 @@
                 "type": "null"
               }
             ],
-            "title": "Created"
+            "title": "Stage Entered On"
           },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "job_id"
+        ],
+        "title": "ApplicationsCreate"
+      },
+      "ApplicationsResource": {
+        "properties": {
           "id": {
             "anyOf": [
               {
@@ -145,9 +2163,43 @@
             ],
             "title": "Id"
           },
+          "candidate_id": {
+            "type": "integer",
+            "title": "Candidate Id"
+          },
           "job_id": {
-            "title": "Job Id",
-            "type": "integer"
+            "type": "integer",
+            "title": "Job Id"
+          },
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "applied_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied On"
+          },
+          "stage_entered_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Entered On"
           },
           "rating": {
             "anyOf": [
@@ -171,11 +2223,7 @@
             ],
             "title": "Rejection Reason"
           },
-          "stage": {
-            "title": "Stage",
-            "type": "string"
-          },
-          "stage_entered_on": {
+          "created": {
             "anyOf": [
               {
                 "type": "string"
@@ -184,21 +2232,17 @@
                 "type": "null"
               }
             ],
-            "title": "Stage Entered On"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
+            "title": "Created"
           }
         },
+        "type": "object",
         "required": [
           "candidate_id",
           "job_id",
           "stage",
           "status"
         ],
-        "title": "ApplicationsResource",
-        "type": "object"
+        "title": "ApplicationsResource"
       },
       "AttendanceCollection": {
         "properties": {
@@ -206,25 +2250,32 @@
             "items": {
               "$ref": "#/components/schemas/AttendanceResource"
             },
-            "title": "Data",
-            "type": "array"
+            "type": "array",
+            "title": "Data"
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
+        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "AttendanceCollection",
-        "type": "object"
+        "title": "AttendanceCollection"
       },
       "AttendanceResource": {
         "properties": {
-          "att_date": {
-            "title": "Att Date",
-            "type": "string"
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
           },
           "employee_id": {
             "anyOf": [
@@ -237,6 +2288,14 @@
             ],
             "title": "Employee Id"
           },
+          "att_date": {
+            "type": "string",
+            "title": "Att Date"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
           "hours": {
             "anyOf": [
               {
@@ -247,7 +2306,37 @@
               }
             ],
             "title": "Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "att_date",
+          "status"
+        ],
+        "title": "AttendanceResource"
+      },
+      "CandidatesCollection": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CandidatesResource"
+            },
+            "type": "array",
+            "title": "Data"
           },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "CandidatesCollection"
+      },
+      "CandidatesResource": {
+        "properties": {
           "id": {
             "anyOf": [
               {
@@ -258,95 +2347,6 @@
               }
             ],
             "title": "Id"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "att_date",
-          "status"
-        ],
-        "title": "AttendanceResource",
-        "type": "object"
-      },
-      "CandidatesCollection": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/CandidatesResource"
-            },
-            "title": "Data",
-            "type": "array"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/PaginationMeta"
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ],
-        "title": "CandidatesCollection",
-        "type": "object"
-      },
-      "CandidatesResource": {
-        "properties": {
-          "consent_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Consent At"
-          },
-          "created": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created"
-          },
-          "current_employer": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Current Employer"
-          },
-          "current_title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Current Title"
-          },
-          "email": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
           },
           "first_name": {
             "anyOf": [
@@ -359,28 +2359,6 @@
             ],
             "title": "First Name"
           },
-          "headline": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Headline"
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
-          },
           "last_name": {
             "anyOf": [
               {
@@ -392,7 +2370,7 @@
             ],
             "title": "Last Name"
           },
-          "linkedin_url": {
+          "email": {
             "anyOf": [
               {
                 "type": "string"
@@ -401,29 +2379,7 @@
                 "type": "null"
               }
             ],
-            "title": "Linkedin Url"
-          },
-          "location": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
+            "title": "Email"
           },
           "phone": {
             "anyOf": [
@@ -436,16 +2392,71 @@
             ],
             "title": "Phone"
           },
-          "referred_by": {
+          "location": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Referred By"
+            "title": "Location"
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headline"
+          },
+          "current_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Title"
+          },
+          "current_employer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Employer"
+          },
+          "years_experience": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Years Experience"
+          },
+          "linkedin_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkedin Url"
           },
           "source": {
             "anyOf": [
@@ -458,52 +2469,18 @@
             ],
             "title": "Source"
           },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          },
-          "years_experience": {
+          "referred_by": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Years Experience"
-          }
-        },
-        "required": [
-          "status"
-        ],
-        "title": "CandidatesResource",
-        "type": "object"
-      },
-      "CareersitesCollection": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/CareersitesResource"
-            },
-            "title": "Data",
-            "type": "array"
+            "title": "Referred By"
           },
-          "meta": {
-            "$ref": "#/components/schemas/PaginationMeta"
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ],
-        "title": "CareersitesCollection",
-        "type": "object"
-      },
-      "CareersitesCreate": {
-        "additionalProperties": false,
-        "properties": {
-          "accent_color": {
+          "consent_at": {
             "anyOf": [
               {
                 "type": "string"
@@ -512,7 +2489,92 @@
                 "type": "null"
               }
             ],
-            "title": "Accent Color"
+            "title": "Consent At"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "CandidatesResource"
+      },
+      "CareersitesCollection": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CareersitesResource"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "CareersitesCollection"
+      },
+      "CareersitesCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headline"
+          },
+          "introduction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Introduction"
           },
           "brand_color": {
             "anyOf": [
@@ -525,6 +2587,80 @@
             ],
             "title": "Brand Color"
           },
+          "accent_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accent Color"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "privacy_policy_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Privacy Policy Url"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "slug"
+        ],
+        "title": "CareersitesCreate"
+      },
+      "CareersitesResource": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
           "headline": {
             "anyOf": [
               {
@@ -547,16 +2683,13 @@
             ],
             "title": "Introduction"
           },
-          "is_active": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Active"
+          "brand_color": {
+            "type": "string",
+            "title": "Brand Color"
+          },
+          "accent_color": {
+            "type": "string",
+            "title": "Accent Color"
           },
           "logo_url": {
             "anyOf": [
@@ -569,10 +2702,6 @@
             ],
             "title": "Logo Url"
           },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
           "privacy_policy_url": {
             "anyOf": [
               {
@@ -583,32 +2712,6 @@
               }
             ],
             "title": "Privacy Policy Url"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name",
-          "slug"
-        ],
-        "title": "CareersitesCreate",
-        "type": "object"
-      },
-      "CareersitesResource": {
-        "properties": {
-          "accent_color": {
-            "title": "Accent Color",
-            "type": "string"
-          },
-          "brand_color": {
-            "title": "Brand Color",
-            "type": "string"
-          },
-          "created": {
-            "title": "Created",
-            "type": "string"
           },
           "custom_domain": {
             "anyOf": [
@@ -621,78 +2724,20 @@
             ],
             "title": "Custom Domain"
           },
-          "headline": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Headline"
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
-          },
-          "introduction": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Introduction"
-          },
           "is_active": {
-            "title": "Is Active",
-            "type": "integer"
+            "type": "integer",
+            "title": "Is Active"
           },
-          "logo_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Logo Url"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "privacy_policy_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Privacy Policy Url"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
+          "created": {
+            "type": "string",
+            "title": "Created"
           },
           "updated": {
-            "title": "Updated",
-            "type": "string"
+            "type": "string",
+            "title": "Updated"
           }
         },
+        "type": "object",
         "required": [
           "name",
           "slug",
@@ -702,8 +2747,7 @@
           "created",
           "updated"
         ],
-        "title": "CareersitesResource",
-        "type": "object"
+        "title": "CareersitesResource"
       },
       "DepartmentsCollection": {
         "properties": {
@@ -711,19 +2755,19 @@
             "items": {
               "$ref": "#/components/schemas/DepartmentsResource"
             },
-            "title": "Data",
-            "type": "array"
+            "type": "array",
+            "title": "Data"
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
+        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "DepartmentsCollection",
-        "type": "object"
+        "title": "DepartmentsCollection"
       },
       "DepartmentsResource": {
         "properties": {
@@ -739,15 +2783,15 @@
             "title": "Id"
           },
           "name": {
-            "title": "Name",
-            "type": "string"
+            "type": "string",
+            "title": "Name"
           }
         },
+        "type": "object",
         "required": [
           "name"
         ],
-        "title": "DepartmentsResource",
-        "type": "object"
+        "title": "DepartmentsResource"
       },
       "EmployeesCollection": {
         "properties": {
@@ -755,49 +2799,23 @@
             "items": {
               "$ref": "#/components/schemas/EmployeesResource"
             },
-            "title": "Data",
-            "type": "array"
+            "type": "array",
+            "title": "Data"
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
+        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "EmployeesCollection",
-        "type": "object"
+        "title": "EmployeesCollection"
       },
       "EmployeesResource": {
         "properties": {
-          "alumni": {
-            "title": "Alumni",
-            "type": "integer"
-          },
-          "base_salary": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Base Salary"
-          },
-          "branch": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Branch"
-          },
-          "candidate_id": {
+          "id": {
             "anyOf": [
               {
                 "type": "integer"
@@ -806,7 +2824,7 @@
                 "type": "null"
               }
             ],
-            "title": "Candidate Id"
+            "title": "Id"
           },
           "code": {
             "anyOf": [
@@ -819,7 +2837,7 @@
             ],
             "title": "Code"
           },
-          "date_of_joining": {
+          "first_name": {
             "anyOf": [
               {
                 "type": "string"
@@ -828,7 +2846,29 @@
                 "type": "null"
               }
             ],
-            "title": "Date Of Joining"
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
           },
           "dept_id": {
             "anyOf": [
@@ -852,18 +2892,18 @@
             ],
             "title": "Designation"
           },
-          "email": {
+          "manager_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Email"
+            "title": "Manager Id"
           },
-          "employment_type": {
+          "branch": {
             "anyOf": [
               {
                 "type": "string"
@@ -872,9 +2912,13 @@
                 "type": "null"
               }
             ],
-            "title": "Employment Type"
+            "title": "Branch"
           },
-          "first_name": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "date_of_joining": {
             "anyOf": [
               {
                 "type": "string"
@@ -883,7 +2927,7 @@
                 "type": "null"
               }
             ],
-            "title": "First Name"
+            "title": "Date Of Joining"
           },
           "gender": {
             "anyOf": [
@@ -896,340 +2940,7 @@
             ],
             "title": "Gender"
           },
-          "id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
-          },
-          "last_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Name"
-          },
-          "manager_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Manager Id"
-          },
-          "probation_end": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Probation End"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          },
-          "termination_date": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Termination Date"
-          }
-        },
-        "required": [
-          "status",
-          "alumni"
-        ],
-        "title": "EmployeesResource",
-        "type": "object"
-      },
-      "ErrorDetail": {
-        "description": "Machine-readable API error.",
-        "properties": {
-          "code": {
-            "title": "Code",
-            "type": "string"
-          },
-          "details": {
-            "additionalProperties": true,
-            "title": "Details",
-            "type": "object"
-          },
-          "message": {
-            "title": "Message",
-            "type": "string"
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ],
-        "title": "ErrorDetail",
-        "type": "object"
-      },
-      "ErrorEnvelope": {
-        "description": "Consistent error response envelope.",
-        "properties": {
-          "error": {
-            "$ref": "#/components/schemas/ErrorDetail"
-          }
-        },
-        "required": [
-          "error"
-        ],
-        "title": "ErrorEnvelope",
-        "type": "object"
-      },
-      "HTTPValidationError": {
-        "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "title": "Detail",
-            "type": "array"
-          }
-        },
-        "title": "HTTPValidationError",
-        "type": "object"
-      },
-      "HealthResponse": {
-        "description": "API health response.",
-        "properties": {
-          "product": {
-            "title": "Product",
-            "type": "string"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          },
-          "version": {
-            "title": "Version",
-            "type": "string"
-          },
-          "writes_enabled": {
-            "title": "Writes Enabled",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "status",
-          "product",
-          "version",
-          "writes_enabled"
-        ],
-        "title": "HealthResponse",
-        "type": "object"
-      },
-      "JobdistributionsCollection": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/JobdistributionsResource"
-            },
-            "title": "Data",
-            "type": "array"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/PaginationMeta"
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ],
-        "title": "JobdistributionsCollection",
-        "type": "object"
-      },
-      "JobdistributionsCreate": {
-        "additionalProperties": false,
-        "properties": {
-          "brand_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Brand Id"
-          },
-          "career_site_id": {
-            "title": "Career Site Id",
-            "type": "integer"
-          },
-          "job_posting_id": {
-            "title": "Job Posting Id",
-            "type": "integer"
-          },
-          "locale": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Locale"
-          },
-          "published_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Published At"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          }
-        },
-        "required": [
-          "job_posting_id",
-          "career_site_id",
-          "slug"
-        ],
-        "title": "JobdistributionsCreate",
-        "type": "object"
-      },
-      "JobdistributionsResource": {
-        "properties": {
-          "brand_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Brand Id"
-          },
-          "career_site_id": {
-            "title": "Career Site Id",
-            "type": "integer"
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
-          },
-          "job_posting_id": {
-            "title": "Job Posting Id",
-            "type": "integer"
-          },
-          "locale": {
-            "title": "Locale",
-            "type": "string"
-          },
-          "published_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Published At"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "job_posting_id",
-          "career_site_id",
-          "locale",
-          "slug",
-          "status"
-        ],
-        "title": "JobdistributionsResource",
-        "type": "object"
-      },
-      "JobopeningsCollection": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/JobopeningsResource"
-            },
-            "title": "Data",
-            "type": "array"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/PaginationMeta"
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ],
-        "title": "JobopeningsCollection",
-        "type": "object"
-      },
-      "JobopeningsResource": {
-        "properties": {
-          "code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Code"
-          },
-          "comp_max": {
+          "base_salary": {
             "anyOf": [
               {
                 "type": "number"
@@ -1238,42 +2949,9 @@
                 "type": "null"
               }
             ],
-            "title": "Comp Max"
+            "title": "Base Salary"
           },
-          "comp_min": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Comp Min"
-          },
-          "created": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created"
-          },
-          "currency": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency"
-          },
-          "dept_id": {
+          "candidate_id": {
             "anyOf": [
               {
                 "type": "integer"
@@ -1282,18 +2960,7 @@
                 "type": "null"
               }
             ],
-            "title": "Dept Id"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
+            "title": "Candidate Id"
           },
           "employment_type": {
             "anyOf": [
@@ -1306,13 +2973,342 @@
             ],
             "title": "Employment Type"
           },
-          "filled": {
-            "title": "Filled",
-            "type": "integer"
+          "probation_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End"
           },
-          "headcount": {
-            "title": "Headcount",
-            "type": "integer"
+          "termination_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termination Date"
+          },
+          "alumni": {
+            "type": "integer",
+            "title": "Alumni"
+          },
+          "password_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "alumni"
+        ],
+        "title": "EmployeesResource"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "description": "Machine-readable API error."
+      },
+      "ErrorEnvelope": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope",
+        "description": "Consistent error response envelope."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "product": {
+            "type": "string",
+            "title": "Product"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "writes_enabled": {
+            "type": "boolean",
+            "title": "Writes Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "product",
+          "version",
+          "writes_enabled"
+        ],
+        "title": "HealthResponse",
+        "description": "API health response."
+      },
+      "JobdistributionsCollection": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/JobdistributionsResource"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "JobdistributionsCollection"
+      },
+      "JobdistributionsCreate": {
+        "properties": {
+          "job_posting_id": {
+            "type": "integer",
+            "title": "Job Posting Id"
+          },
+          "career_site_id": {
+            "type": "integer",
+            "title": "Career Site Id"
+          },
+          "brand_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Id"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "job_posting_id",
+          "career_site_id",
+          "slug"
+        ],
+        "title": "JobdistributionsCreate"
+      },
+      "JobdistributionsResource": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "job_posting_id": {
+            "type": "integer",
+            "title": "Job Posting Id"
+          },
+          "career_site_id": {
+            "type": "integer",
+            "title": "Career Site Id"
+          },
+          "brand_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Id"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_posting_id",
+          "career_site_id",
+          "locale",
+          "slug",
+          "status"
+        ],
+        "title": "JobdistributionsResource"
+      },
+      "JobopeningsCollection": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/JobopeningsResource"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "JobopeningsCollection"
+      },
+      "JobopeningsResource": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "dept_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dept Id"
           },
           "hiring_manager_id": {
             "anyOf": [
@@ -1325,16 +3321,46 @@
             ],
             "title": "Hiring Manager Id"
           },
-          "id": {
+          "headcount": {
+            "type": "integer",
+            "title": "Headcount"
+          },
+          "filled": {
+            "type": "integer",
+            "title": "Filled"
+          },
+          "comp_min": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Id"
+            "title": "Comp Min"
+          },
+          "comp_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comp Max"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
           },
           "location": {
             "anyOf": [
@@ -1347,17 +3373,6 @@
             ],
             "title": "Location"
           },
-          "opened_on": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Opened On"
-          },
           "remote_policy": {
             "anyOf": [
               {
@@ -1368,6 +3383,32 @@
               }
             ],
             "title": "Remote Policy"
+          },
+          "employment_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employment Type"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           },
           "requirements": {
             "anyOf": [
@@ -1391,9 +3432,16 @@
             ],
             "title": "Stages Json"
           },
-          "status": {
-            "title": "Status",
-            "type": "string"
+          "opened_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opened On"
           },
           "target_date": {
             "anyOf": [
@@ -1406,44 +3454,7 @@
             ],
             "title": "Target Date"
           },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          }
-        },
-        "required": [
-          "title",
-          "headcount",
-          "filled",
-          "status"
-        ],
-        "title": "JobopeningsResource",
-        "type": "object"
-      },
-      "LeaverequestsCollection": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/LeaverequestsResource"
-            },
-            "title": "Data",
-            "type": "array"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/PaginationMeta"
-          }
-        },
-        "required": [
-          "data",
-          "meta"
-        ],
-        "title": "LeaverequestsCollection",
-        "type": "object"
-      },
-      "LeaverequestsCreate": {
-        "additionalProperties": false,
-        "properties": {
-          "applied_on": {
+          "created": {
             "anyOf": [
               {
                 "type": "string"
@@ -1452,19 +3463,40 @@
                 "type": "null"
               }
             ],
-            "title": "Applied On"
+            "title": "Created"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "headcount",
+          "filled",
+          "status"
+        ],
+        "title": "JobopeningsResource"
+      },
+      "LeaverequestsCollection": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LeaverequestsResource"
+            },
+            "type": "array",
+            "title": "Data"
           },
-          "days": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Days"
-          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "LeaverequestsCollection"
+      },
+      "LeaverequestsCreate": {
+        "properties": {
           "employee_id": {
             "anyOf": [
               {
@@ -1475,6 +3507,10 @@
               }
             ],
             "title": "Employee Id"
+          },
+          "leave_type": {
+            "type": "string",
+            "title": "Leave Type"
           },
           "from_date": {
             "anyOf": [
@@ -1487,11 +3523,7 @@
             ],
             "title": "From Date"
           },
-          "leave_type": {
-            "title": "Leave Type",
-            "type": "string"
-          },
-          "reason": {
+          "to_date": {
             "anyOf": [
               {
                 "type": "string"
@@ -1500,7 +3532,18 @@
                 "type": "null"
               }
             ],
-            "title": "Reason"
+            "title": "To Date"
+          },
+          "days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days"
           },
           "status": {
             "anyOf": [
@@ -1513,7 +3556,7 @@
             ],
             "title": "Status"
           },
-          "to_date": {
+          "reason": {
             "anyOf": [
               {
                 "type": "string"
@@ -1522,17 +3565,8 @@
                 "type": "null"
               }
             ],
-            "title": "To Date"
-          }
-        },
-        "required": [
-          "leave_type"
-        ],
-        "title": "LeaverequestsCreate",
-        "type": "object"
-      },
-      "LeaverequestsResource": {
-        "properties": {
+            "title": "Reason"
+          },
           "applied_on": {
             "anyOf": [
               {
@@ -1543,17 +3577,27 @@
               }
             ],
             "title": "Applied On"
-          },
-          "days": {
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "leave_type"
+        ],
+        "title": "LeaverequestsCreate"
+      },
+      "LeaverequestsResource": {
+        "properties": {
+          "id": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Days"
+            "title": "Id"
           },
           "employee_id": {
             "anyOf": [
@@ -1566,6 +3610,10 @@
             ],
             "title": "Employee Id"
           },
+          "leave_type": {
+            "type": "string",
+            "title": "Leave Type"
+          },
           "from_date": {
             "anyOf": [
               {
@@ -1577,20 +3625,31 @@
             ],
             "title": "From Date"
           },
-          "id": {
+          "to_date": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Id"
+            "title": "To Date"
           },
-          "leave_type": {
-            "title": "Leave Type",
-            "type": "string"
+          "days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
           },
           "reason": {
             "anyOf": [
@@ -1603,11 +3662,7 @@
             ],
             "title": "Reason"
           },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          },
-          "to_date": {
+          "applied_on": {
             "anyOf": [
               {
                 "type": "string"
@@ -1616,15 +3671,15 @@
                 "type": "null"
               }
             ],
-            "title": "To Date"
+            "title": "Applied On"
           }
         },
+        "type": "object",
         "required": [
           "leave_type",
           "status"
         ],
-        "title": "LeaverequestsResource",
-        "type": "object"
+        "title": "LeaverequestsResource"
       },
       "OrganizationsCollection": {
         "properties": {
@@ -1632,23 +3687,30 @@
             "items": {
               "$ref": "#/components/schemas/OrganizationsResource"
             },
-            "title": "Data",
-            "type": "array"
+            "type": "array",
+            "title": "Data"
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
+        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "OrganizationsCollection",
-        "type": "object"
+        "title": "OrganizationsCollection"
       },
       "OrganizationsCreate": {
-        "additionalProperties": false,
         "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
           "default_locale": {
             "anyOf": [
               {
@@ -1660,25 +3722,6 @@
             ],
             "title": "Default Locale"
           },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "settings_json": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Settings Json"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          },
           "timezone": {
             "anyOf": [
               {
@@ -1689,25 +3732,29 @@
               }
             ],
             "title": "Timezone"
+          },
+          "settings_json": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settings Json"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "name",
           "slug"
         ],
-        "title": "OrganizationsCreate",
-        "type": "object"
+        "title": "OrganizationsCreate"
       },
       "OrganizationsResource": {
         "properties": {
-          "created": {
-            "title": "Created",
-            "type": "string"
-          },
-          "default_locale": {
-            "title": "Default Locale",
-            "type": "string"
-          },
           "id": {
             "anyOf": [
               {
@@ -1720,8 +3767,20 @@
             "title": "Id"
           },
           "name": {
-            "title": "Name",
-            "type": "string"
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "default_locale": {
+            "type": "string",
+            "title": "Default Locale"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
           },
           "settings_json": {
             "anyOf": [
@@ -1734,15 +3793,12 @@
             ],
             "title": "Settings Json"
           },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          },
-          "timezone": {
-            "title": "Timezone",
-            "type": "string"
+          "created": {
+            "type": "string",
+            "title": "Created"
           }
         },
+        "type": "object",
         "required": [
           "name",
           "slug",
@@ -1750,8 +3806,7 @@
           "timezone",
           "created"
         ],
-        "title": "OrganizationsResource",
-        "type": "object"
+        "title": "OrganizationsResource"
       },
       "OrganizationteamsCollection": {
         "properties": {
@@ -1759,23 +3814,41 @@
             "items": {
               "$ref": "#/components/schemas/OrganizationteamsResource"
             },
-            "title": "Data",
-            "type": "array"
+            "type": "array",
+            "title": "Data"
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
+        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "OrganizationteamsCollection",
-        "type": "object"
+        "title": "OrganizationteamsCollection"
       },
       "OrganizationteamsCreate": {
-        "additionalProperties": false,
         "properties": {
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
           "country": {
             "anyOf": [
               {
@@ -1797,25 +3870,6 @@
               }
             ],
             "title": "Department Id"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "organization_id": {
-            "title": "Organization Id",
-            "type": "integer"
-          },
-          "parent_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parent Id"
           },
           "settings_json": {
             "anyOf": [
@@ -1829,37 +3883,16 @@
             "title": "Settings Json"
           }
         },
+        "additionalProperties": false,
+        "type": "object",
         "required": [
           "organization_id",
           "name"
         ],
-        "title": "OrganizationteamsCreate",
-        "type": "object"
+        "title": "OrganizationteamsCreate"
       },
       "OrganizationteamsResource": {
         "properties": {
-          "country": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Country"
-          },
-          "department_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Department Id"
-          },
           "id": {
             "anyOf": [
               {
@@ -1871,13 +3904,9 @@
             ],
             "title": "Id"
           },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
           "organization_id": {
-            "title": "Organization Id",
-            "type": "integer"
+            "type": "integer",
+            "title": "Organization Id"
           },
           "parent_id": {
             "anyOf": [
@@ -1889,6 +3918,32 @@
               }
             ],
             "title": "Parent Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
           },
           "settings_json": {
             "anyOf": [
@@ -1902,36 +3957,36 @@
             "title": "Settings Json"
           }
         },
+        "type": "object",
         "required": [
           "organization_id",
           "name"
         ],
-        "title": "OrganizationteamsResource",
-        "type": "object"
+        "title": "OrganizationteamsResource"
       },
       "PaginationMeta": {
-        "description": "Offset pagination metadata.",
         "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
           "limit": {
-            "title": "Limit",
-            "type": "integer"
+            "type": "integer",
+            "title": "Limit"
           },
           "offset": {
-            "title": "Offset",
-            "type": "integer"
-          },
-          "total": {
-            "title": "Total",
-            "type": "integer"
+            "type": "integer",
+            "title": "Offset"
           }
         },
+        "type": "object",
         "required": [
           "total",
           "limit",
           "offset"
         ],
         "title": "PaginationMeta",
-        "type": "object"
+        "description": "Offset pagination metadata."
       },
       "RecruitmentbrandsCollection": {
         "properties": {
@@ -1939,55 +3994,33 @@
             "items": {
               "$ref": "#/components/schemas/RecruitmentbrandsResource"
             },
-            "title": "Data",
-            "type": "array"
+            "type": "array",
+            "title": "Data"
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
           }
         },
+        "type": "object",
         "required": [
           "data",
           "meta"
         ],
-        "title": "RecruitmentbrandsCollection",
-        "type": "object"
+        "title": "RecruitmentbrandsCollection"
       },
       "RecruitmentbrandsCreate": {
-        "additionalProperties": false,
         "properties": {
-          "accent_color": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Accent Color"
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id"
           },
-          "custom_domain": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Custom Domain"
+          "name": {
+            "type": "string",
+            "title": "Name"
           },
-          "favicon_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Favicon Url"
+          "slug": {
+            "type": "string",
+            "title": "Slug"
           },
           "logo_url": {
             "anyOf": [
@@ -2000,13 +4033,16 @@
             ],
             "title": "Logo Url"
           },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "organization_id": {
-            "title": "Organization Id",
-            "type": "integer"
+          "favicon_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Favicon Url"
           },
           "primary_color": {
             "anyOf": [
@@ -2019,32 +4055,6 @@
             ],
             "title": "Primary Color"
           },
-          "settings_json": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Settings Json"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          }
-        },
-        "required": [
-          "organization_id",
-          "name",
-          "slug"
-        ],
-        "title": "RecruitmentbrandsCreate",
-        "type": "object"
-      },
-      "RecruitmentbrandsResource": {
-        "properties": {
           "accent_color": {
             "anyOf": [
               {
@@ -2055,10 +4065,6 @@
               }
             ],
             "title": "Accent Color"
-          },
-          "created": {
-            "title": "Created",
-            "type": "string"
           },
           "custom_domain": {
             "anyOf": [
@@ -2071,7 +4077,7 @@
             ],
             "title": "Custom Domain"
           },
-          "favicon_url": {
+          "settings_json": {
             "anyOf": [
               {
                 "type": "string"
@@ -2080,8 +4086,20 @@
                 "type": "null"
               }
             ],
-            "title": "Favicon Url"
-          },
+            "title": "Settings Json"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "organization_id",
+          "name",
+          "slug"
+        ],
+        "title": "RecruitmentbrandsCreate"
+      },
+      "RecruitmentbrandsResource": {
+        "properties": {
           "id": {
             "anyOf": [
               {
@@ -2093,6 +4111,18 @@
             ],
             "title": "Id"
           },
+          "organization_id": {
+            "type": "integer",
+            "title": "Organization Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
           "logo_url": {
             "anyOf": [
               {
@@ -2104,13 +4134,16 @@
             ],
             "title": "Logo Url"
           },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "organization_id": {
-            "title": "Organization Id",
-            "type": "integer"
+          "favicon_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Favicon Url"
           },
           "primary_color": {
             "anyOf": [
@@ -2123,6 +4156,28 @@
             ],
             "title": "Primary Color"
           },
+          "accent_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accent Color"
+          },
+          "custom_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Domain"
+          },
           "settings_json": {
             "anyOf": [
               {
@@ -2134,15 +4189,16 @@
             ],
             "title": "Settings Json"
           },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
+          "created": {
+            "type": "string",
+            "title": "Created"
           },
           "updated": {
-            "title": "Updated",
-            "type": "string"
+            "type": "string",
+            "title": "Updated"
           }
         },
+        "type": "object",
         "required": [
           "organization_id",
           "name",
@@ -2150,18 +4206,10 @@
           "created",
           "updated"
         ],
-        "title": "RecruitmentbrandsResource",
-        "type": "object"
+        "title": "RecruitmentbrandsResource"
       },
       "ValidationError": {
         "properties": {
-          "ctx": {
-            "title": "Context",
-            "type": "object"
-          },
-          "input": {
-            "title": "Input"
-          },
           "loc": {
             "items": {
               "anyOf": [
@@ -2173,2077 +4221,40 @@
                 }
               ]
             },
-            "title": "Location",
-            "type": "array"
+            "type": "array",
+            "title": "Location"
           },
           "msg": {
-            "title": "Message",
-            "type": "string"
+            "type": "string",
+            "title": "Message"
           },
           "type": {
-            "title": "Error Type",
-            "type": "string"
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
+        "type": "object",
         "required": [
           "loc",
           "msg",
           "type"
         ],
-        "title": "ValidationError",
-        "type": "object"
+        "title": "ValidationError"
       }
     },
     "securitySchemes": {
       "FastSME API token": {
+        "type": "http",
         "description": "Selected writes require `Authorization: Bearer <token>`. Reads are public. Set FASTSME_API_TOKEN to enable writes.",
-        "scheme": "bearer",
-        "type": "http"
+        "scheme": "bearer"
       }
     }
-  },
-  "info": {
-    "contact": {
-      "name": "FastSME",
-      "url": "https://fastsme.com/"
-    },
-    "description": "Open integration access to FastHRM people, recruiting, and enterprise configuration data.\n\n**Access model:** reads are public. Selected writes are implemented but disabled unless the deployment configures `FASTSME_API_TOKEN`; write clients then send it as a bearer token.",
-    "license": {
-      "name": "MIT"
-    },
-    "title": "FastHRM API",
-    "version": "1.0.0"
-  },
-  "openapi": "3.1.0",
-  "paths": {
-    "/": {
-      "get": {
-        "operationId": "api_index__get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Api Index  Get",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Api Index",
-        "tags": [
-          "System"
-        ]
-      }
-    },
-    "/v1/applications": {
-      "get": {
-        "description": "Candidate applications and pipeline stage.",
-        "operationId": "list_applications",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List applications",
-        "tags": [
-          "Applications"
-        ]
-      },
-      "post": {
-        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
-        "operationId": "create_applications",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApplicationsCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "security": [
-          {
-            "FastSME API token": []
-          }
-        ],
-        "summary": "Create a applications record",
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/{item_id}": {
-      "get": {
-        "operationId": "get_applications",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one applications record",
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/attendance": {
-      "get": {
-        "description": "Daily attendance and recorded hours.",
-        "operationId": "list_attendance",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AttendanceCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List attendance",
-        "tags": [
-          "Attendance"
-        ]
-      }
-    },
-    "/v1/attendance/{item_id}": {
-      "get": {
-        "operationId": "get_attendance",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AttendanceResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one attendance record",
-        "tags": [
-          "Attendance"
-        ]
-      }
-    },
-    "/v1/brands": {
-      "get": {
-        "description": "Brand, domain, and visual identity configuration.",
-        "operationId": "list_brands",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecruitmentbrandsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List recruitment brands",
-        "tags": [
-          "Recruitment brands"
-        ]
-      },
-      "post": {
-        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
-        "operationId": "create_brands",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RecruitmentbrandsCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecruitmentbrandsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "security": [
-          {
-            "FastSME API token": []
-          }
-        ],
-        "summary": "Create a recruitment brands record",
-        "tags": [
-          "Recruitment brands"
-        ]
-      }
-    },
-    "/v1/brands/{item_id}": {
-      "get": {
-        "operationId": "get_brands",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecruitmentbrandsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one recruitment brands record",
-        "tags": [
-          "Recruitment brands"
-        ]
-      }
-    },
-    "/v1/candidates": {
-      "get": {
-        "description": "Candidate profiles, including CV-extracted fields.",
-        "operationId": "list_candidates",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CandidatesCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List candidates",
-        "tags": [
-          "Candidates"
-        ]
-      }
-    },
-    "/v1/candidates/{item_id}": {
-      "get": {
-        "operationId": "get_candidates",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CandidatesResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one candidates record",
-        "tags": [
-          "Candidates"
-        ]
-      }
-    },
-    "/v1/career-sites": {
-      "get": {
-        "description": "Candidate-facing careers sites.",
-        "operationId": "list_career_sites",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CareersitesCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List career sites",
-        "tags": [
-          "Career sites"
-        ]
-      },
-      "post": {
-        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
-        "operationId": "create_career_sites",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CareersitesCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CareersitesResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "security": [
-          {
-            "FastSME API token": []
-          }
-        ],
-        "summary": "Create a career sites record",
-        "tags": [
-          "Career sites"
-        ]
-      }
-    },
-    "/v1/career-sites/{item_id}": {
-      "get": {
-        "operationId": "get_career_sites",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CareersitesResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one career sites record",
-        "tags": [
-          "Career sites"
-        ]
-      }
-    },
-    "/v1/departments": {
-      "get": {
-        "description": "Organisation departments.",
-        "operationId": "list_departments",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DepartmentsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List departments",
-        "tags": [
-          "Departments"
-        ]
-      }
-    },
-    "/v1/departments/{item_id}": {
-      "get": {
-        "operationId": "get_departments",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DepartmentsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one departments record",
-        "tags": [
-          "Departments"
-        ]
-      }
-    },
-    "/v1/employees": {
-      "get": {
-        "description": "Employee master records and employment state.",
-        "operationId": "list_employees",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeesCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List employees",
-        "tags": [
-          "Employees"
-        ]
-      }
-    },
-    "/v1/employees/{item_id}": {
-      "get": {
-        "operationId": "get_employees",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmployeesResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one employees record",
-        "tags": [
-          "Employees"
-        ]
-      }
-    },
-    "/v1/health": {
-      "get": {
-        "operationId": "api_health_v1_health_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Api Health",
-        "tags": [
-          "System"
-        ]
-      }
-    },
-    "/v1/job-distributions": {
-      "get": {
-        "description": "Localized job placements across career sites and brands.",
-        "operationId": "list_job_distributions",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobdistributionsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List job distributions",
-        "tags": [
-          "Job distributions"
-        ]
-      },
-      "post": {
-        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
-        "operationId": "create_job_distributions",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/JobdistributionsCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobdistributionsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "security": [
-          {
-            "FastSME API token": []
-          }
-        ],
-        "summary": "Create a job distributions record",
-        "tags": [
-          "Job distributions"
-        ]
-      }
-    },
-    "/v1/job-distributions/{item_id}": {
-      "get": {
-        "operationId": "get_job_distributions",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobdistributionsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one job distributions record",
-        "tags": [
-          "Job distributions"
-        ]
-      }
-    },
-    "/v1/jobs": {
-      "get": {
-        "description": "Open requisitions and their hiring state.",
-        "operationId": "list_jobs",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobopeningsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List job openings",
-        "tags": [
-          "Job openings"
-        ]
-      }
-    },
-    "/v1/jobs/{item_id}": {
-      "get": {
-        "operationId": "get_jobs",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobopeningsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one job openings record",
-        "tags": [
-          "Job openings"
-        ]
-      }
-    },
-    "/v1/leave": {
-      "get": {
-        "description": "Employee leave requests and approval status.",
-        "operationId": "list_leave",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LeaverequestsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List leave requests",
-        "tags": [
-          "Leave requests"
-        ]
-      },
-      "post": {
-        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
-        "operationId": "create_leave",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LeaverequestsCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LeaverequestsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "security": [
-          {
-            "FastSME API token": []
-          }
-        ],
-        "summary": "Create a leave requests record",
-        "tags": [
-          "Leave requests"
-        ]
-      }
-    },
-    "/v1/leave/{item_id}": {
-      "get": {
-        "operationId": "get_leave",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LeaverequestsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one leave requests record",
-        "tags": [
-          "Leave requests"
-        ]
-      }
-    },
-    "/v1/organization-teams": {
-      "get": {
-        "description": "Country- and department-scoped enterprise recruiting teams.",
-        "operationId": "list_organization_teams",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationteamsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List organization teams",
-        "tags": [
-          "Organization teams"
-        ]
-      },
-      "post": {
-        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
-        "operationId": "create_organization_teams",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrganizationteamsCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationteamsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "security": [
-          {
-            "FastSME API token": []
-          }
-        ],
-        "summary": "Create a organization teams record",
-        "tags": [
-          "Organization teams"
-        ]
-      }
-    },
-    "/v1/organization-teams/{item_id}": {
-      "get": {
-        "operationId": "get_organization_teams",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationteamsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one organization teams record",
-        "tags": [
-          "Organization teams"
-        ]
-      }
-    },
-    "/v1/organizations": {
-      "get": {
-        "description": "Enterprise recruitment organizations and locale defaults.",
-        "operationId": "list_organizations",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Case-insensitive text search",
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Case-insensitive text search",
-              "title": "Q"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationsCollection"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List organizations",
-        "tags": [
-          "Organizations"
-        ]
-      },
-      "post": {
-        "description": "Implemented for token-authenticated integrations. Production writes remain disabled until FASTSME_API_TOKEN is configured.",
-        "operationId": "create_organizations",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OrganizationsCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        },
-        "security": [
-          {
-            "FastSME API token": []
-          }
-        ],
-        "summary": "Create a organizations record",
-        "tags": [
-          "Organizations"
-        ]
-      }
-    },
-    "/v1/organizations/{item_id}": {
-      "get": {
-        "operationId": "get_organizations",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationsResource"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get one organizations record",
-        "tags": [
-          "Organizations"
-        ]
-      }
-    }
-  },
-  "servers": [
-    {
-      "description": "Production",
-      "url": "https://hrm.fastsme.com/api"
-    }
-  ]
+  }
 }

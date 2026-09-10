@@ -182,11 +182,15 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 """
 
 NAV_ITEMS = [
-    ("OVERVIEW", [("dashboard", "Dashboard", "📊", "/"), ("ai", "AI Assistant", "🤖", "/ai")]),
+    ("OVERVIEW", [("dashboard", "Dashboard", "📊", "/"), ("ai", "AI Assistant", "🤖", "/ai"),
+                   ("employee-portal", "Employee portal", "🙋", "/me")]),
     ("PEOPLE", [("employees", "Employees", "👥", "/employees"),
                 ("departments", "Departments", "🏢", "/departments")]),
-    ("TIME", [("leave", "Leave", "🌴", "/leave"), ("attendance", "Attendance", "🕘", "/attendance")]),
-    ("PAY", [("payroll", "Payroll", "💷", "/payroll")]),
+    ("TIME", [("leave", "Leave", "🌴", "/leave"), ("attendance", "Attendance", "🕘", "/attendance"),
+               ("shifts", "Shifts & roster", "🗓", "/shifts"), ("timeclock", "Time clocks", "⏱", "/timeclock")]),
+    ("PAY", [("payroll", "Payroll", "💷", "/payroll"),
+              ("expenses", "Expenses & travel", "🧾", "/expenses"),
+              ("travel", "Travel requests", "✈️", "/travel")]),
     ("TALENT", [("platform", "Recruiting platform", "🧭", "/talent/platform"),
                 ("jobs", "Requisitions", "📌", "/talent/jobs"),
                 ("candidates", "Candidates", "🎯", "/talent/candidates"),
@@ -273,7 +277,7 @@ def right_pane_chat(thread_id):
 
 def page(active, env, user_email, thread_id, *content, right_override=None):
     right = right_override if right_override is not None else right_pane_chat(thread_id)
-    return (Title("FastHRM"),
+    return (Title("FastHR"),
             Link(rel="icon", type="image/svg+xml", href="/static/favicon.svg"),
             Script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"),
             Style(LAYOUT_CSS),

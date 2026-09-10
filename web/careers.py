@@ -12,21 +12,25 @@ from fasthtml.common import (
 import recruitment
 import recruiting_ops
 from web.landing import FAVICON
+from web.design import DESIGN_CSS, FONT_LINKS
 from web.seo import BASE_URL
 from web.views import _pill, _title
 
 CAREERS_CSS = """
 :root{--brand:#0891b2;--accent:#0e7490;--ink:#111827;--muted:#667085;--line:#e5e7eb;--wash:#f8fafc}
-*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:white}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:var(--font-body);background:white}
 .c-nav{max-width:1120px;height:70px;margin:auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
 .c-brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-weight:750;text-decoration:none}.c-logo{width:34px;height:34px;object-fit:contain;border-radius:9px}.c-mark{width:34px;height:34px;border-radius:9px;background:var(--brand);display:grid;place-items:center;color:#fff}
-.c-link{color:var(--accent);text-decoration:none;font-weight:650}.c-hero{background:linear-gradient(145deg,color-mix(in srgb,var(--brand) 12%,white),white 70%);border-bottom:1px solid var(--line)}
+.c-link{color:var(--accent);text-decoration:none;font-weight:650;display:inline-flex;align-items:center;min-height:44px}.c-hero{background:linear-gradient(145deg,color-mix(in srgb,var(--brand) 12%,white),white 70%);border-bottom:1px solid var(--line)}
 .c-hero-in{max-width:1120px;margin:auto;padding:82px 24px 72px}.c-kicker{font-size:12px;color:var(--accent);font-weight:750;letter-spacing:.15em;text-transform:uppercase}.c-hero h1{font-size:clamp(38px,6vw,66px);line-height:1.04;letter-spacing:-.045em;margin:18px 0;max-width:850px}.c-lede{font-size:19px;color:var(--muted);line-height:1.65;max-width:720px}
 .c-main{max-width:1120px;margin:auto;padding:54px 24px 88px}.c-main h2{font-size:30px;letter-spacing:-.025em}.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}.job-card{border:1px solid var(--line);border-radius:18px;padding:24px;text-decoration:none;color:var(--ink);transition:.15s;background:white}.job-card:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 12px 30px rgba(15,23,42,.08)}.job-card h3{font-size:21px;margin:0 0 10px}.meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:13px}.chip{background:var(--wash);border-radius:999px;padding:5px 9px}.summary{color:var(--muted);line-height:1.55;margin:16px 0 0}.empty{padding:40px;border:1px dashed var(--line);border-radius:18px;color:var(--muted);text-align:center}
 .job-head{max-width:900px;margin:auto;padding:64px 24px 28px}.back{display:inline-block;margin-bottom:24px}.job-head h1{font-size:clamp(36px,6vw,60px);letter-spacing:-.045em;line-height:1.05;margin:10px 0 20px}.job-layout{max-width:900px;margin:auto;padding:12px 24px 90px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:34px}.copy h2{font-size:23px;margin:34px 0 10px}.copy p{white-space:pre-line;color:#374151;line-height:1.75}.apply{border:1px solid var(--line);border-radius:18px;padding:22px;align-self:start;position:sticky;top:20px;background:white;box-shadow:0 12px 30px rgba(15,23,42,.06)}.apply h2{margin:0 0 6px}.field{display:grid;gap:6px;margin:13px 0}.field label{font-size:12px;font-weight:700}.field input,.field textarea{width:100%;border:1px solid #cfd5dd;border-radius:10px;padding:10px 11px;font:inherit}.field textarea{min-height:100px;resize:vertical}.check{display:flex;gap:9px;align-items:flex-start;color:var(--muted);font-size:12px;line-height:1.45}.check input{margin-top:3px}.apply button{width:100%;border:0;border-radius:10px;padding:12px;background:var(--brand);color:white;font-weight:750;cursor:pointer}.error{padding:10px;border-radius:9px;background:#fff1f2;color:#9f1239;font-size:13px}.fine{font-size:11px;color:var(--muted);line-height:1.45}.success{max-width:680px;margin:90px auto;padding:40px 24px;text-align:center}.success h1{font-size:42px}.success p{color:var(--muted);line-height:1.65}.c-footer{border-top:1px solid var(--line);padding:30px 24px;text-align:center;color:var(--muted);font-size:12px}
 .preview{background:#fff7ed;color:#9a3412;text-align:center;padding:8px;font-size:12px;font-weight:700}
 @media(max-width:760px){.jobs{grid-template-columns:1fr}.job-layout{grid-template-columns:1fr}.apply{position:static}.c-hero-in{padding-top:58px}.c-nav{height:62px}}
+@media(pointer:coarse){.c-brand{min-height:44px}}
 """
+
+LEGAL_LINE = "Powered by Predictive Labs Ltd · Predictive Labs Ltd · Company House Reg No: 14857334 · 155 Minories Street, Suite 275, London, EC3N 1AD, United Kingdom"
 
 
 def _site_head(site: dict, title: str, description: str, *, path: str,
@@ -40,9 +44,8 @@ def _site_head(site: dict, title: str, description: str, *, path: str,
         Link(rel="icon", href=site.get("favicon_url") or FAVICON),
         Meta(property="og:type", content="website"), Meta(property="og:title", content=title),
         Meta(property="og:description", content=description), Meta(property="og:url", content=canonical),
-        Link(rel="preconnect", href="https://fonts.googleapis.com"),
-        Link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;750&display=swap"),
-        Style(f":root{{--brand:{site['brand_color']};--accent:{site['accent_color']}}}" + CAREERS_CSS),
+        *FONT_LINKS,
+        Style(f":root{{--brand:{site['brand_color']};--accent:{site['accent_color']}}}" + DESIGN_CSS + CAREERS_CSS),
         Script(NotStr(json.dumps(structured).replace("<", "\\u003c")),
                type="application/ld+json") if structured else None,
     )
@@ -55,6 +58,7 @@ def _brand(site: dict, href: str = "/careers"):
 
 def careers_page(site: dict, jobs: list[dict], *, careers_path: str = "/careers",
                  job_prefix: str = "/jobs"):
+    site = {**site, "name": (site.get("name") or "").replace("FastHRM", "FastHR")}
     title = f"Careers · {site['name']}"
     description = site.get("introduction") or "Explore our open roles."
     cards = [
@@ -71,14 +75,18 @@ def careers_page(site: dict, jobs: list[dict], *, careers_path: str = "/careers"
                   "name": title, "url": BASE_URL + careers_path, "description": description}
     return Html(
         _site_head(site, title, description, path=careers_path, structured=structured),
-        Body(Nav(_brand(site, careers_path), A("FastHRM", href="/", cls="c-link"), cls="c-nav"),
+        Body(A("Skip to content", href="#main-content", cls="fs-skip"),
+             Nav(_brand(site, careers_path), A("FastHR", href="/", cls="c-link"), cls="c-nav"),
              Main(Section(Div(Span("Join the team", cls="c-kicker"),
                                   H1(site.get("headline") or "Do work that matters."),
                                   P(description, cls="c-lede"), cls="c-hero-in"), cls="c-hero"),
                   Section(H2("Open roles"), Div(*cards, cls="jobs") if cards else
                           Div("There are no open roles right now. Please check back soon.", cls="empty"),
-                          cls="c-main")),
-             Footer(f"Recruitment managed with {site['name']}", cls="c-footer"))
+                          cls="c-main"), id="main-content"),
+             Footer(f"Recruitment managed with {site['name']}",
+                    P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
+                    cls="c-footer")),
+        lang="en",
     )
 
 
@@ -86,7 +94,7 @@ def job_page(job: dict, *, error: str = "", values: dict | None = None, preview:
              careers_path: str = "/careers", job_path: str | None = None,
              apply_path: str | None = None):
     values = values or {}
-    site = {"name": job.get("career_site_name") or "FastHRM Careers",
+    site = {"name": job.get("career_site_name") or "FastHR Careers",
             "brand_color": job.get("brand_color") or "#0891b2",
             "accent_color": job.get("accent_color") or "#0e7490",
             "logo_url": job.get("logo_url") or "",
@@ -164,12 +172,14 @@ document.querySelectorAll('.custom-field[data-condition-field]').forEach(w=>{let
                                    Button("Submit application", type="submit"),
                                    method="post", action=apply_path, enctype="multipart/form-data"),
                               cls="apply"), cls="job-layout")),
-             Footer(f"Recruitment managed with {site['name']}", cls="c-footer"), conditional_script)
+             Footer(f"Recruitment managed with {site['name']}",
+                    P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
+                    cls="c-footer"), conditional_script)
     )
 
 
 def application_success(job: dict, *, careers_path: str = "/careers"):
-    site = {"name": job.get("career_site_name") or "FastHRM Careers",
+    site = {"name": job.get("career_site_name") or "FastHR Careers",
             "brand_color": job.get("brand_color") or "#0891b2",
             "accent_color": job.get("accent_color") or "#0e7490",
             "logo_url": job.get("logo_url") or "",
@@ -179,7 +189,9 @@ def application_success(job: dict, *, careers_path: str = "/careers"):
                      Main(Section(H1("Application received."),
                                   P(f"Thank you for applying for {job['public_title']}. The hiring team now has your application and CV."),
                                   A("View other open roles", href=careers_path, cls="c-link"), cls="success")),
-                     Footer(f"Recruitment managed with {site['name']}", cls="c-footer")))
+                     Footer(f"Recruitment managed with {site['name']}",
+                            P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
+                            cls="c-footer")))
 
 
 def privacy_page(site: dict):
@@ -190,7 +202,10 @@ def privacy_page(site: dict):
                                   P("We use the information you provide to assess your application, communicate with you, and manage the recruitment process."),
                                   P("Application consent is recorded for 12 months. Contact the hiring organisation to request access, correction, withdrawal, or deletion of your candidate information."),
                                   P("This default notice should be replaced with the organisation’s approved privacy policy before production use."),
-                                  cls="job-head")), Footer(site["name"], cls="c-footer")))
+                                  cls="job-head")),
+                     Footer(site["name"],
+                            P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
+                            cls="c-footer")))
 
 
 def editor(job_id: int | None = None, *, saved: str = "", error: str = ""):

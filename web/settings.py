@@ -74,7 +74,7 @@ def integrations_page(saved: str = ""):
                      "color:var(--accent-hover);") if saved else None
     return (
         _title("Integrations",
-               "Connect FastHRM to the job boards, calendars and tools you already use."),
+               "Connect FastHR to the job boards, calendars and tools you already use."),
         banner,
         Div(kpi_card("Connected", k["connected"], f"of {k['total']} available"),
             kpi_card("Needs attention", k["error"], "failed connection test",
