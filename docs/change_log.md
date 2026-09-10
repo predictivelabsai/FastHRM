@@ -2,6 +2,21 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Workforce planning
+
+### Added
+
+- Shipped budgeted positions, workforce scenarios, and approval-led headcount planning with bilingual staff views and KPI summaries.
+
+### Data and verification
+
+- Added additive migration `0015_workforce.sql`; no new configuration or dependencies.
+- Updated the public feature catalogue and roadmap. Verified with the full pytest suite.
+
+### Roadmap
+
+- Marked Workforce planning complete.
+
 ## 2026-09-10 — Learning and development
 
 ### Added
