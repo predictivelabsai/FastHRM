@@ -21,7 +21,7 @@ FAVICON = "data:image/svg+xml," + quote(
 FEATURE_CATALOG = (
     ("Core HR", "Employee records, departments, reporting lines and organisation data.", "/employees", True),
     ("Leave & attendance", "Leave balances, requests, approvals and daily attendance reporting.", "/leave", True),
-    ("Palgalehed ja palgapäevad", "Pay runs and payslips with itemised line details.", "/payroll", True),
+    ("Palgalehed ja palgapäevad", "Pay runs, payslips, and automatic holiday and incapacity pay with itemised line details.", "/payroll", True),
     ("Recruiting ATS", "Requisitions, candidates, pipelines, scorecards, approvals and offers.", "/talent/jobs", True),
     ("Careers publishing", "Branded careers pages and individual, search-ready job specification pages.", None, True),
     ("Candidate CRM", "Talent pools, saved views, profiles, tags, tasks, search and bulk workflows.", "/talent/platform?section=operations", True),
@@ -40,7 +40,7 @@ FEATURE_CATALOG = (
     ("Learning & development", "Learning plans, course tracking, certifications and skills development.", None, False),
     ("Workforce planning", "Budgeted positions, scenarios and approval-led headcount planning.", None, False),
     ("Employee self-service", "A dedicated employee portal for pay, leave, time, goals and onboarding.", "/me", True),
-    ("Eesti seadusjärgne palk (TÖR, TSD)", "TÖR-i ja TSD ekspordid on kasutatavad koos palgapäevade ja palgalehtedega.", "/payroll", True),
+    ("Eesti seadusjärgne palk (TÖR, TSD)", "TÖR-i ja TSD ekspordid ning puhkuse- ja töövõimetustasu arvestus on kasutatavad koos palgapäevade ja palgalehtedega.", "/payroll", True),
     ("Live provider integrations", "Production adapters for HRIS, calendars, job boards and communications.", None, False),
     ("Granular RBAC & security", "Tenant-scoped authorization, enforced record visibility, 2FA and audit exports.", None, False),
 )

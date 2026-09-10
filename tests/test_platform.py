@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import calendar
 
 import pytest
 
@@ -40,6 +41,54 @@ def test_tsd_export_maps_tax_and_social_tax_lines(fresh_db):
     assert count == 1 and period == "2026-05"
     assert "Tulumaks" in payload and "Sotsiaalmaks" in payload
     assert ";2200.00;" in payload and ";3300.00;" in payload
+
+
+def _pay_history(db, eid, values):
+    with db.cursor() as conn:
+        for period, gross in values.items():
+            conn.execute("""INSERT INTO payslips(employee_id,period,gross,gross_pay,net,status)
+                            VALUES(?,?,?,?,?,'Paid')""", (eid, period, gross, gross, gross))
+
+
+def test_holiday_pay_uses_six_month_calendar_day_average(fresh_db):
+    eid = _statutory_employee(fresh_db)
+    _pay_history(fresh_db, eid, {"2025-11": 3000, "2025-12": 3100, "2026-01": 3200,
+                                "2026-02": 3300, "2026-03": 3400, "2026-04": 3500})
+    amount, days = fresh_db.holiday_pay(eid, "2026-05-10", "2026-05-14", "2026-05")
+    calendar_days = sum(calendar.monthrange(*map(int, p.split("-")))[1]
+                        for p in ("2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04"))
+    assert days == 5
+    assert amount == round(sum((3000, 3100, 3200, 3300, 3400, 3500)) / calendar_days * 5, 2)
+
+
+def test_incapacity_pay_is_70_percent_for_days_four_to_eight(fresh_db):
+    eid = _statutory_employee(fresh_db)
+    _pay_history(fresh_db, eid, {"2025-11": 3000, "2025-12": 3000, "2026-01": 3000,
+                                "2026-02": 3000, "2026-03": 3000, "2026-04": 3000})
+    amount, days = fresh_db.incapacity_pay(eid, "2026-05-01", "2026-05-10")
+    assert days == 5
+    assert amount == round((3000 * 6) / (30 + 31 + 31 + 28 + 31 + 30) * 5 * 0.70, 2)
+
+
+def test_pay_run_adds_benefits_once_and_keeps_tsd_gross(fresh_db):
+    from web import statutory
+
+    eid = _statutory_employee(fresh_db)
+    _pay_history(fresh_db, eid, {"2025-11": 3000, "2025-12": 3000, "2026-01": 3000,
+                                "2026-02": 3000, "2026-03": 3000, "2026-04": 3000})
+    with fresh_db.cursor() as conn:
+        conn.execute("""INSERT INTO leave_requests(employee_id,leave_type,from_date,to_date,days,status)
+                        VALUES(?,?,?,?,?,'Approved')""", (eid, "Annual Leave", "2026-05-10", "2026-05-14", 5))
+        conn.execute("""INSERT INTO leave_requests(employee_id,leave_type,from_date,to_date,days,status)
+                        VALUES(?,?,?,?,?,'Approved')""", (eid, "Sick Leave", "2026-05-20", "2026-05-29", 10))
+    rid = fresh_db.create_pay_run("2026-05", [eid])
+    fresh_db.create_pay_run("2026-05", [eid])
+    slip = fresh_db.one("SELECT * FROM payslips WHERE run_id=?", (rid,))
+    lines = fresh_db.payslip_lines(slip["id"])
+    assert sum("Holiday pay" in line["label"] for line in lines) == 1
+    assert sum("Incapacity pay" in line["label"] for line in lines) == 1
+    payload, _, _ = statutory.build_tsd(rid)
+    assert f";{slip['gross']:.2f};" in payload
 
 
 def test_statutory_export_history_and_route_auth(fresh_db):

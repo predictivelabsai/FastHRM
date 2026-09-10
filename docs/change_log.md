@@ -2,6 +2,13 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Holiday and incapacity pay
+
+### Added
+
+- Shipped automatic Estonian holiday pay and employer incapacity pay in pay-run preparation, with calendar-day averaging, bilingual payslip lines, and idempotent refreshes.
+- Added migration `0011_holiday_incapacity_pay.sql`; holiday pay flows into gross taxable pay and TSD exports.
+
 ## 2026-09-10 — Pay, time, expenses, and employee self-service
 
 ### Added

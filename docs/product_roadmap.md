@@ -8,7 +8,7 @@
 - [x] Phase 2 HR operations: payslips and pay runs shipped (2026-09-10).
 - [x] Phase 3 workforce operations: shift scheduling / rostering, time clock / check-in/out, and auto-attendance shipped (2026-09-10).
 - [x] Phase 4 employee services: expenses and reimbursements, travel requests, and the employee self-service portal shipped (2026-09-10).
-- [x] TÖR and TSD statutory CSV exports shipped; holiday/incapacity pay remains open (2026-09-10).
+- [x] TÖR and TSD statutory CSV exports shipped; holiday and incapacity pay calculations shipped (2026-09-10).
 - [x] Comparison rework PRs #3, #4 and #5 shipped: landing comparison toggle, pricing copy sweep, and removal of source links (2026-09-10).
 
 - [x] Refined landing pricing copy, comparison product-name typography, and canonical five-question FAQ wording in Estonian and English; synchronized the `/compare` FAQ (2026-09-10).
