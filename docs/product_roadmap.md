@@ -3,6 +3,7 @@
 **Baseline date:** 2026-08-08  
 **Comparison source:** [Teamdash pricing and feature matrix](https://www.teamdash.com/pricing/), reviewed 2026-08-08.
 
+- [x] Public-site mobile fixes: non-clipped two-row top navigation with a working ET/EN switcher, stacked per-product comparison cards replacing the overflowing table, a properly styled Estonia/Global toggle, a height-capped dashboard showcase, and a centred FastSME suite banner (`web/design/system.py`, `web/landing.py`) (2026-09-10).
 - [x] Mobile experience for the authenticated app: responsive collapse of the three-pane workspace to a single column, off-canvas drawer navigation with a hamburger and backdrop, slide-in AI assistant overlay, horizontally scrolling data tables, stacked content grids, and coarse-pointer touch targets (CSS/markup in `web/layout.py`) (2026-09-10).
 - [x] Workforce planning: budgeted positions, scenarios, approval workflow, and headcount KPIs (migration `0015_workforce.sql`) (2026-09-10).
 - [x] Learning & development: course catalogue, employee learning plans, progress tracking, certifications, and expiry visibility (migration `0014_learning.sql`) (2026-09-10).

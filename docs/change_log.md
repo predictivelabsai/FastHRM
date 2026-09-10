@@ -2,6 +2,24 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Mobile fixes for the public site
+
+### Changed
+
+- Fixed the public top navigation on phones: the brand and hamburger sit on the first row and the language switch (ET/EN) and sign-in drop to a full-width second row, so the language switcher is no longer clipped and unusable.
+- Replaced the horizontally-overflowing competitor comparison table with stacked per-product cards below 640px (one card per product, a ✓/◐/✕ row per feature, FastHR highlighted), and wired the previously dead mobile-card markup into the shared table builder so it works on both the landing and `/compare` pages.
+- Styled the landing Estonia/Global comparison toggle as a proper full-width segmented control (its colours and active state had been defined only in the public-page stylesheet, which the landing page does not load, so it had rendered as default browser buttons).
+- Capped the landing dashboard showcase height on mobile and hid its illegible mini-sidebar so it reads as a preview instead of a tall dead block, and centred the FastSME suite banner label and product logos together.
+
+### Data and verification
+
+- CSS/markup only, scoped to `web/design/system.py` (shared nav) and `web/landing.py` (comparison builder, landing and public-page styles); no schema, dependency, or API changes.
+- Verified with headless Chromium at 360/390px across the landing, `/compare`, and `/features` pages (zero horizontal overflow); confirmed the ET→EN language switch navigates and the mobile menu opens.
+
+### Roadmap
+
+- Added the public-site mobile fixes as complete.
+
 ## 2026-09-10 — Mobile experience for the authenticated app
 
 ### Changed
