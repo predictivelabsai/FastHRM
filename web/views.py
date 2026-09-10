@@ -4,10 +4,11 @@ from __future__ import annotations
 from datetime import timedelta
 
 from fasthtml.common import (
-    Div, H1, H3, P, Span, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, Button, Select, Option, Label, NotStr, Strong,
+    Div, H1, H3, P, Span, Small, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, Button, Select, Option, Label, NotStr, Strong,
 )
 
 import db
+from web.i18n import t
 from web.layout import kpi_card, money
 
 ATT_CLASS = {"Present": "att-present", "Work From Home": "att-wfh", "On Leave": "att-leave",
@@ -358,17 +359,17 @@ def payroll_list(period="latest"):
             Div(tbl, cls="card"), Div(_pay_run_form(), id="new-pay-run"))
 
 
-def pay_run_detail(rid):
+def pay_run_detail(rid, saved=False):
     run = db.pay_run(rid)
     if not run:
         return _title("Pay run not found"), P("No such pay run.")
     tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Gross", cls="num"),
                          Th("Net", cls="num"), Th("Status"), Th(""))),
                 Tbody(*[Tr(Td(Div(f"{p['first_name']} {p['last_name']}"),
-                              *[Small(f"{line['label']}: {money(line['amount'])} · {line['base']}",
+                              *[Small(f"{line['kind']} · {line['label']}: {money(line['amount'])} · {line['base']}",
                                       style="display:block;color:var(--text-mute);font-size:11px;")
                                  for line in db.payslip_lines(p["id"])
-                                 if "Holiday pay" in line["label"] or "Incapacity pay" in line["label"]]),
+                                 ]),
                            Td(p["dept"] or "—"),
                            Td(money(p["gross"]), cls="num"), Td(Strong(money(p["net"])), cls="num"),
                            Td(_pill(p["status"])), Td(A("Payslip", href=f"/payroll/{p['id']}", cls="btn sm")))
@@ -376,6 +377,17 @@ def pay_run_detail(rid):
     next_status = db.PAY_RUN_TRANSITIONS.get(run["status"])
     advance = (Form(Button(f"Move to {next_status}", type="submit", cls="btn primary"),
                      method="post", action=f"/payroll/runs/{rid}/advance") if next_status else None)
+    reprepare = (Form(Button("Re-prepare", type="submit", cls="btn"),
+                      method="post", action=f"/payroll/runs/{rid}/reprepare")
+                 if run["status"] == "Draft" else None)
+    employer_cost_total = round(sum(float(line["amount"] or 0)
+                                    for p in run["payslips"]
+                                    for line in db.payslip_lines(p["id"])
+                                    if (line["base"] or "").startswith("Employer cost")), 2)
+    totals = Div(kpi_card("Gross total", money(sum(p["gross"] for p in run["payslips"]))),
+                 kpi_card("Net total", money(sum(p["net"] for p in run["payslips"]))),
+                 kpi_card("Employer costs", money(employer_cost_total)),
+                 kpi_card("Employees", str(len(run["payslips"]))), cls="kpi-grid")
     offsets = db.rows("""SELECT a.id, a.reason, COALESCE(a.approved_amount,a.requested_amount) amount,
                                 e.first_name||' '||e.last_name employee
                          FROM employee_advances a JOIN employees e ON e.id=a.employee_id
@@ -390,11 +402,16 @@ def pay_run_detail(rid):
                                        Td(Form(Button("Offset", type="submit", cls="btn sm primary"), method="post",
                                                action=f"/payroll/runs/{rid}/offset?advance_id={a['id']}"))) for a in offsets]
                                   or [Tr(Td("No approved advances are ready to offset.", colspan="4"))]), cls="tbl"), cls="card")
+    actions = [A("← Pay runs", href="/payroll", cls="btn"),
+               A("TÖR eksport", href=f"/payroll/runs/{rid}/export/tor", cls="btn"),
+               A("TSD eksport", href=f"/payroll/runs/{rid}/export/tsd", cls="btn")]
+    if reprepare:
+        actions.append(reprepare)
     return (_title(f"Pay run · {run['period']}",
                    f"{len(run['payslips'])} employees · {money(sum(p['net'] for p in run['payslips']))} net",
-                   A("← Pay runs", href="/payroll", cls="btn"),
-                   A("TÖR eksport", href=f"/payroll/runs/{rid}/export/tor", cls="btn"),
-                   A("TSD eksport", href=f"/payroll/runs/{rid}/export/tsd", cls="btn"), advance),
+                   *actions, advance),
+            P("Pay run re-prepared and saved.", cls="flag") if saved else None,
+            totals,
             Div(Div(H3("Payslips"), _pill(run["status"]), cls="card-header"), tbl, cls="card"),
             offset_card)
 
@@ -418,12 +435,21 @@ def payslip_detail(pid):
     lines = db.payslip_lines(pid)
     if lines:
         earnings = [line for line in lines if line["kind"] == "Earning"]
-        deductions = [line for line in lines if line["kind"] == "Deduction"]
+        employer_costs = [line for line in lines
+                          if line["kind"] == "Deduction"
+                          and (line["base"] or "").startswith("Employer cost")]
+        deductions = [line for line in lines
+                      if line["kind"] == "Deduction" and line not in employer_costs]
         line_rows = [Tr(Td(Strong("Earnings")), Td(""))]
         line_rows += [Tr(Td(line["label"]), Td(money(line["amount"]), cls="num")) for line in earnings]
         line_rows += [Tr(Td(Strong("Deductions")), Td(""))]
         line_rows += [Tr(Td(line["label"]), Td("− " + money(line["amount"]), cls="num",
                                              style="color:var(--danger);")) for line in deductions]
+        if employer_costs:
+            line_rows += [Tr(Td(Strong(f"{t('et')['payroll_employer_costs']} / "
+                                      f"{t('en')['payroll_employer_costs']}")), Td(""))]
+            line_rows += [Tr(Td(line["label"]), Td(money(line["amount"]), cls="num"))
+                          for line in employer_costs]
         line_rows += [Tr(Td(Strong("Net pay")), Td(Strong(money(p["net"])), cls="num"))]
     else:
         legacy = [("Gross pay", p["gross"], False), ("Income tax", p["tax"], True),

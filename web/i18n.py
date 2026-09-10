@@ -202,7 +202,8 @@ COPY = {
         "feat_pg_note": "Majuta ise tasuta või lase meil majutada 1 € kuus inimese kohta. "
                         "„Tulekul“ tähistab valmimist, mitte tulevast tasulist paketti.",
         "feat_payroll_workflow_name": "Palgalehed ja palgapäevad",
-        "feat_payroll_workflow_desc": "Palgapäevad ja töötajate palgalehed koos rea-põhise jaotusega.",
+        "feat_payroll_workflow_desc": "Täielikult ridade kaupa ettevalmistatud palgapäevad ja palgalehed koos tööandja kulude ning uuesti ettevalmistamisega.",
+        "payroll_employer_costs": "Tööandja kulud",
         "feat_payroll_statutory_name": "Eesti seadusjärgne palk (TÖR, TSD)",
         "feat_payroll_statutory_desc": "TÖR-i ja TSD ekspordid ning puhkuse- ja töövõimetustasu arvestus on kasutusel.",
         "benefits_name": "Soodustused",
@@ -477,7 +478,8 @@ COPY = {
         "feat_pg_note": "Self-host for free, or host with us for €1 per person per month. "
                         "“Coming soon” describes delivery status only, not a future paid plan.",
         "feat_payroll_workflow_name": "Payslips and pay runs",
-        "feat_payroll_workflow_desc": "Pay runs and employee payslips with line-item breakdowns.",
+        "feat_payroll_workflow_desc": "Fully itemised pay-run preparation and employee payslips, including employer costs and re-preparation.",
+        "payroll_employer_costs": "Employer costs",
         "feat_payroll_statutory_name": "Estonian statutory payroll (TÖR, TSD)",
         "feat_payroll_statutory_desc": "TÖR and TSD exports are available. Holiday pay and incapacity pay calculations are available.",
         "benefits_name": "Benefits",

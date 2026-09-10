@@ -105,6 +105,13 @@ def dashboard(employee):
 def pay_page(employee):
     slips = db.payslips_for(employee["id"])
     body = Table(Tr(Th("Period"), Th("Status"), Th("Net"), Th("")), *[Tr(Td(p["period"]), Td(_status(p["status"])), Td(f"{p['net']:,.2f} EUR"), Td(A("View", href=f"/me/pay/{p['id']}", cls="me-btn"))) for p in slips] or [Tr(Td("No payslips yet.", colspan="4"))], cls="me-table")
+    latest = slips[0] if slips else None
+    latest_lines = Table(Tr(Th("Item / Rida"), Th("Amount")),
+                         *[Tr(Td(f"{line['kind']} · {line['label']}"),
+                              Td(f"{line['amount']:,.2f} EUR"))
+                           for line in db.payslip_lines(latest["id"])]
+                         if latest else [Tr(Td("No payslip lines yet. / Palgalehe ridu veel pole.", colspan="2"))],
+                         cls="me-table")
     active = [row for row in benefits.active_enrolments(db.TODAY)
               if row["employee_id"] == employee["id"]]
     benefit_body = Table(Tr(Th("Soodustus / Benefit"), Th("Tööandja kulu / Employer contribution")),
@@ -113,6 +120,7 @@ def pay_page(employee):
                          cls="me-table")
     return _shell("pay", employee, Div(H1("My pay"), P("Payslips and pay history", cls="me-muted"), cls="me-title"),
                   _card("Payslips", body, "me-full"),
+                  _card("Latest payslip breakdown / Viimase palgalehe jaotus", latest_lines, "me-full"),
                   _card("Minu soodustused / My benefits", benefit_body, "me-full"))
 
 
