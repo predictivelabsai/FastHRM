@@ -179,6 +179,77 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .pipeline-card:active{cursor:grabbing}.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
 .note{border-left:3px solid var(--accent);padding:7px 10px;background:var(--surface-2);border-radius:0 7px 7px 0;}
 .slot{display:inline-flex;margin:5px}.public-card,.campaign-public{max-width:760px;margin:60px auto;padding:32px;border:1px solid var(--border);border-radius:16px;background:var(--surface);}
+
+/* --- mobile nav trigger + backdrop (hidden on desktop) --- */
+.nav-toggle{display:none;align-items:center;justify-content:center;width:38px;height:38px;flex:0 0 38px;
+  margin-right:6px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text-dim);
+  cursor:pointer;padding:0;font-size:18px;line-height:1;}
+.nav-toggle:hover{border-color:var(--accent);color:var(--accent-hover);}
+.topbar-left{display:flex;align-items:center;gap:2px;min-width:0;}
+#app-backdrop{display:none;position:fixed;inset:52px 0 0 0;background:rgba(11,29,23,.42);z-index:70;border:0;margin:0;padding:0;width:100%;cursor:pointer;}
+
+/* ======================= RESPONSIVE / MOBILE ======================= */
+@media (max-width:900px){
+  .app{grid-template-columns:1fr;grid-template-rows:52px 1fr;grid-template-areas:"top" "center";height:100vh;height:100dvh;}
+  .nav-toggle{display:inline-flex;}
+  /* left nav -> off-canvas drawer */
+  .left-pane{position:fixed;top:52px;left:0;bottom:0;width:min(286px,84vw);z-index:80;
+    transform:translateX(-100%);transition:transform .22s ease;box-shadow:0 12px 40px rgba(11,29,23,.28);
+    will-change:transform;}
+  .app.nav-open .left-pane{transform:translateX(0);}
+  /* right AI rail -> slide-in overlay, hidden until opened */
+  .right-pane{position:fixed;top:52px;right:0;bottom:0;width:min(440px,94vw);z-index:80;display:flex;
+    transform:translateX(100%);transition:transform .22s ease;box-shadow:0 12px 40px rgba(11,29,23,.28);
+    border-left:1px solid var(--border);will-change:transform;}
+  .app.chat-open .right-pane{transform:translateX(0);}
+  .app.right-collapsed .right-pane,.app.right-expanded .right-pane{display:flex;}
+  .app.nav-open #app-backdrop,.app.chat-open #app-backdrop{display:block;}
+  #copilot-reopen{display:none!important;}
+  .app.right-collapsed #copilot-reopen{display:none!important;}
+  /* topbar tightening */
+  .topbar{padding:0 12px;gap:8px;}
+  .topbar .actions{gap:6px;}
+  .topbar .actions>span{display:none;}
+  .topbar .ver-pill{display:none;}
+  .brand{font-size:15px;gap:6px;}
+  /* center pane full width, comfortable padding */
+  .center-pane{padding:16px 14px;}
+  .page-title{flex-wrap:wrap;gap:8px;}
+  .page-title h1{font-size:20px;}
+  /* content grids collapse */
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .grid-2,.detail-grid{grid-template-columns:1fr;}
+  .bal-grid{grid-template-columns:repeat(2,1fr);}
+  .goal-row{grid-template-columns:1fr;row-gap:4px;padding:11px 0;}
+  .funnel-row{grid-template-columns:96px 1fr 38px;}
+  .kv{grid-template-columns:104px 1fr;}
+  .stage-bar{flex-wrap:wrap;gap:6px;}
+  .stage-seg{flex:1 1 44%;}
+  /* wide tables scroll horizontally instead of overflowing the page */
+  .center-pane .card>table.tbl,.center-pane>table.tbl,.center-pane table.tbl{display:block;width:100%;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}
+  /* toolbars / search wrap and fill */
+  .toolbar{gap:8px;}
+  .toolbar input[type=search],.hr-inp{min-width:0;width:100%;}
+  .inline-form{flex-wrap:wrap;}
+  /* admin login card */
+  .login-card{width:min(360px,92vw);padding:28px 22px;}
+  /* AI rail message width can grow on the overlay */
+  .msg{max-width:94%;}
+}
+@media (max-width:480px){
+  .kpi-grid{grid-template-columns:1fr;}
+  .bal-grid{grid-template-columns:1fr;}
+  .center-pane{padding:14px 12px;}
+  .card{padding:14px;}
+  .stage-seg{flex:1 1 100%;}
+}
+/* larger, finger-friendly hit areas on touch devices */
+@media (pointer:coarse){
+  .btn,.seg a,.chat-send-btn,.chat-input-row input{min-height:40px;}
+  .btn.sm{min-height:34px;}
+  .nav-item{padding-top:11px;padding-bottom:11px;}
+  .nav-section-toggle{padding-top:12px;padding-bottom:8px;}
+}
 """
 
 NAV_ITEMS = [
@@ -226,9 +297,14 @@ def topbar(env, user_email):
         A(version.label(), href="/about", cls="ver-pill", title=version.detail()) if user_email else None,
         Span(user_email or "", style="color:var(--text-mute);font-size:12px;") if user_email else None,
         A("Logout", href="/logout", cls="btn") if user_email else None, cls="actions")
-    return Div(Div(Span(cls="brand-dot"), Span("Fast", style="font-weight:800;"),
-                   Span("HRM", style="color:var(--accent);font-weight:700;letter-spacing:.5px;"), cls="brand"),
-               right, cls="topbar")
+    brand = Div(Span(cls="brand-dot"), Span("Fast", style="font-weight:800;"),
+                Span("HRM", style="color:var(--accent);font-weight:700;letter-spacing:.5px;"), cls="brand")
+    left = Div(
+        Button(NotStr("&#9776;"), type="button", id="nav-toggle", cls="nav-toggle",
+               aria_label="Open navigation menu", aria_expanded="false",
+               onclick="toggleNav()") if user_email else None,
+        brand, cls="topbar-left")
+    return Div(left, right, cls="topbar")
 
 
 def left_pane(active):
@@ -285,6 +361,7 @@ def page(active, env, user_email, thread_id, *content, right_override=None):
             Script(src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"),
             Style(LAYOUT_CSS),
             Div(topbar(env, user_email), left_pane(active), Div(*content, cls="center-pane"), right,
+                Button(type="button", id="app-backdrop", aria_hidden="true", tabindex="-1", onclick="closeOverlays()"),
                 Div(NotStr("&lsaquo; AI Assistant"), id="copilot-reopen", onclick="toggleCopilot()"), cls="app"),
             Script(LAYOUT_JS))
 
@@ -305,9 +382,20 @@ function _sync(){var app=document.querySelector('.app');if(!app)return;
   var ex=app.classList.contains('right-expanded'),col=app.classList.contains('right-collapsed');
   var eb=document.getElementById('copilot-exp-btn');if(eb){eb.innerHTML=ex?'\\u00BB':'\\u00AB';}
   var tb=document.getElementById('copilot-topbar-toggle');if(tb){tb.innerHTML=col?'\\u00AB Chat':'Chat \\u203A';}}
-function toggleCopilot(){var app=document.querySelector('.app');if(!app)return;app.classList.toggle('right-collapsed');
+function isMobileNav(){return window.matchMedia('(max-width:900px)').matches;}
+function closeOverlays(){var app=document.querySelector('.app');if(!app)return;
+  app.classList.remove('nav-open','chat-open');
+  var nt=document.getElementById('nav-toggle');if(nt)nt.setAttribute('aria-expanded','false');}
+function toggleNav(){var app=document.querySelector('.app');if(!app)return;
+  var open=app.classList.toggle('nav-open');app.classList.remove('chat-open');
+  var nt=document.getElementById('nav-toggle');if(nt)nt.setAttribute('aria-expanded',open?'true':'false');}
+function toggleCopilot(){var app=document.querySelector('.app');if(!app)return;
+  if(isMobileNav()){app.classList.remove('nav-open');app.classList.toggle('chat-open');_sync();return;}
+  app.classList.toggle('right-collapsed');
   if(app.classList.contains('right-collapsed'))app.classList.remove('right-expanded');
   try{localStorage.setItem('hrCollapsed',app.classList.contains('right-collapsed')?'1':'0');}catch(e){}_sync();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOverlays();});
+window.addEventListener('resize',function(){if(!isMobileNav())closeOverlays();});
 function toggleExpand(){var app=document.querySelector('.app');if(!app)return;app.classList.remove('right-collapsed');app.classList.toggle('right-expanded');
   try{localStorage.setItem('hrExpanded',app.classList.contains('right-expanded')?'1':'0');localStorage.setItem('hrCollapsed','0');}catch(e){}_sync();}
 (function(){try{var app=document.querySelector('.app');if(!app)return;
