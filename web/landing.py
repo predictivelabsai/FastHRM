@@ -77,6 +77,21 @@ COMPARISON_TABLE_CSS = """
 .ct-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:4px 0;margin-left:auto;color:var(--accent-strong);font-weight:700;text-decoration:none;white-space:nowrap}
 .ct-cta:hover{text-decoration:underline}
 
+/* mobile: stacked per-product cards replace the wide scrolling table */
+.pg-mobile-compare{display:none}
+@media(max-width:640px){
+  .pg-compare-wrap{display:none}
+  .pg-mobile-compare{display:grid;gap:14px}
+  .pg-mobile-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);padding:16px 18px 8px;box-shadow:var(--shadow-sm)}
+  .pg-mobile-card.is-fasthr{border-color:var(--accent-strong);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--accent-strong) 26%,transparent)}
+  .pg-mobile-card h3{margin:0 0 6px;font-family:var(--font-display);font-size:18px}
+  .pg-mobile-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:9px 0;border-top:1px solid var(--line);line-height:1.35;align-items:center}
+  .pg-mobile-row:first-of-type{border-top:0}
+  .pg-mobile-row b{font-size:13px;color:var(--muted);font-weight:600}
+  .pg-mobile-row span{font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600}
+  .pg-mobile-row .ct-mark{font-size:15px}
+  .pg-mobile-row.is-price b,.pg-mobile-row.is-price span{color:var(--text);font-weight:800}
+}
 """
 
 
@@ -203,6 +218,16 @@ LANDING_CSS = """
 .lh-cmp-names{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
 .lh-cmp-names span{border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--muted)}
 
+/* Estonia / Global comparison toggle (landing page only) */
+.lh-cmp-section{padding-top:clamp(30px,5vw,56px);padding-bottom:clamp(30px,5vw,56px)}
+.lh-compare-tabs{display:inline-flex;gap:4px;margin-bottom:24px;padding:4px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--card)}
+.lh-compare-tabs button{min-height:44px;padding:8px 18px;border:0;border-radius:var(--radius-pill);background:transparent;color:var(--muted);font:inherit;font-weight:700;cursor:pointer;transition:background var(--step-fast),color var(--step-fast)}
+.lh-compare-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
+.lh-compare-tabs button:hover{color:var(--text)}
+.lh-compare-tabs button[aria-pressed="true"]:hover{color:var(--on-ink)}
+.lh-compare-tabs button:focus-visible{outline:2.5px solid var(--accent-strong);outline-offset:2px}
+.lh-compare-panel[hidden]{display:none}
+
 """ + COMPARISON_TABLE_CSS + """
 /* faq */
 .lh-faqs{max-width:820px}
@@ -224,23 +249,32 @@ LANDING_CSS = """
 @media(max-width:900px){
   .lh-feats{grid-template-columns:1fr 1fr}
   .lh-stat,.lh-cmp,.lh-features-head{grid-template-columns:1fr}
-  .lh-suite-inner{align-items:flex-start;flex-direction:column;gap:12px}
+  .lh-suite-inner{flex-direction:column;align-items:center;gap:14px;text-align:center}
+  .lh-suite-label{max-width:none;text-align:center}
+  .lh-suite-logos{justify-content:center}
   .lh-mock-body{grid-template-columns:190px minmax(0,1fr)}
   .lh-ai{display:none}
 }
 @media(max-width:680px){
   .lh-feats,.lh-prices,.lh-panels,.lh-stat-list{grid-template-columns:1fr}
   .lh-kpis{grid-template-columns:1fr 1fr}
-  .lh-mock-body{grid-template-columns:78px minmax(0,1fr)}
-  .lh-side{padding-inline:5px}
-  .lh-side-label{padding-inline:4px;font-size:6px}
-  .lh-side a{padding:5px 4px;font-size:8px;gap:4px;white-space:normal}
-  .lh-side a span{font-size:10px}
-  .lh-main{padding:13px 10px}
-  .lh-kpi b{font-size:16px}
-  .lh-kpi em{font-size:7px}
+  /* drop the illegible mini-sidebar; show the main panel full-width and cap
+     the mockup height so it reads as a preview instead of a tall dead block */
+  .lh-mock-body{grid-template-columns:1fr}
+  .lh-side{display:none}
+  .lh-mock{position:relative;max-height:430px}
+  .lh-mock::after{content:"";position:absolute;left:0;right:0;bottom:0;height:72px;
+    background:linear-gradient(transparent,var(--card));pointer-events:none}
+  .lh-main{padding:16px 14px}
+  .lh-kpi b{font-size:18px}
+  .lh-kpi em{font-size:8px}
   .lh-panels{grid-template-columns:1fr}
-  .lh-mock-wrap{margin-bottom:-60px}
+  .lh-mock-wrap{margin-bottom:-48px}
+}
+@media(max-width:560px){
+  /* Estonia / Global comparison toggle: full-width segmented control */
+  .lh-compare-tabs{display:flex;width:100%;margin-bottom:18px}
+  .lh-compare-tabs button{flex:1 1 0;padding:10px 8px;text-align:center}
 }
 @media(max-width:760px){
 .lh-hero-inner .fs-eyebrow,.lh-head .fs-eyebrow{font-size:12px}
@@ -392,13 +426,33 @@ def _glyph_compare_table(c, rows, products, labels, prices, legend,
           for k, lbl in legend.items()],
         cls="ct-legend")
 
+    # Mobile: one card per product with a ✓/◐/✕ row per feature — the wide
+    # scrolling table is unreadable on a phone, so it is hidden below 640px.
+    price_label = c["cmp2_price_label"]
+    mobile_cards = []
+    for i, product in enumerate(prods):
+        rows_out = []
+        for key, states in rows:
+            s = states[i]
+            rows_out.append(Div(
+                B(labels[key]),
+                Span(Span(CMP_GLYPH[s], cls=f"ct-mark ct-{s}"), " ", legend[s]),
+                cls="pg-mobile-row"))
+        price_val = prices[i] if i < len(prices) else ""
+        if price_val:
+            rows_out.append(Div(B(price_label), Span(price_val), cls="pg-mobile-row is-price"))
+        mobile_cards.append(Div(H3(product), *rows_out,
+                                cls="pg-mobile-card is-fasthr" if i == 0 else "pg-mobile-card"))
+
     return Div(
         Div(fs_eyebrow(c["cmp2_eyebrow"]), H2(heading or c["cmp2_h2"]),
             P(sub or c["cmp2_sub"]), cls="lh-head") if heading or not items else None,
         Div(Table(Caption(caption) if caption else None, Thead(Tr(*headers)),
                   Tbody(*body, price_row), cls="ct"),
-            Span(cls="ct-scroll-hint", aria_hidden="true"), cls="ct-wrap", tabindex="0",
+            Span(cls="ct-scroll-hint", aria_hidden="true"), cls="ct-wrap pg-compare-wrap", tabindex="0",
             role="region", aria_label=table_label or c["cmp2_table_label"]),
+        Div(*mobile_cards, cls="pg-mobile-compare", role="region",
+            aria_label=table_label or c["cmp2_table_label"]),
         Div(legend_row, Span(note or c["cmp2_note"]),
             A(cta or c["cmp2_cta"], href="/compare", cls="ct-cta") if cta is not False else None,
             cls="ct-foot"),
@@ -694,18 +748,8 @@ PUBLIC_PAGE_CSS = """
 }
 @media(max-width:639px){
   body > main p{padding-inline:clamp(18px,4vw,40px)}
-  .pg-compare-wrap{display:none}
-  .pg-mobile-compare{display:grid;gap:14px}
-  .pg-mobile-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);padding:18px}
-  .pg-mobile-card h3{margin:0 0 4px}
   .pg-name{display:inline-flex;align-items:center;padding-block:8px}
-  .pg-mobile-row{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px;padding:10px 0;border-top:1px solid var(--line);line-height:1.4}
-  .pg-mobile-row b{font-size:13px;color:var(--muted)}
-   .pg-mobile-row span{font-size:14px}
-   .pg-mobile-row .ct-mark{margin-right:5px}
-   .pg-mobile-row .ct-no{color:#8f3028}
 }
-@media(min-width:640px){.pg-mobile-compare{display:none}}
 """
 
 

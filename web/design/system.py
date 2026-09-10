@@ -129,7 +129,7 @@ img{max-width:100%;display:block}
   .fs-footer-top{grid-template-columns:1fr 1fr;gap:28px}
 }
 @media(max-width:760px){
-  .fs-nav-inner{position:relative;gap:8px}
+  .fs-nav-inner{position:relative;gap:8px;flex-wrap:wrap;row-gap:12px;height:auto;min-height:70px;padding-block:12px}
   .fs-brand{min-width:0;flex:0 0 auto;gap:7px;font-size:18px;white-space:nowrap}
   .fs-mark{width:28px;height:28px}
   .fs-menu-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;
@@ -137,7 +137,7 @@ img{max-width:100%;display:block}
     background:var(--ink);color:var(--paper);font:inherit;cursor:pointer}
   .fs-menu-toggle::before,.fs-menu-toggle::after,.fs-menu-toggle span{content:"";display:block;width:18px;height:2px;
     border-radius:2px;background:currentColor;transition:transform var(--step-fast),opacity var(--step-fast)}
-  .fs-menu-toggle{flex-direction:column;gap:4px}
+  .fs-menu-toggle{flex-direction:column;gap:4px;margin-left:auto}
   .fs-menu-toggle[aria-expanded="true"]::before{transform:translateY(6px) rotate(45deg)}
   .fs-menu-toggle[aria-expanded="true"] span{opacity:0}
   .fs-menu-toggle[aria-expanded="true"]::after{transform:translateY(-6px) rotate(-45deg)}
@@ -146,10 +146,11 @@ img{max-width:100%;display:block}
     border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 14px 28px rgba(11,29,23,.18)}
   .fs-nav-links.is-open{display:flex;background:color-mix(in srgb,var(--accent) 6%,var(--ink))}
   .fs-nav-link{display:flex;align-items:center;min-height:44px;padding:10px 0;font-size:16px}
-  .fs-nav-right{min-width:0;flex:0 1 auto;gap:4px}
-  .fs-nav-right .fs-btn{min-height:44px;padding-inline:8px;white-space:nowrap}
-  .fs-lang{min-width:0;flex:0 1 auto}
-  .fs-lang a{display:inline-flex;align-items:center;min-height:44px;padding-inline:8px}
+  /* language + sign-in drop to their own full-width row so nothing is clipped */
+  .fs-nav-right{flex:1 0 100%;justify-content:space-between;gap:10px;align-items:center}
+  .fs-nav-right .fs-btn{min-height:44px;padding-inline:14px;white-space:nowrap}
+  .fs-lang{flex:0 0 auto;overflow:visible}
+  .fs-lang a{display:inline-flex;align-items:center;min-height:40px;padding-inline:16px}
   .fs-footer-top{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){
