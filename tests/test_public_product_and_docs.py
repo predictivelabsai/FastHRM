@@ -79,7 +79,7 @@ def test_public_landing_uses_owner_requested_copy_and_fast_hr_header(
     assert price_example in rendered
     assert faq_question in rendered
     assert faq_answer in rendered
-    assert '<th class="ct-fh"><span>FastHR</span></th>' in rendered
+    assert '<th class="ct-fh"><span class="pg-name">FastHR</span></th>' in rendered
     assert '<span>FastHR<span>Meie</span></span>' not in rendered
     assert '<span>FastHR<span>Us</span></span>' not in rendered
     assert "FASTHRUS" not in rendered
@@ -134,7 +134,10 @@ def test_comparison_tables_use_glyph_rows_and_leave_competitor_prices_empty(
     assert rendered.count("class=\"ct-mark ct-yes\"") > 20
     assert "Quote-based" not in rendered
     assert "Inquiry-based or quote-based" not in rendered
-    assert "Official source" in rendered or "Ametlik allikas" in rendered
+    assert "Official source" not in rendered
+    assert "Ametlik allikas" not in rendered
+    assert 'class="pg-name" href=' not in rendered
+    assert "persona.ee" not in rendered
 
 
 @pytest.mark.parametrize("lang", ["et", "en"])
@@ -181,7 +184,7 @@ def test_public_touch_targets_use_shared_adaptation_rules(tmp_path, monkeypatch)
 
     assert "@media(pointer:coarse)" in DESIGN_CSS
     for selector in (".fs-brand", ".fs-nav-link", ".fs-lang a", ".fs-foot-col a",
-                     ".fs-btn-ghost", ".ct-cta", ".pg-name", ".pg-source"):
+                     ".fs-btn-ghost", ".ct-cta", ".pg-name"):
         assert selector in DESIGN_CSS
     assert ".fs-foot-col a{display:flex;align-items:center;min-height:40px" in DESIGN_CSS
     assert ".ct-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px" in landing.LANDING_CSS

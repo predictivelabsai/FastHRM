@@ -361,21 +361,8 @@ def _glyph_compare_table(c, rows, products, labels, prices, legend,
 
     headers = [Th(caption or "", cls="ct-feat")]
     for i, product in enumerate(prods):
-        item = next((item for item in items or []
-                     if item["name"] == product), None)
-        sources = []
-        if item:
-            sources.append(A(c["cmp_pg_source"], href=item["source"],
-                             target="_blank", rel="noopener noreferrer",
-                             cls="pg-source"))
-            if item.get("license_source"):
-                sources.append(A(c["cmp_pg_license"],
-                                 href=item["license_source"], target="_blank",
-                                 rel="noopener noreferrer", cls="pg-source"))
-        headers.append(Th(A(product, href=item["source"], target="_blank",
-                            rel="noopener noreferrer", cls="pg-name"),
-                          *sources, cls="ct-fh" if i == 0 else "") if item else
-                      Th(Span(product), cls="ct-fh" if i == 0 else ""))
+        headers.append(Th(Span(product, cls="pg-name"),
+                          cls="ct-fh" if i == 0 else ""))
 
     body = []
     for key, states in rows:
@@ -671,10 +658,7 @@ PUBLIC_PAGE_CSS = """
 .pg-compare .ct-feat{width:190px;min-width:190px;white-space:normal}
 .pg-compare thead th:not(.ct-feat){min-width:190px}
 .pg-compare thead th{font-size:18px}
-.pg-compare .pg-source{display:inline-flex;align-items:center;min-height:40px;padding-block:8px;font-family:var(--font-body);font-size:12px;
-  font-weight:600;color:var(--accent-strong);margin-top:8px;text-underline-offset:3px}
-.pg-compare .pg-name{display:inline-flex;align-items:center;min-height:40px;padding-block:8px;color:var(--text);text-decoration:underline;text-decoration-color:var(--line);
-  text-underline-offset:4px}
+.pg-compare .pg-name{display:inline-flex;align-items:center;min-height:40px;padding-block:8px;color:var(--text)}
 .pg-compare-section h2{font-size:clamp(28px,4vw,40px);margin-bottom:22px}
 .pg-compare .ct-pricerow th{background:var(--paper);border-top:2px solid var(--line)}
 .pg-compare .ct-mark{display:inline-block;margin-right:7px}
@@ -707,9 +691,7 @@ PUBLIC_PAGE_CSS = """
   .pg-mobile-compare{display:grid;gap:14px}
   .pg-mobile-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);padding:18px}
   .pg-mobile-card h3{margin:0 0 4px}
-  .pg-name,.pg-source{display:inline-flex;align-items:center;padding-block:8px}
-  .pg-mobile-sources{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:12px}
-  .pg-mobile-sources .pg-source{margin-top:0;min-height:44px}
+  .pg-name{display:inline-flex;align-items:center;padding-block:8px}
   .pg-mobile-row{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px;padding:10px 0;border-top:1px solid var(--line);line-height:1.4}
   .pg-mobile-row b{font-size:13px;color:var(--muted)}
    .pg-mobile-row span{font-size:14px}
@@ -831,7 +813,7 @@ def comparison_page(lang: str = "et"):
     list_schema = {
         "@context": "https://schema.org", "@type": "ItemList", "name": "FastHR alternatives comparison",
         "itemListElement": [
-            {"@type": "ListItem", "position": index, "name": item["name"], "url": item["source"]}
+            {"@type": "ListItem", "position": index, "name": item["name"]}
             for index, item in enumerate(c["comparisons"], 1)
         ],
     }

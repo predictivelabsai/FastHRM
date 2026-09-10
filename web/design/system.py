@@ -163,7 +163,7 @@ img{max-width:100%;display:block}
   .fs-btn{min-height:44px;padding-inline:14px}
   .fs-nav-right .fs-btn-ghost,.fs-nav-right .fs-btn:not(.fs-btn-lg){min-height:44px;padding-inline:12px}
   .ct-cta{min-height:44px;padding-inline:8px}
-  .pg-name,.pg-source{min-height:44px;padding-inline:4px}
+  .pg-name{min-height:44px;padding-inline:4px}
 }
 """
 

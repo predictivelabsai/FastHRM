@@ -91,7 +91,7 @@ async def llms():
 
 - [Home]({BASE_URL}/): Product overview and access.
 - [Features]({BASE_URL}/features): Available and coming-soon capabilities; every listed feature is Free.
-- [How we compare]({BASE_URL}/compare): Source-linked comparison with Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo HR.
+- [How we compare]({BASE_URL}/compare): Public-source comparison with Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo HR.
 - [Jobs]({BASE_URL}/jobs/...): Published roles and individual job specification pages.
 - [Developers]({BASE_URL}/developers): Public API resources, examples, OpenAPI, Swagger UI, and ReDoc.
 - [Privacy]({BASE_URL}/privacy): Candidate privacy information.
