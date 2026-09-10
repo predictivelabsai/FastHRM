@@ -41,6 +41,7 @@ import talent
 import people
 import integrations
 import benefits
+import learning
 import recruitment
 import recruitment_communications
 import recruitment_ecosystem
@@ -2440,6 +2441,73 @@ def get(session, dept: str = "All"):
 
 
 # ---------- lifecycle -------------------------------------------------------
+
+@rt("/learning")
+def get(session, request):
+    return _guard(session, "learning", lambda: learning.staff_page(resolve_lang(session, request)))
+
+
+@rt("/learning/courses", methods=["POST"])
+def post(session, name: str = "", category: str = "skills", provider: str = ""):
+    if not _user(session):
+        return RedirectResponse("/login?next=/learning", status_code=303)
+    if not can(_roles_for(session), "learning", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    if name.strip():
+        learning.save_course(name, category, provider)
+    return RedirectResponse("/learning", status_code=303)
+
+
+@rt("/learning/courses/{course_id}/deactivate", methods=["GET"])
+def get(session, course_id: int):
+    if not _user(session):
+        return RedirectResponse("/login?next=/learning", status_code=303)
+    if not can(_roles_for(session), "learning", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    learning.deactivate_course(course_id)
+    return RedirectResponse("/learning", status_code=303)
+
+
+@rt("/learning/plans", methods=["POST"])
+def post(session, employee_id: int = 0, course_id: int = 0, due_date: str = ""):
+    if not _user(session):
+        return RedirectResponse("/login?next=/learning", status_code=303)
+    if not can(_roles_for(session), "learning", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    if employee_id and course_id:
+        learning.assign(employee_id, course_id, _user(session), due_date or None)
+    return RedirectResponse("/learning", status_code=303)
+
+
+@rt("/learning/plans/{plan_id}/progress", methods=["POST"])
+def post(session, plan_id: int, progress: int = 0):
+    if not _user(session):
+        return RedirectResponse("/login?next=/learning", status_code=303)
+    if not can(_roles_for(session), "learning", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    learning.set_progress(plan_id, progress)
+    return RedirectResponse("/learning", status_code=303)
+
+
+@rt("/learning/certifications", methods=["POST"])
+def post(session, employee_id: int = 0, name: str = "", issued_on: str = "", expires_on: str = ""):
+    if not _user(session):
+        return RedirectResponse("/login?next=/learning", status_code=303)
+    if not can(_roles_for(session), "learning", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    if employee_id and name.strip():
+        learning.add_certification(employee_id, name, issued_on or None, expires_on or None)
+    return RedirectResponse("/learning", status_code=303)
+
+
+@rt("/learning/certifications/{certification_id}/remove", methods=["GET"])
+def get(session, certification_id: int):
+    if not _user(session):
+        return RedirectResponse("/login?next=/learning", status_code=303)
+    if not can(_roles_for(session), "learning", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    learning.remove_certification(certification_id)
+    return RedirectResponse("/learning", status_code=303)
 
 @rt("/lifecycle/onboarding")
 def get(session):

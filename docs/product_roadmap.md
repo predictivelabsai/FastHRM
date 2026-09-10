@@ -3,6 +3,7 @@
 **Baseline date:** 2026-08-08  
 **Comparison source:** [Teamdash pricing and feature matrix](https://www.teamdash.com/pricing/), reviewed 2026-08-08.
 
+- [x] Learning & development: course catalogue, employee learning plans, progress tracking, certifications, and expiry visibility (migration `0014_learning.sql`) (2026-09-10).
 - [x] Payslips and pay runs: fully itemised pay-run previews and payslips, employer-cost separation, draft re-preparation, and employee-portal line items (2026-09-10).
 - [x] Completed final public release polish: runtime version in the landing mockup, filled competitor pricing cells, `/pricing` anchor redirect, and scoped dead-CSS cleanup (2026-09-10).
 - [x] Live provider integrations: shipped live credential checks for Slack, GitHub, Greenhouse, BambooHR, Checkr, and Teams, plus BambooHR directory export and Slack pipeline-digest test posting; OAuth-heavy adapters remain pending interactive authorization or partner approval (2026-09-10).
