@@ -2,6 +2,28 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Comparison tables reconciled with shipped modules
+
+### Added
+
+- Added benefits administration, learning and development, and workforce planning rows to the Estonian and global comparison tables, reflecting the modules shipped in this cycle.
+- Added bilingual row labels matching the module naming used across the public pages.
+
+### Verification
+
+- Competitor states follow public sources (Sep 2026); verified rendering with both language copies and the full pytest suite.
+
+## 2026-09-10 — Estonian site copy sweep
+
+### Changed
+
+- Fixed coined compounds, non-words, split compounds and wrong-sense terms across the Estonian public copy (tööõiguse järgi, taristul, palgakatvus, litsentsiülevaade, tooteperekond, kasutamine), every replacement verified with the estnltk MCP tools.
+- Localised the landing dashboard mockup leave pills in Estonian; the internal tone keys no longer render as visible English text, with the pill styling unchanged.
+
+### Verification
+
+- Verified with `py_compile` and the full pytest suite.
+
 ## 2026-09-10 — Workforce planning
 
 ### Added
