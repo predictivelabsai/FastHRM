@@ -2,6 +2,23 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Mobile experience for the authenticated app
+
+### Changed
+
+- Made the signed-in HR workspace fully responsive. The desktop three-pane grid (nav / content / AI rail) now collapses to a single column below 900px: the left navigation becomes an off-canvas drawer opened by a topbar hamburger with a dimmed backdrop, and the AI assistant rail becomes a slide-in overlay reachable from the existing Chat control.
+- Reflowed content for small screens: KPI grids collapse to two columns (one column below 480px), detail/two-column/goal/stage grids stack, wide data tables scroll horizontally inside their cards instead of overflowing the page, toolbars and search inputs fill the width, and the admin sign-in card is width-capped.
+- Enforced finger-friendly hit areas (≥40px) on buttons, segmented controls, nav items, and the chat input on coarse-pointer devices; tightened topbar and content padding on phones.
+
+### Data and verification
+
+- CSS/markup only, scoped to `web/layout.py` (`LAYOUT_CSS`, `LAYOUT_JS`, `topbar`, `page`); no schema, dependency, or API changes. The public marketing/careers site was already responsive and is unchanged.
+- Verified visually with headless Chromium across the app and public pages at 360/390/768px, and with a programmatic horizontal-overflow audit over all 35 nav routes at each width (zero overflow); drawer, backdrop, chat overlay, Escape, and resize interactions confirmed. Full pytest suite run: 137 passed, 1 skipped, and 1 pre-existing unrelated failure (`test_committed_swagger_matches_runtime_openapi`, stale committed `swagger.json` — fails on clean `main`).
+
+### Roadmap
+
+- Added the mobile responsiveness of the authenticated app as complete.
+
 ## 2026-09-10 — Comparison tables reconciled with shipped modules
 
 ### Added
