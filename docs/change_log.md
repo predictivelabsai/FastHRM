@@ -2,6 +2,23 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Payslip and pay-run completion
+
+### Added
+
+- Completed fully itemised pay-run previews with gross, net, employer-cost, and employee-count totals.
+- Added draft-run re-preparation with edit-level payroll RBAC and idempotent benefit lines.
+- Split employer costs from deductions on payslips and added latest-payslip line items to the employee portal.
+
+### Data and verification
+
+- No migration, configuration, or dependency changes.
+- Updated bilingual payroll marketing copy. Verified with `python -m pytest tests/test_platform.py -q` and the full suite.
+
+### Roadmap
+
+- Marked payslips and pay runs complete.
+
 ## 2026-09-10 — Benefits administration
 
 ### Added

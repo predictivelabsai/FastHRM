@@ -2731,8 +2731,9 @@ def get(session):
 
 
 @rt("/payroll/runs/{rid}")
-def get(session, rid: int):
-    return _guard(session, "payroll", lambda: views.pay_run_detail(rid))
+def get(session, rid: int, request):
+    saved = request.query_params.get("saved") == "1"
+    return _guard(session, "payroll", lambda: views.pay_run_detail(rid, saved=saved))
 
 
 @rt("/payroll/exports")
@@ -2798,6 +2799,19 @@ def post(session, rid: int):
     if next_status:
         db.advance_pay_run(rid, next_status)
     return RedirectResponse(f"/payroll/runs/{rid}", status_code=303)
+
+
+@rt("/payroll/runs/{rid}/reprepare")
+def post(session, rid: int):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    if not can(_roles_for(session), "payroll", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    try:
+        db.prepare_pay_run(rid)
+    except ValueError:
+        return Response("Pay run not found.", status_code=404)
+    return RedirectResponse(f"/payroll/runs/{rid}?saved=1", status_code=303)
 
 
 @rt("/payroll/runs/{rid}/offset")

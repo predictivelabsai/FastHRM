@@ -21,7 +21,7 @@ FAVICON = "data:image/svg+xml," + quote(
 FEATURE_CATALOG = (
     ("Core HR", "Employee records, departments, reporting lines and organisation data.", "/employees", True),
     ("Leave & attendance", "Leave balances, requests, approvals and daily attendance reporting.", "/leave", True),
-    ("Palgalehed ja palgapäevad", "Pay runs, payslips, and automatic holiday and incapacity pay with itemised line details.", "/payroll", True),
+    ("Palgalehed ja palgapäevad", "Täielikult ridade kaupa ettevalmistatud palgapäevad koos tööandja kulude ja uuesti ettevalmistamisega.", "/payroll", True),
     ("Recruiting ATS", "Requisitions, candidates, pipelines, scorecards, approvals and offers.", "/talent/jobs", True),
     ("Careers publishing", "Branded careers pages and individual, search-ready job specification pages.", None, True),
     ("Candidate CRM", "Talent pools, saved views, profiles, tags, tasks, search and bulk workflows.", "/talent/platform?section=operations", True),

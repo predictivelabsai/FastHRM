@@ -193,6 +193,46 @@ def test_benefit_staff_page_and_portal_card_render_bilingually(fresh_db):
     assert "Lunch" in portal and "25.00 EUR" in portal
 
 
+def test_pay_run_totals_and_reprepare_are_itemised_and_idempotent(fresh_db):
+    from web import views
+
+    import benefits
+
+    eid = _statutory_employee(fresh_db)
+    plan = benefits.save_plan("Health", "health", 75)
+    benefits.enrol(plan, eid, "2026-01-01")
+    rid = fresh_db.create_pay_run("2099-05", [eid])
+    first = str(views.pay_run_detail(rid))
+    fresh_db.prepare_pay_run(rid)
+    fresh_db.prepare_pay_run(rid)
+    second = str(views.pay_run_detail(rid))
+    slip = fresh_db.one("SELECT * FROM payslips WHERE run_id=?", (rid,))
+    lines = fresh_db.payslip_lines(slip["id"])
+    assert "Base salary" in first and "Income tax" in first
+    assert "Employer cost" in first
+    assert "Gross total" in first and "Net total" in first
+    assert "Employer costs" in first and "Employees" in first
+    assert second.count("Benefit: Health") == 1
+    assert sum("Benefit: Health" in line["label"] for line in lines) == 1
+
+
+def test_payslip_and_portal_keep_employer_costs_out_of_deductions(fresh_db):
+    import benefits
+    from web import selfservice, views
+
+    eid = _statutory_employee(fresh_db)
+    plan = benefits.save_plan("Lunch", "other", 25)
+    benefits.enrol(plan, eid, "2026-01-01")
+    rid = fresh_db.create_pay_run("2099-05", [eid])
+    slip = fresh_db.one("SELECT * FROM payslips WHERE run_id=?", (rid,))
+    detail = str(views.payslip_detail(slip["id"]))
+    portal = str(selfservice.pay_page(fresh_db.employee(eid)))
+    assert "Tööandja kulud / Employer costs" in detail
+    assert "− 25.00" not in detail
+    assert "Benefit: Lunch" in detail and "Benefit: Lunch" in portal
+    assert "Deduction" in portal and "25.00 EUR" in portal
+
+
 def test_statutory_export_history_and_route_auth(fresh_db):
     from web import statutory
 
