@@ -205,6 +205,7 @@ NAV_ITEMS = [
     ("LIFECYCLE", [("onboarding", "Onboarding", "🚀", "/lifecycle/onboarding"),
                    ("changes", "Changes", "🔀", "/lifecycle/changes"),
                    ("separations", "Separations", "👋", "/lifecycle/separations"),
+                   ("workforce", "Workforce planning", "🧮", "/workforce"),
                    ("cases", "Cases", "🗂", "/lifecycle/cases"),
                    ("org", "Org chart", "🌳", "/lifecycle/org")]),
     ("SETTINGS", [("integrations", "Integrations", "🔌", "/settings/integrations"),

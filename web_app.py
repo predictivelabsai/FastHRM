@@ -42,6 +42,7 @@ import people
 import integrations
 import benefits
 import learning
+import workforce
 import recruitment
 import recruitment_communications
 import recruitment_ecosystem
@@ -2445,6 +2446,57 @@ def get(session, dept: str = "All"):
 @rt("/learning")
 def get(session, request):
     return _guard(session, "learning", lambda: learning.staff_page(resolve_lang(session, request)))
+
+
+@rt("/workforce")
+def get(session, request):
+    return _guard(session, "workforce", lambda: workforce.staff_page(resolve_lang(session, request)))
+
+
+@rt("/workforce/budgets", methods=["POST"])
+def post(session, name: str = "", department_id: int = 0, role_title: str = "",
+         headcount_target: int = 1, annual_salary_budget: float = 0,
+         effective_date: str = ""):
+    if not _user(session):
+        return RedirectResponse("/login?next=/workforce", status_code=303)
+    if not can(_roles_for(session), "workforce", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    if name.strip() and role_title.strip():
+        workforce.save_budget(name, department_id or None, role_title, headcount_target,
+                              annual_salary_budget, effective_date or None)
+    return RedirectResponse("/workforce", status_code=303)
+
+
+@rt("/workforce/budgets/{budget_id}/{decision}", methods=["GET"])
+def get(session, budget_id: int, decision: str):
+    if not _user(session):
+        return RedirectResponse("/login?next=/workforce", status_code=303)
+    if not can(_roles_for(session), "workforce", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    workforce.decide_budget(budget_id, "Approved" if decision == "approve" else "Rejected")
+    return RedirectResponse("/workforce", status_code=303)
+
+
+@rt("/workforce/scenarios", methods=["POST"])
+def post(session, name: str = "", headcount_delta: int = 0,
+         annual_cost_delta: float = 0, description: str = ""):
+    if not _user(session):
+        return RedirectResponse("/login?next=/workforce", status_code=303)
+    if not can(_roles_for(session), "workforce", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    if name.strip():
+        workforce.save_scenario(name, description, headcount_delta, annual_cost_delta)
+    return RedirectResponse("/workforce", status_code=303)
+
+
+@rt("/workforce/scenarios/{scenario_id}/{decision}", methods=["GET"])
+def get(session, scenario_id: int, decision: str):
+    if not _user(session):
+        return RedirectResponse("/login?next=/workforce", status_code=303)
+    if not can(_roles_for(session), "workforce", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    workforce.decide_scenario(scenario_id, "Approved" if decision == "approve" else "Rejected")
+    return RedirectResponse("/workforce", status_code=303)
 
 
 @rt("/learning/courses", methods=["POST"])

@@ -197,6 +197,40 @@ def test_learning_certification_expiry_and_bilingual_pages(fresh_db):
     assert "First aid" in portal
 
 
+def test_workforce_budget_crud_and_approval_transition(fresh_db):
+    import workforce
+
+    with fresh_db.cursor() as conn:
+        department_id = conn.execute("INSERT INTO departments(name) VALUES ('Engineering')").lastrowid
+    budget_id = workforce.save_budget("Growth plan", department_id, "Engineer", 3, 150000,
+                                      "2026-10-01")
+    assert workforce.list_budgets()[0]["department_name"] == "Engineering"
+    assert workforce.decide_budget(budget_id, "Approved")
+    assert not workforce.decide_budget(budget_id, "Rejected")
+    assert workforce.list_budgets("Approved")[0]["id"] == budget_id
+
+
+def test_workforce_scenarios_kpis_and_bilingual_page(fresh_db):
+    import workforce
+
+    budget_id = workforce.save_budget("Support", None, "Support specialist", 2, 60000)
+    scenario_id = workforce.save_scenario("Hiring freeze", "Pause hiring", -2, -60000)
+    assert workforce.decide_budget(budget_id, "Approved")
+    assert workforce.decide_scenario(scenario_id, "Rejected")
+    assert workforce.kpis() == {"budgeted_headcount": 2, "proposed_headcount": 0,
+                                "approved_salary_budget": 60000.0, "scenario_delta": 0}
+    assert "Tööjõu planeerimine" in str(workforce.staff_page("et"))
+    assert "Workforce planning" in str(workforce.staff_page("en"))
+
+
+def test_workforce_guard_requires_login(fresh_db):
+    from starlette.responses import RedirectResponse
+    import web_app
+    import workforce
+
+    assert isinstance(web_app._guard({}, "workforce", workforce.staff_page), RedirectResponse)
+
+
 def test_benefit_pay_run_lines_are_employer_cost_and_idempotent(fresh_db):
     eid = _statutory_employee(fresh_db)
     import benefits
