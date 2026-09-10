@@ -189,6 +189,7 @@ NAV_ITEMS = [
     ("TIME", [("leave", "Leave", "🌴", "/leave"), ("attendance", "Attendance", "🕘", "/attendance"),
                ("shifts", "Shifts & roster", "🗓", "/shifts"), ("timeclock", "Time clocks", "⏱", "/timeclock")]),
     ("PAY", [("payroll", "Payroll", "💷", "/payroll"),
+              ("benefits", "Benefits", "🎁", "/benefits"),
               ("expenses", "Expenses & travel", "🧾", "/expenses"),
               ("travel", "Travel requests", "✈️", "/travel")]),
     ("TALENT", [("platform", "Recruiting platform", "🧭", "/talent/platform"),

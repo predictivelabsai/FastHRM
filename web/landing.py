@@ -36,7 +36,7 @@ FEATURE_CATALOG = (
     ("Developer API", "Versioned OpenAPI resources for people, recruiting and enterprise integrations.", "/developers", True),
     ("Expenses & travel", "Expense claims, employee advances, approvals and travel requests.", "/expenses", True),
     ("Shifts & time clocks", "Rostering, check-in/out, auto-attendance and location-aware time capture.", "/shifts", True),
-    ("Benefits administration", "Benefit enrolment, eligibility, employer contributions and employee choices.", None, False),
+    ("Benefits administration", "Benefit plans, eligibility, employee enrolment and employer contributions flow into pay runs.", "/benefits", True),
     ("Learning & development", "Learning plans, course tracking, certifications and skills development.", None, False),
     ("Workforce planning", "Budgeted positions, scenarios and approval-led headcount planning.", None, False),
     ("Employee self-service", "A dedicated employee portal for pay, leave, time, goals and onboarding.", "/me", True),

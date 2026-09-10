@@ -2,6 +2,22 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Benefits administration
+
+### Added
+
+- Shipped benefit plans with all-active or department eligibility, idempotent employee enrolment, termination dates, and employer contribution tracking.
+- Added the staff Benefits page, employee portal benefits card, bilingual payslip employer-cost lines, and pay-run integration without changing employee net pay.
+
+### Data and verification
+
+- Added idempotent migration `0013_benefits.sql`; no new dependencies or configuration.
+- Updated the public feature catalogue and bilingual shipped product copy. Verified with the full pytest suite.
+
+### Roadmap
+
+- Marked benefits administration complete.
+
 ## 2026-09-10 — Live provider integrations
 
 ### Added
