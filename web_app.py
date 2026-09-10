@@ -50,6 +50,8 @@ from web.layout import page, LAYOUT_CSS, NAV_ITEMS
 from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings, selfservice, statutory
 from web.landing import comparison_page, features_page, landing_page
 from web.i18n import resolve_lang
+from web.i18n import t
+from web.rbac import can
 from web.seo import register_seo_routes
 from web.developer import developer_page
 from web import account_auth, google_auth
@@ -121,6 +123,10 @@ def _guard(session, active, builder):
         destinations = {key: href for _, items in NAV_ITEMS for key, _, _, href in items}
         destination = destinations.get(active, "/")
         return RedirectResponse(f"/login?next={quote(destination, safe='')}", status_code=303)
+    if not can(_roles_for(session), active, "view"):
+        copy = t(resolve_lang(session))
+        denied = Div(H1(copy["rbac_denied_title"]), P(copy["rbac_denied_message"], cls="flag"))
+        return page(active, ENV_LABEL, _user(session), _thread(session), denied)
     content = builder() if callable(builder) else builder
     if not isinstance(content, tuple):
         content = (content,)
@@ -2619,7 +2625,30 @@ def post(session, provider: str):
 
 @rt("/settings/roles")
 def get(session, saved: str = ""):
-    return _guard(session, "roles", lambda: settings.roles_page(saved))
+    return _guard(session, "roles", lambda: settings.roles_page(saved, resolve_lang(session)))
+
+
+@rt("/settings/roles/permissions")
+async def post(session, request):
+    if not _user(session):
+        return RedirectResponse("/login", status_code=303)
+    if not can(_roles_for(session), "roles", "edit"):
+        copy = t(resolve_lang(session))
+        return Response(copy["rbac_denied_message"], status_code=403)
+    form = await request.form()
+    modules = [key for _section, items in NAV_ITEMS for key, _label, _icon, _href in items]
+    roles = settings.ROLES
+    with db.cursor() as conn:
+        for role in roles:
+            for module_key in modules:
+                view = 1 if form.get(f"view_{role}_{module_key}") else 0
+                edit = 1 if form.get(f"edit_{role}_{module_key}") else 0
+                conn.execute("""INSERT INTO role_permissions(role_name,module_key,can_view,can_edit)
+                                VALUES(?,?,?,?)
+                                ON CONFLICT(role_name,module_key) DO UPDATE SET
+                                can_view=excluded.can_view, can_edit=excluded.can_edit""",
+                             (role, module_key, view, edit))
+    return RedirectResponse(f"/settings/roles?saved={quote('Permissions saved.')}", status_code=303)
 
 
 @rt("/settings/roles")
@@ -2627,6 +2656,8 @@ def post(session, account_email: str = "", role: str = "employee", scope: str = 
          employee_id: int = 0):
     if not _user(session):
         return RedirectResponse("/login", status_code=303)
+    if not can(_roles_for(session), "roles", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
     if account_email.strip():
         with db.cursor() as conn:
             conn.execute("""INSERT INTO account_roles(account_email,role,scope,employee_id,created)
@@ -2639,6 +2670,8 @@ def post(session, account_email: str = "", role: str = "employee", scope: str = 
 def post(session, role_id: int):
     if not _user(session):
         return Response("Unauthorized", status_code=401)
+    if not can(_roles_for(session), "roles", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
     with db.cursor() as conn:
         conn.execute("DELETE FROM account_roles WHERE id=?", (role_id,))
     return settings.roles_table()

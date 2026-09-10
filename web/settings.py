@@ -12,8 +12,10 @@ from fasthtml.common import (
 )
 
 import integrations
-from web.layout import kpi_card
+from web.layout import kpi_card, NAV_ITEMS
+from web.i18n import t
 from web.views import _pill, _title
+from web.rbac import MODULES, permissions_for
 
 STATUS_TONE = {"Connected": "ok", "Error": "error", "Disabled": "cancelled",
                "Not configured": ""}
@@ -103,7 +105,40 @@ ROLE_BLURB = {
 }
 
 
-def roles_page(saved: str = ""):
+ROLE_LABELS = {
+    "admin": {"et": "Administraator", "en": "Administrator"},
+    "hrbp": {"et": "HR-partner", "en": "HRBP"},
+    "recruiter": {"et": "Värbaja", "en": "Recruiter"},
+    "hiring_manager": {"et": "Värbamisjuht", "en": "Hiring manager"},
+    "manager": {"et": "Juht", "en": "Manager"},
+    "employee": {"et": "Töötaja", "en": "Employee"},
+}
+
+
+def permissions_matrix(lang: str = "et"):
+    copy = t(lang)
+    rows = []
+    for role in ROLES:
+        role_permissions = permissions_for({role})
+        cells = []
+        for key, label in MODULES:
+            permission = role_permissions.get(key, {"view": False, "edit": False})
+            cells.append(Td(
+                Label(Input(type="checkbox", name=f"view_{role}_{key}", value="1",
+                            checked=permission["view"]), copy["rbac_view"]),
+                Label(Input(type="checkbox", name=f"edit_{role}_{key}", value="1",
+                            checked=permission["edit"]), copy["rbac_edit"]),
+                cls="rbac-cell"))
+        rows.append(Tr(Td(Strong(ROLE_LABELS[role][lang])), *cells))
+    headers = [Th(copy["rbac_role"])] + [Th(label) for _key, label in MODULES]
+    return Form(
+        Table(Thead(Tr(*headers)), Tbody(*rows), cls="tbl rbac-table"),
+        Div(Button(copy["rbac_save"], cls="btn primary", type="submit"),
+            P(copy["rbac_unconfigured"], cls="int-meta")),
+        method="post", action="/settings/roles/permissions")
+
+
+def roles_page(saved: str = "", lang: str = "et"):
     import db
     assigned = db.rows("""SELECT r.*, e.first_name||' '||e.last_name employee
                           FROM account_roles r LEFT JOIN employees e ON e.id=r.employee_id
@@ -135,7 +170,8 @@ def roles_page(saved: str = ""):
         method="post", action="/settings/roles", cls="inline-form",
         style="flex-wrap:wrap;gap:8px;")
 
-    return (_title("Roles & access", "Who can see and do what"),
+    copy = t(lang)
+    return (_title(copy["rbac_title"], copy["rbac_subtitle"]),
             banner,
             P(NotStr("Roles are recorded here and shown throughout the audit trail. "
                      "<strong>Row-level enforcement is not yet wired into the query layer</strong> — "
@@ -148,7 +184,9 @@ def roles_page(saved: str = ""):
             Div(Div(H3("What each role is for"), cls="card-header"),
                 Table(Thead(Tr(Th("Role"), Th("Intended access"))),
                       Tbody(*[Tr(Td(_pill(r)), Td(ROLE_BLURB[r])) for r in ROLES]), cls="tbl"),
-                cls="card"))
+                cls="card"),
+            Div(Div(H3(copy["rbac_permissions"], cls="card-header"),
+                    permissions_matrix(lang), cls="card")))
 
 
 def roles_table():
