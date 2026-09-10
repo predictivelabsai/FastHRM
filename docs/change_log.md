@@ -2,6 +2,21 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — FastHR logo
+
+### Changed
+
+- Introduced a dedicated FastHR logo mark: a forward-leaning "F" monogram (the italic slant reads as "Fast") in ink on the FastSME lime tile, replacing the plain letter "F" in the shared brand mark and the generic person glyph in the favicon.
+- Applied it as `static/favicon.svg` and `web/static/favicon.svg` (browser tab on the public site and the app) and as the `.fs-mark` glyph used in the public navigation and footer brand lockups.
+
+### Data and verification
+
+- SVG/CSS only in `static/favicon.svg`, `web/static/favicon.svg`, and `web/design/system.py`; no schema, dependency, or API changes. The mark scales cleanly from 16px to large and reads on light and dark grounds.
+
+### Roadmap
+
+- Added the FastHR logo mark as complete.
+
 ## 2026-09-10 — Public-site mobile polish
 
 ### Changed
