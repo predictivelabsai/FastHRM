@@ -2,6 +2,28 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-10 — Live provider integrations
+
+### Added
+
+- Shipped live credential checks for Slack, GitHub, Greenhouse, BambooHR, Checkr,
+  and Teams, with honest HTTP/auth/timeout notes and encrypted credentials retained.
+- Shipped BambooHR employee-directory export with employee counts in the
+  integration audit event and a local JSON snapshot; Slack can post a plain
+  pipeline-digest test message.
+
+### Data and verification
+
+- No migration or new dependency; snapshots use the existing `data/` convention
+  and `httpx` already present in requirements.
+- OAuth-heavy providers remain explicitly marked as requiring interactive
+  authorization or partner approval. Verified with the full pytest suite.
+
+### Roadmap
+
+- Marked live provider credential checks and the BambooHR directory export complete;
+  remaining OAuth-heavy adapters remain open pending partner approval.
+
 ## 2026-09-10 — Holiday and incapacity pay
 
 ### Added

@@ -16,6 +16,9 @@ __pycache__/
 # Uploaded CVs — personal data, never committed (see plan §12.3)
 uploads/
 
+# Integration sync snapshots — personal data, never committed
+data/
+
 # Playwright / scratch
 .playwright-mcp/
 /tmp/

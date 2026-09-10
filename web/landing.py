@@ -41,7 +41,7 @@ FEATURE_CATALOG = (
     ("Workforce planning", "Budgeted positions, scenarios and approval-led headcount planning.", None, False),
     ("Employee self-service", "A dedicated employee portal for pay, leave, time, goals and onboarding.", "/me", True),
     ("Eesti seadusjärgne palk (TÖR, TSD)", "TÖR-i ja TSD ekspordid ning puhkuse- ja töövõimetustasu arvestus on kasutatavad koos palgapäevade ja palgalehtedega.", "/payroll", True),
-    ("Live provider integrations", "Production adapters for HRIS, calendars, job boards and communications.", None, False),
+    ("Live provider integrations", "Live credential checks and HRIS directory export are shipped; remaining adapters need partner approval.", "/settings/integrations", True),
     ("Granular RBAC & security", "Per-module roles with view and edit permissions are shipped in Settings.", "/settings/roles", True),
 )
 

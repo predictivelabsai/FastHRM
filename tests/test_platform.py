@@ -328,6 +328,85 @@ def test_untested_connector_does_not_claim_a_live_connection(fresh_db, monkeypat
     assert "not enabled" in note.lower(), "must not imply a live API call was made"
 
 
+def test_live_adapter_dispatch_requires_real_success(fresh_db, monkeypatch):
+    monkeypatch.setenv("FASTHR_SECRET", "test-secret-value")
+    import importlib
+    import integrations
+    importlib.reload(integrations)
+    integrations.save("github", api_key="ghp_test_credential_123", actor="t")
+    calls = []
+
+    def fake_adapter(meta, key, secret, account_ref):
+        calls.append((meta["key"], key, secret, account_ref))
+        return True, "GET https://api.github.com/user returned HTTP 200; authenticated read succeeded."
+
+    monkeypatch.setitem(integrations.providers.ADAPTERS, "github", fake_adapter)
+    result = integrations.test_connection("github", actor="t")
+    assert result["ok"] is True and calls[0][0] == "github"
+    assert integrations.integration("github")["status"] == "Connected"
+
+
+def test_bamboohr_sync_records_count_and_snapshot(fresh_db, monkeypatch, tmp_path):
+    monkeypatch.setenv("FASTHR_SECRET", "test-secret-value")
+    monkeypatch.setenv("FASTHR_DATA_DIR", str(tmp_path / "data"))
+    import importlib
+    import integrations
+    importlib.reload(integrations)
+    integrations.save("bamboohr", api_key="bamboohr_key_123", account_ref="acme", actor="t")
+    integrations.set_status("bamboohr", "Connected", actor="t")
+    payload = {"employees": [{"id": "1"}, {"id": "2"}]}
+    monkeypatch.setattr("web.providers.base.bamboohr_directory",
+                        lambda key, account: (True, "GET directory returned HTTP 200; fetched 2 employees.",
+                                              payload, 2))
+    result = integrations.sync("bamboohr", actor="t")
+    event = fresh_db.one("SELECT * FROM integration_events WHERE kind='sync' ORDER BY id DESC")
+    assert result["ok"] is True and result["records"] == 2
+    assert event["records"] == 2
+    assert (tmp_path / "data/integrations/bamboohr/directory-latest.json").exists()
+
+
+def test_teams_sync_posts_plain_test_message(fresh_db, monkeypatch):
+    monkeypatch.setenv("FASTHR_SECRET", "test-secret-value")
+    import importlib
+    import integrations
+    importlib.reload(integrations)
+    integrations.save("teams", api_key="https://example.test/webhook/123", actor="t")
+    calls = []
+
+    class Response:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return {}
+
+    def fake_post(url, **kwargs):
+        calls.append((url, kwargs))
+        return Response()
+
+    monkeypatch.setattr("httpx.post", fake_post)
+    result = integrations.test_connection("teams", actor="t")
+    assert result["ok"] is True
+    assert calls[0][0] == "https://example.test/webhook/123"
+    assert calls[0][1]["content"] == "FastHR integration connection test."
+
+
+def test_live_timeout_is_reported_without_traceback(fresh_db, monkeypatch):
+    monkeypatch.setenv("FASTHR_SECRET", "test-secret-value")
+    import importlib
+    import integrations
+    importlib.reload(integrations)
+    integrations.save("github", api_key="ghp_test_credential_123", actor="t")
+
+    def timeout(*args, **kwargs):
+        import httpx
+        raise httpx.ReadTimeout("timed out")
+
+    monkeypatch.setattr("httpx.get", timeout)
+    result = integrations.test_connection("github", actor="t")
+    assert result["ok"] is False and "timed out" in result["note"]
+
+
 # --- lifecycle state machines ----------------------------------------------
 
 def test_change_approval_writes_to_the_employee(fresh_db):
