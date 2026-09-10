@@ -11,7 +11,8 @@ import hashlib
 import hmac
 import secrets
 from contextlib import contextmanager
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+import calendar
 from pathlib import Path
 
 DB_PATH = os.getenv("FASTHR_DB") or str(Path(__file__).parent / "fasthr.sqlite")
@@ -501,6 +502,142 @@ def _overtime_for(employee_id: int, period: str) -> tuple[float, float]:
     return float(hours), round(float(hours) * 1.5, 2)
 
 
+def _as_date(value: str | date) -> date:
+    if isinstance(value, date):
+        return value
+    text = str(value)
+    return date.fromisoformat(f"{text}-01" if len(text) == 7 else text)
+
+
+def _average_daily_income(employee_id: int, reference: str | date) -> float:
+    """Average prior income over calendar days in available months.
+
+    Estonian average income uses the six calendar months before the relevant
+    month, divided by calendar days rather than working days. For employment
+    under six months, months before the joining month are omitted. Months with
+    no payslip are omitted as unavailable history instead of treated as zero.
+    """
+    reference_date = _as_date(reference)
+    employee = one("SELECT date_of_joining FROM employees WHERE id=?", (employee_id,))
+    if not employee:
+        return 0.0
+    joining = None
+    try:
+        joining = _as_date(employee["date_of_joining"]) if employee["date_of_joining"] else None
+    except ValueError:
+        pass
+    history = rows("""SELECT period, COALESCE(gross_pay, gross, 0) income
+                     FROM payslips WHERE employee_id=? AND period LIKE '____-__'""",
+                   (employee_id,))
+    by_month = {str(row["period"]): float(row["income"] or 0) for row in history}
+    total_income = calendar_days = 0
+    year, month = reference_date.year, reference_date.month
+    for _ in range(6):
+        month -= 1
+        if month == 0:
+            year, month = year - 1, 12
+        if joining and (year, month) < (joining.year, joining.month):
+            continue
+        period = f"{year:04d}-{month:02d}"
+        if period not in by_month:
+            continue
+        total_income += by_month[period]
+        calendar_days += calendar.monthrange(year, month)[1]
+    return total_income / calendar_days if calendar_days else 0.0
+
+
+def holiday_pay(employee_id: int, holiday_start: str | date, holiday_end: str | date,
+                calc_month: str | date) -> tuple[float, int]:
+    """Return holiday pay and full calendar-day holiday count."""
+    start, end = _as_date(holiday_start), _as_date(holiday_end)
+    days = max(0, (end - start).days + 1)
+    return round(_average_daily_income(employee_id, calc_month) * days, 2), days
+
+
+def incapacity_pay(employee_id: int, sick_start: str | date,
+                   sick_end: str | date) -> tuple[float, int]:
+    """Return employer sick pay: 70% for calendar days 4 through 8.
+
+    The first three days are the employee's own risk. Haigekassa pays from
+    day nine; that part is intentionally out of scope here.
+    """
+    start, end = _as_date(sick_start), _as_date(sick_end)
+    total_days = max(0, (end - start).days + 1)
+    employer_days = max(0, min(total_days, 8) - 3)
+    return round(_average_daily_income(employee_id, start) * employer_days * 0.70, 2), employer_days
+
+
+def _prepare_payslip_benefits(conn, payslip_id: int, employee_id: int, period: str):
+    """Add approved leave-derived earning lines once and refresh totals."""
+    year, month = (int(part) for part in period.split("-"))
+    month_start = date(year, month, 1)
+    month_end = date(year, month, calendar.monthrange(year, month)[1])
+    requests = conn.execute("""SELECT * FROM leave_requests
+                              WHERE employee_id=? AND status='Approved'
+                                AND leave_type IN ('Annual Leave', 'Sick Leave')
+                                AND from_date <= ? AND to_date >= ?""",
+                           (employee_id, month_end.isoformat(), month_start.isoformat())).fetchall()
+    existing = {row["label"] for row in conn.execute(
+        "SELECT label FROM payslip_lines WHERE payslip_id=?", (payslip_id,))}
+    holiday_amount = holiday_days = sick_amount = sick_days = 0
+    for request in requests:
+        start = max(_as_date(request["from_date"]), month_start)
+        end = min(_as_date(request["to_date"]), month_end)
+        if request["leave_type"] == "Annual Leave":
+            amount, days = holiday_pay(employee_id, start, end, period)
+            holiday_amount += amount
+            holiday_days += days
+        else:
+            # A certificate crossing a month boundary still has one day 1–8
+            # sequence; it must not restart at the first day of each month.
+            sick_start = _as_date(request["from_date"])
+            employer_start = max(sick_start + timedelta(days=3), month_start)
+            employer_end = min(sick_start + timedelta(days=7), _as_date(request["to_date"]), month_end)
+            days = max(0, (employer_end - employer_start).days + 1)
+            amount = round(_average_daily_income(employee_id, sick_start) * days * 0.70, 2)
+            sick_amount += amount
+            sick_days += days
+    additions = []
+    holiday_label = "Puhkusehüvitis / Holiday pay"
+    sick_label = "Töövõimetustasu (tööandja 4.-8. päev) / Incapacity pay (employer)"
+    if holiday_days and holiday_label not in existing:
+        additions.append(("Earning", holiday_label, round(holiday_amount, 2), f"{holiday_days:g} kp"))
+    if sick_days and sick_label not in existing:
+        additions.append(("Earning", sick_label, round(sick_amount, 2), f"{sick_days:g} kp"))
+    if not additions:
+        return
+    conn.executemany("""INSERT INTO payslip_lines(payslip_id,kind,label,amount,base)
+                        VALUES (?,?,?,?,?)""", [(payslip_id, *line) for line in additions])
+    extra = round(sum(line[2] for line in additions), 2)
+    slip = conn.execute("SELECT * FROM payslips WHERE id=?", (payslip_id,)).fetchone()
+    gross = round(float(slip["gross"] or 0) + extra, 2)
+    tax, pension = round(gross * 0.22, 2), round(gross * 0.02, 2)
+    unemployment = round(gross * 0.016, 2)
+    employer_unemployment = round(gross * 0.008, 2)
+    net = round(gross - tax - pension - unemployment, 2)
+    conn.execute("""UPDATE payslips SET gross=?, gross_pay=?, tax=?, pension=?,
+                   other_ded=?, net=? WHERE id=?""",
+                 (gross, gross, tax, pension, unemployment, net, payslip_id))
+    line_amounts = {"Income tax (22%)": tax, "Funded pension (II pillar, 2%)": pension,
+                    "Employee unemployment insurance (1.6%)": unemployment,
+                    "Employer unemployment insurance (0.8%)": employer_unemployment}
+    for label, amount in line_amounts.items():
+        conn.execute("UPDATE payslip_lines SET amount=? WHERE payslip_id=? AND label=?",
+                     (amount, payslip_id, label))
+
+
+def prepare_pay_run(run_id: int) -> int:
+    """Refresh leave-derived lines for a pay run without duplicating them."""
+    with cursor() as conn:
+        run = conn.execute("SELECT period FROM pay_runs WHERE id=?", (run_id,)).fetchone()
+        if not run:
+            raise ValueError("Pay run not found")
+        slips = conn.execute("SELECT id, employee_id FROM payslips WHERE run_id=?", (run_id,)).fetchall()
+        for slip in slips:
+            _prepare_payslip_benefits(conn, slip["id"], slip["employee_id"], run["period"])
+    return run_id
+
+
 def create_pay_run(period: str, employee_ids: list[int] | tuple[int, ...]) -> int:
     """Create a draft run and itemised payslips for selected active employees."""
     if not period or len(period) != 7 or period[4] != "-":
@@ -509,7 +646,13 @@ def create_pay_run(period: str, employee_ids: list[int] | tuple[int, ...]) -> in
     with cursor() as conn:
         existing = conn.execute("SELECT id FROM pay_runs WHERE period=?", (period,)).fetchone()
         if existing:
-            return existing[0]
+            run_id = existing[0]
+            # Existing periods are deliberately refreshable: approved leave
+            # may have been entered after the draft was first prepared.
+            slips = conn.execute("SELECT id, employee_id FROM payslips WHERE run_id=?", (run_id,)).fetchall()
+            for slip in slips:
+                _prepare_payslip_benefits(conn, slip["id"], slip["employee_id"], period)
+            return run_id
         run_id = conn.execute("""INSERT INTO pay_runs(period,status,run_date)
                                 VALUES (?, 'Draft', ?)""", (period, TODAY.isoformat())).lastrowid
         emps = conn.execute("""SELECT id, base_salary FROM employees
@@ -539,6 +682,7 @@ def create_pay_run(period: str, employee_ids: list[int] | tuple[int, ...]) -> in
                        employer_unemployment, "0.8% of gross · employer cost")]
             conn.executemany("""INSERT INTO payslip_lines(payslip_id,kind,label,amount,base)
                                 VALUES (?,?,?,?,?)""", [(payslip_id, *line) for line in lines])
+    prepare_pay_run(run_id)
     return run_id
 
 

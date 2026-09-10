@@ -364,7 +364,12 @@ def pay_run_detail(rid):
         return _title("Pay run not found"), P("No such pay run.")
     tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Gross", cls="num"),
                          Th("Net", cls="num"), Th("Status"), Th(""))),
-                Tbody(*[Tr(Td(f"{p['first_name']} {p['last_name']}"), Td(p["dept"] or "—"),
+                Tbody(*[Tr(Td(Div(f"{p['first_name']} {p['last_name']}"),
+                              *[Small(f"{line['label']}: {money(line['amount'])} · {line['base']}",
+                                      style="display:block;color:var(--text-mute);font-size:11px;")
+                                 for line in db.payslip_lines(p["id"])
+                                 if "Holiday pay" in line["label"] or "Incapacity pay" in line["label"]]),
+                           Td(p["dept"] or "—"),
                            Td(money(p["gross"]), cls="num"), Td(Strong(money(p["net"])), cls="num"),
                            Td(_pill(p["status"])), Td(A("Payslip", href=f"/payroll/{p['id']}", cls="btn sm")))
                         for p in run["payslips"]] or [Tr(Td("No payslips in this run.", colspan="6"))]), cls="tbl")

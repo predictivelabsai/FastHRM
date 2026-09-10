@@ -93,7 +93,7 @@ COPY = {
             ("Puudumised ja tööaeg", "Puhkusejäägid, taotlused, kinnitused ja "
              "igapäevane tööajaarvestus."),
             ("Eesti palgaarvestus", "Palgapäevad, palgalehed ning TÖR-i ja TSD ekspordid on kasutatavad. "
-             "Puhkuse- ja töövõimetustasu arvestus on teekaardil."),
+             "Puhkuse- ja töövõimetustasu arvestus on kasutusel."),
             ("Värbamine ja ATS", "Kuulutused, kandidaadid, hindamislehed ja "
              "AI-põhine CV-tuvastus."),
             ("Arengu- ja tulemusjuhtimine", "Eesmärgid, tagasiside, hindamisringid "
@@ -107,14 +107,14 @@ COPY = {
         "stat_eyebrow": "Ehitatud Eestile",
         "stat_h2": "Kohalik vastavus, mis on tavaliselt lisatasu.",
         "stat_sub": "FastHR-i palgapäevad, palgalehed ning TÖR-i ja TSD ekspordid on kasutatavad. "
-                    "Puhkuse- ja töövõimetustasu arvestus on teekaardil.",
+                    "Puhkuse- ja töövõimetustasu arvestus on kasutusel.",
         "statutory": [
             ("TÖR", "Töötamise register: töösuhete registreerimine ja muudatused."),
             ("TSD", "TSD eksport EMTA vormi jaoks on kasutatav."),
             ("Smart-ID & Mobiil-ID", "Sisselogimine ja dokumentide allkirjastamine "
              "Eesti e-identiteediga."),
             ("Puhkuse- ja haigushüvitis", "Puhkuse- ja töövõimetustasu automaatne "
-             "arvestus on teekaardil."),
+             "arvestus on kasutusel."),
             ("Summeeritud tööaeg", "Normtundide arvestus, üle- ja alatunnid "
              "tööseaduse järgi."),
             ("EMTA maksumäärad", "Aastapõhiselt uuenevad maksuvaba miinimum ja määrad."),
@@ -194,7 +194,7 @@ COPY = {
         "feat_payroll_workflow_name": "Palgalehed ja palgapäevad",
         "feat_payroll_workflow_desc": "Palgapäevad ja töötajate palgalehed koos rea-põhise jaotusega.",
         "feat_payroll_statutory_name": "Eesti seadusjärgne palk (TÖR, TSD)",
-        "feat_payroll_statutory_desc": "TÖR-i ja TSD ekspordid on kasutatavad. Puhkuse- ja töövõimetustasu arvestus on teekaardil.",
+        "feat_payroll_statutory_desc": "TÖR-i ja TSD ekspordid ning puhkuse- ja töövõimetustasu arvestus on kasutusel.",
         "cmp_pg_meta_title": "FastHR vs avatud ja proprietaarne HR-tarkvara",
         "cmp_pg_meta_desc": "Võrdle FastHR-i Gusto, BambooHR, Rippling, Deel, Zoho People "
                             "ja Odoo HR-iga litsentsimudeli, palga ja ulatuse osas.",
@@ -353,7 +353,7 @@ COPY = {
             ("Leave & attendance", "Balances, requests, approvals and daily "
              "attendance tracking."),
             ("Estonian payroll", "Pay runs, payslips, and TÖR and TSD exports are available. "
-             "Holiday pay and incapacity pay calculations remain on the roadmap."),
+             "Holiday pay and incapacity pay calculations are available."),
             ("Recruiting & ATS", "Openings, candidates, scorecards and AI CV "
              "extraction."),
             ("Performance", "Goals, feedback, review cycles and explainable people "
@@ -367,14 +367,14 @@ COPY = {
         "stat_eyebrow": "Built for Estonia",
         "stat_h2": "Local compliance that's usually an upsell.",
         "stat_sub": "FastHR's pay runs, payslips, and TÖR and TSD exports are available today. "
-                    "Holiday pay and incapacity pay calculations remain on the roadmap.",
+                    "Holiday pay and incapacity pay calculations are available.",
         "statutory": [
             ("TÖR", "Employment register: register and amend employment records."),
             ("TSD", "TSD export for the EMTA form is available."),
             ("Smart-ID & Mobile-ID", "Sign in and sign documents with Estonian "
              "e-identity."),
             ("Holiday & sick pay", "Automatic holiday-pay and incapacity-pay "
-             "calculation remains on the roadmap."),
+             "calculation is available."),
             ("Summated working time", "Norm-hour accounting, over- and under-time "
              "per labour law."),
             ("EMTA tax rates", "Tax-free minimum and rates that update each year."),
@@ -454,7 +454,7 @@ COPY = {
         "feat_payroll_workflow_name": "Payslips and pay runs",
         "feat_payroll_workflow_desc": "Pay runs and employee payslips with line-item breakdowns.",
         "feat_payroll_statutory_name": "Estonian statutory payroll (TÖR, TSD)",
-        "feat_payroll_statutory_desc": "TÖR and TSD exports are available. Holiday pay and incapacity pay calculations remain on the roadmap.",
+        "feat_payroll_statutory_desc": "TÖR and TSD exports are available. Holiday pay and incapacity pay calculations are available.",
         "cmp_pg_meta_title": "FastHR vs Open-Source and Proprietary HRM Software",
         "cmp_pg_meta_desc": "Compare FastHR with Gusto, BambooHR, Rippling, Deel, Zoho "
                             "People, and Odoo HR across licensing model, payroll, and scope.",
