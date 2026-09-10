@@ -456,8 +456,8 @@ def _dashboard_mock(c):
                           for name, count, width in bars], cls="lh-panel"),
                     Div(Div(mock["leave_requests"], cls="lh-panel-title"),
                         *[Div(Div(B(name), cls="lh-row-txt"),
-                              Span(kind, cls=f"lh-tag {tone}"), Span(date), cls="lh-row")
-                          for name, kind, date, tone in leave], cls="lh-panel"),
+                              Span(tag, cls=f"lh-tag {tone}"), Span(date), cls="lh-row")
+                          for name, kind, date, tone, tag in leave], cls="lh-panel"),
                     cls="lh-panels"),
                 cls="lh-main"),
                 Div(Div(mock["ai"], cls="lh-ai-title"), P(mock["ai_prompt"]),
