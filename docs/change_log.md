@@ -2,6 +2,17 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — New pay run page with employee search and select-all
+
+### Fixed
+
+- Added the missing `GET /payroll/runs/new` page. The route previously 404'd because only the POST handler existed and the path was shadowed by `/payroll/runs/{rid}`; the pay-runs list "+ Uus palgaperiood" button now links to the page (copy localized to Estonian-first on merge).
+- The new-run employee picker gained a search filter and a select-all toggle.
+
+### Verification
+
+- Added regression tests in `tests/test_payroll.py` (new-run form content, route guard resolution); suite passes.
+
 ## 2026-09-12 — Estonian synthetic seed data
 
 ### Changed

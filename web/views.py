@@ -5,6 +5,7 @@ from datetime import timedelta
 
 from fasthtml.common import (
     Div, H1, H3, P, Span, Small, A, Table, Thead, Tbody, Tr, Th, Td, Form, Input, Button, Select, Option, Label, NotStr, Strong,
+    Script,
 )
 
 import db
@@ -316,13 +317,31 @@ def _pay_run_form():
         if m == 0:
             m, y = 12, y - 1
         periods.append(f"{y:04d}-{m:02d}")
+    rows = [Label(Input(type="checkbox", name="employee_ids", value=str(e["id"]), cls="pr-emp"),
+                  f" {e['first_name']} {e['last_name']}",
+                  **{"data-name": f"{e['first_name']} {e['last_name']}".lower()},
+                  style="display:block;padding:3px 0;")
+            for e in emps]
     return Div(Div(H3("Uus palgaperiood"), P("Vali lõppenud periood ja aktiivsed töötajad.", cls="sub")),
                Form(Select(*[Option(p, value=p) for p in periods], name="period", required=True, cls="hr-inp"),
-                    Div(*[Label(Input(type="checkbox", name="employee_ids", value=str(e["id"])),
-                                f" {e['first_name']} {e['last_name']}", style="display:block;padding:3px 0;")
-                         for e in emps], style="max-height:180px;overflow:auto;margin:10px 0;"),
+                    Input(type="search", placeholder="Otsi töötajaid…", cls="hr-inp",
+                          style="margin-top:8px;", oninput="prFilter(this.value)"),
+                    Label(Input(type="checkbox", onchange="prToggle(this.checked)"),
+                          " Vali kõik", style="display:block;padding:6px 0;font-weight:600;"),
+                    Div(*rows or [P("Aktiivseid töötajaid pole.", cls="sub")], id="pr-emps",
+                        style="max-height:180px;overflow:auto;margin:10px 0;"),
                     Button("Loo mustand", type="submit", cls="btn primary"),
-                    method="post", action="/payroll/runs/new"), cls="card")
+                    method="post", action="/payroll/runs/new"),
+               Script("function prToggle(on){document.querySelectorAll('#pr-emps .pr-emp').forEach(c=>c.checked=on);}"
+                      "function prFilter(q){q=q.toLowerCase();document.querySelectorAll('#pr-emps label').forEach("
+                      "l=>{l.style.display=(!q||(l.dataset.name||'').includes(q))?'block':'none';});}"),
+               cls="card")
+
+
+def pay_run_new():
+    return (_title("Uus palgaperiood", "Vali lõppenud periood ja aktiivsed töötajad.",
+                   A("← Palgaperioodid", href="/payroll", cls="btn")),
+            _pay_run_form())
 
 
 def payroll_list(period="latest"):
@@ -355,8 +374,8 @@ def payroll_list(period="latest"):
                         for r in runs] or [Tr(Td("Palgaperioode pole veel.", colspan="6"))]), cls="tbl")
     return (_title("Palgaperioodid", "Koosta, kontrolli ja kinnita kuu palgaarvestus.",
                    A("Ekspordi ajalugu", href="/payroll/exports", cls="btn"),
-                   A("+ Uus palgaperiood", href="#new-pay-run", cls="btn primary")),
-            Div(tbl, cls="card"), Div(_pay_run_form(), id="new-pay-run"))
+                   A("+ Uus palgaperiood", href="/payroll/runs/new", cls="btn primary")),
+            Div(tbl, cls="card"))
 
 
 def pay_run_detail(rid, saved=False):
