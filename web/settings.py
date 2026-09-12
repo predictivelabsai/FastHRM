@@ -85,7 +85,7 @@ def integrations_page(saved: str = ""):
             kpi_card("Providers", k["total"], "across 7 categories"),
             cls="kpi-grid"),
         P(NotStr("Keys are encrypted at rest with the application secret and are never shown "
-                 "again in full — only the last four characters. Rotating <code>FASTHR_SECRET</code> "
+                 "again in full. Only the last four characters are displayed. Rotating <code>FASTHR_SECRET</code> "
                  "invalidates stored credentials and they must be re-entered."),
           style="color:var(--text-mute);font-size:12.5px;margin:-4px 0 14px;"),
         Div(integrations_grid(), id="int-grid"),
@@ -174,7 +174,7 @@ def roles_page(saved: str = "", lang: str = "et"):
     return (_title(copy["rbac_title"], copy["rbac_subtitle"]),
             banner,
             P(NotStr("Roles are recorded here and shown throughout the audit trail. "
-                     "<strong>Row-level enforcement is not yet wired into the query layer</strong> — "
+                     "<strong>Row-level enforcement is not yet wired into the query layer</strong>. "
                      "every signed-in user still sees all data. Assigning roles now means the "
                      "enforcement pass has real assignments to apply."),
               cls="flag"),

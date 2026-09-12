@@ -28,7 +28,7 @@ def ensure_default_template() -> dict:
         conn.execute(
             """INSERT INTO pipeline_templates
                (name,description,stages_json,is_default,created_by,created,updated)
-               VALUES ('Standard hiring','Default FastHRM hiring workflow',?,1,'system',datetime('now'),datetime('now'))""",
+               VALUES ('Standard hiring','Default FastHR hiring workflow',?,1,'system',datetime('now'),datetime('now'))""",
             (json.dumps(DEFAULT_STAGES),),
         )
     return db.one("SELECT * FROM pipeline_templates WHERE name='Standard hiring'")

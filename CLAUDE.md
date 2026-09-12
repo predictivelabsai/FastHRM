@@ -1,4 +1,4 @@
-# FastHRM
+# FastHR
 
 Part of the FastSME suite (open-source, MIT). Estonian HR, payroll & hiring platform.
 

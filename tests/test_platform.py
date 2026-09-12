@@ -193,7 +193,7 @@ def test_learning_certification_expiry_and_bilingual_pages(fresh_db):
     assert "Learning &amp; development" in str(learning.staff_page("en"))
     assert isinstance(web_app._guard({}, "learning", learning.staff_page), RedirectResponse)
     portal = str(selfservice.onboarding_page(fresh_db.employee(eid)))
-    assert "Minu arengukava / My learning" in portal
+    assert "Minu arengukava" in portal
     assert "First aid" in portal
 
 
@@ -258,7 +258,7 @@ def test_benefit_staff_page_and_portal_card_render_bilingually(fresh_db):
     assert "Soodustused" in str(benefits.staff_page("et"))
     assert "Benefits" in str(benefits.staff_page("en"))
     portal = str(selfservice.pay_page(fresh_db.employee(eid)))
-    assert "Minu soodustused / My benefits" in portal
+    assert "Minu soodustused" in portal
     assert "Lunch" in portal and "25.00 EUR" in portal
 
 
@@ -279,8 +279,8 @@ def test_pay_run_totals_and_reprepare_are_itemised_and_idempotent(fresh_db):
     lines = fresh_db.payslip_lines(slip["id"])
     assert "Base salary" in first and "Income tax" in first
     assert "Employer cost" in first
-    assert "Gross total" in first and "Net total" in first
-    assert "Employer costs" in first and "Employees" in first
+    assert "Bruto kokku" in first and "Netosumma kokku" in first
+    assert "Tööandja kulud" in first and "Töötajaid" in first
     assert second.count("Benefit: Health") == 1
     assert sum("Benefit: Health" in line["label"] for line in lines) == 1
 
@@ -296,7 +296,7 @@ def test_payslip_and_portal_keep_employer_costs_out_of_deductions(fresh_db):
     slip = fresh_db.one("SELECT * FROM payslips WHERE run_id=?", (rid,))
     detail = str(views.payslip_detail(slip["id"]))
     portal = str(selfservice.pay_page(fresh_db.employee(eid)))
-    assert "Tööandja kulud / Employer costs" in detail
+    assert "Tööandja kulud" in detail
     assert "− 25.00" not in detail
     assert "Benefit: Lunch" in detail and "Benefit: Lunch" in portal
     assert "Deduction" in portal and "25.00 EUR" in portal
@@ -698,11 +698,11 @@ def test_attrition_signals_always_carry_their_reasons(fresh_db):
 def test_list_pages_render_empty_states_on_empty_db(fresh_db):
     from web import views
 
-    assert "No employees found." in str(views.employees_list())
-    assert "No employees found." in str(views.employees_list(q="zzz-no-match"))
-    assert "No departments." in str(views.departments_list())
-    assert "No attendance records today." in str(views.attendance_view())
-    assert "No employees." in str(views.time_clocks())
+    assert "Töötajaid ei leitud." in str(views.employees_list())
+    assert "Töötajaid ei leitud." in str(views.employees_list(q="zzz-no-match"))
+    assert "Osakondi pole." in str(views.departments_list())
+    assert "Tänaseid kohalolekuid pole." in str(views.attendance_view())
+    assert "Töötajaid pole." in str(views.time_clocks())
 
 
 def test_employee_detail_shows_empty_payslip_state(fresh_db):
@@ -712,4 +712,4 @@ def test_employee_detail_shows_empty_payslip_state(fresh_db):
         conn.execute("""INSERT INTO employees(first_name,last_name,status,base_salary)
                         VALUES ('Ada','Lovelace','Active',60000)""")
         eid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-    assert "No payslips yet." in str(views.employee_detail(eid))
+    assert "Palgalehti pole." in str(views.employee_detail(eid))

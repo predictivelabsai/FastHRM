@@ -92,7 +92,7 @@ def queue_message(candidate_id: int, *, channel: str, subject: str = "", body: s
     rendered_html = _render(template["body_html"], context) if template else _render(body, context)
     rendered_text = _render(template["body_text"], context) if template and template.get("body_text") else re.sub("<[^>]+>", "", rendered_html)
     mailbox = db.one("SELECT * FROM recruitment_mailboxes WHERE status='Active' ORDER BY id LIMIT 1")
-    sender = sender or ((mailbox or {}).get("address") if channel == "email" else "FastHRM") or actor
+    sender = sender or ((mailbox or {}).get("address") if channel == "email" else "FastHR") or actor
     if channel == "email" and mailbox and mailbox.get("signature_html"):
         rendered_html += mailbox["signature_html"]
     status = "Scheduled" if scheduled_at else "Queued"
