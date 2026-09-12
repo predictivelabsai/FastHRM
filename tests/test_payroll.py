@@ -29,3 +29,23 @@ def test_pay_run_transitions_are_sequential(fresh_db):
     assert not fresh_db.advance_pay_run(rid, "In Review")
     assert fresh_db.scalar("SELECT status FROM pay_runs WHERE id=?", (rid,)) == "Paid"
     assert fresh_db.scalar("SELECT DISTINCT status FROM payslips WHERE run_id=?", (rid,)) == "Paid"
+
+
+def test_new_pay_run_page_has_form_with_select_all_and_search(fresh_db):
+    from web import views
+
+    _employee(fresh_db)
+    html = str(views.pay_run_new())
+    assert 'action="/payroll/runs/new"' in html
+    assert "Vali kõik" in html
+    assert 'type="search"' in html
+    assert "prToggle" in html and "prFilter" in html
+
+
+def test_new_pay_run_route_requires_login_and_beats_run_id_shadow(fresh_db):
+    from starlette.testclient import TestClient
+
+    import web_app
+
+    response = TestClient(web_app.app).get("/payroll/runs/new", follow_redirects=False)
+    assert response.status_code == 303 and "/login" in response.headers["location"]
