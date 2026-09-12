@@ -171,7 +171,7 @@ def _apply_form():
 
 def leave_main(status="Pending"):
     seg = Div(*[A(s, href=f"/leave?status={s}", cls="" + ("active" if status == s else ""))
-                for s in ["Pending", "All"] + db.LEAVE_STATUSES], cls="seg")
+                for s in ["Pending", "All"] + [st for st in db.LEAVE_STATUSES if st != "Pending"]], cls="seg")
     clause, params = ("", ()) if status == "All" else ("WHERE lr.status=?", (status,))
     reqs = db.rows(f"""SELECT lr.*, e.first_name,e.last_name, d.name dept FROM leave_requests lr
                        JOIN employees e ON e.id=lr.employee_id LEFT JOIN departments d ON d.id=e.dept_id
@@ -181,7 +181,7 @@ def leave_main(status="Pending"):
         if r["status"] == "Pending":
             act = Div(Button("✓ Approve", cls="btn sm primary",
                              **{"hx-post": f"/leave/{r['id']}/approve", "hx-target": "#leave-main", "hx-swap": "innerHTML"}),
-                      Button("✕", cls="btn sm", title="Reject",
+                      Button("✕ Reject", cls="btn sm", title="Reject",
                              **{"hx-post": f"/leave/{r['id']}/reject", "hx-target": "#leave-main", "hx-swap": "innerHTML"}),
                       style="display:flex;gap:4px;")
         else:
