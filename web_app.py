@@ -2850,6 +2850,11 @@ def get(session):
     return _guard(session, "payroll", views.payroll_list)
 
 
+@rt("/payroll/runs/new")
+def get(session):
+    return _guard(session, "payroll", views.pay_run_new)
+
+
 @rt("/payroll/runs/{rid}")
 def get(session, rid: int, request):
     saved = request.query_params.get("saved") == "1"
