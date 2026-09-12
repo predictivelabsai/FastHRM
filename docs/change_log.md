@@ -2,6 +2,17 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — Estonian synthetic seed data
+
+### Changed
+
+- Localized all three seed scripts to Estonian-first demo content: Estonian employee and candidate names, departments, titles, branches, leave reasons, goals, feedback, cases, requisitions (EUR ranges, Estonian cities and remote policies) and fixed deterministic demo accounts (Mari Tamm, Jaan Saar, Kadri Mägi, Peeter Sepp).
+- Canonical status and type vocabularies stay English (leave, attendance, goal, feedback, change, separation, case, ATS stages and offer statuses) since the app logic matches on them.
+
+### Verification
+
+- Targeted tests pass (`tests/test_shifts.py`, `tests/test_expenses.py`); full seed build smoke-tested on a scratch database.
+
 ## 2026-09-12 — Estonian-first copy cleanup across app and portal
 
 ### Changed

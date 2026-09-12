@@ -10,28 +10,36 @@ import people
 RNG = random.Random(20260611)
 TODAY = db.TODAY
 
-FIRST = ["Aisha", "Liam", "Sofia", "Noah", "Mia", "Ethan", "Priya", "Lucas", "Chloe", "Mateo",
-         "Hana", "Omar", "Isla", "Diego", "Yuki", "Nora", "Kai", "Zara", "Leo", "Amara",
-         "Felix", "Ravi", "Elena", "Tariq", "Maya", "Sven", "Ingrid", "Marco", "Lena", "Pablo",
-         "Nina", "Theo", "Sara", "Hugo", "Ada", "Cyrus", "Maja", "Bo", "Rhea", "Jonas"]
-LAST = ["Okafor", "Nguyen", "Rossi", "Andersen", "Kim", "Haddad", "Silva", "Müller", "Costa",
-        "Tanaka", "Khan", "Lindqvist", "Moreau", "Ito", "Petrov", "Schmidt", "Dubois", "Reyes",
-        "Novak", "Bauer", "Mensah", "Sato", "Larsen", "Romano", "Singh", "Fischer", "Mwangi", "Park"]
-DEPTS = ["Engineering", "Sales", "Marketing", "Customer Success", "Finance", "People & Culture", "Operations", "Product"]
+FIRST = ["Mari", "Jaan", "Kadri", "Peeter", "Liisa", "Mati", "Anna", "Kristjan",
+         "Eva", "Tõnu", "Katrin", "Andres", "Piret", "Jüri", "Tiina", "Marko",
+         "Sirje", "Urmas", "Kairi", "Rain", "Maarja", "Indrek", "Külli", "Toomas",
+         "Anu", "Priit", "Heli", "Meelis", "Triin", "Siim", "Kati", "Oliver",
+         "Laura", "Rasmus", "Nele", "Kaspar", "Getter", "Risto", "Elina", "Joosep"]
+LAST = ["Tamm", "Saar", "Mägi", "Sepp", "Rebane", "Kask", "Kukk", "Pärn",
+        "Ilves", "Karu", "Raud", "Õun", "Lepp", "Kuusk", "Vaher", "Nurk",
+        "Puu", "Kivi", "Roos", "Hall", "Must", "Valge", "Pihl", "Koppel",
+        "Aas", "Oja", "Jõgi", "Mets"]
+DEPTS = ["Arendus", "Müük", "Turundus", "Klienditugi", "Finants", "Personal", "Operatsioonid", "Toode"]
 DESIG = {
-    "Engineering": ["Software Engineer", "Senior Engineer", "Engineering Manager", "QA Engineer", "DevOps Engineer"],
-    "Sales": ["Account Executive", "Sales Manager", "SDR", "Sales Director"],
-    "Marketing": ["Marketing Manager", "Content Lead", "Growth Marketer", "Designer"],
-    "Customer Success": ["CS Manager", "Onboarding Specialist", "Support Lead"],
-    "Finance": ["Accountant", "Financial Analyst", "Finance Manager"],
-    "People & Culture": ["HR Business Partner", "Recruiter", "People Ops Manager"],
-    "Operations": ["Operations Manager", "Office Manager", "Ops Analyst"],
-    "Product": ["Product Manager", "Product Designer", "Head of Product"],
+    "Arendus": ["Tarkvaraarendaja", "Vanemarendaja", "Arendusjuht", "Testija", "DevOps-insener"],
+    "Müük": ["Müügikonsultant", "Müügijuht", "Võtmekliendihaldur", "Müügidirektor"],
+    "Turundus": ["Turundusjuht", "Sisuturundaja", "Kasvuturundaja", "Disainer"],
+    "Klienditugi": ["Klienditoe spetsialist", "Kasutuselevõtu spetsialist", "Klienditoe juht"],
+    "Finants": ["Raamatupidaja", "Finantsanalüütik", "Finantsjuht"],
+    "Personal": ["Personalipartner", "Värbaja", "Personalijuht"],
+    "Operatsioonid": ["Operatsioonide analüütik", "Kontorijuht", "Operatsioonide juht"],
+    "Toode": ["Tootejuht", "Tootedisainer", "Tootevaldkonna juht"],
 }
-BRANCHES = ["London", "Berlin", "Remote", "Stockholm", "Madrid"]
+BRANCHES = ["Tallinn", "Tartu", "Pärnu", "Kaugtöö", "Narva"]
 LEAVE_ALLOC = {"Annual Leave": 25, "Sick Leave": 10, "Casual Leave": 6, "Parental Leave": 0, "Unpaid Leave": 0}
-LEAVE_REASONS = ["Family holiday", "Medical appointment", "Personal day", "Wedding", "Moving house",
-                 "Childcare", "Feeling unwell", "Conference", "Bereavement", "Mental health day"]
+LEAVE_REASONS = ["Perepuhkus", "Arsti vastuvõtt", "Isiklik päev", "Pulmad", "Kolimine",
+                 "Lapsehoid", "Halb enesetunne", "Konverents", "Lein", "Vaimse tervise päev"]
+
+
+def _slug(name):
+    """ASCII email local-part: strip Estonian diacritics (õäöüšž)."""
+    return (name.lower().replace("õ", "o").replace("ä", "a").replace("ö", "o")
+            .replace("ü", "u").replace("š", "s").replace("ž", "z"))
 
 
 def _d(days_ago):
@@ -46,15 +54,27 @@ def build():
         conn.executemany("INSERT INTO departments(name) VALUES (?)", [(d,) for d in DEPTS])
         dept_ids = {r["name"]: r["id"] for r in conn.execute("SELECT id,name FROM departments").fetchall()}
 
-    # employees — managers first per dept
+    # employees — the first four are fixed demo accounts for the self-service
+    # portal (password PortalDemo2026!), the rest are deterministic randoms.
+    demo = [("Mari", "Tamm", "Arendus", "Arendusjuht"),
+            ("Jaan", "Saar", "Müük", "Müügijuht"),
+            ("Kadri", "Mägi", "Finants", "Raamatupidaja"),
+            ("Peeter", "Sepp", "Arendus", "Tarkvaraarendaja")]
     emps = []
     used = set()
     n = 64
-    for i in range(n):
+    for i, (fn, ln, dept, desig) in enumerate(demo):
+        email = f"{_slug(fn)}.{_slug(ln)}@fasthr.example"
+        used.add(email)
+        base = 60000 + i * 5000
+        emps.append((f"EMP-{1001+i}", fn, ln, email, dept_ids[dept], desig, None,
+                     BRANCHES[i % len(BRANCHES)], "Active", _d(900 - i * 60),
+                     "Female" if i % 2 == 0 else "Male", base))
+    for i in range(len(demo), n):
         fn, ln = RNG.choice(FIRST), RNG.choice(LAST)
-        email = f"{fn.lower()}.{ln.lower()}@fasthr.example"
+        email = f"{_slug(fn)}.{_slug(ln)}@fasthr.example"
         if email in used:
-            email = f"{fn.lower()}.{ln.lower()}{i}@fasthr.example"
+            email = f"{_slug(fn)}.{_slug(ln)}{i}@fasthr.example"
         used.add(email)
         dept = RNG.choice(DEPTS)
         desig = RNG.choice(DESIG[dept])
@@ -73,7 +93,7 @@ def build():
         for e in emp_rows:
             by_dept.setdefault(e["dept_id"], []).append(e)
         for dept_id, members in by_dept.items():
-            mgrs = [m for m in members if any(w in m["designation"] for w in ("Manager", "Director", "Head", "Lead"))]
+            mgrs = [m for m in members if any(w in m["designation"] for w in ("Manager", "Director", "Head", "Lead", "Juht", "juht", "Direktor", "direktor"))]
             mgr = (mgrs or members)[0]
             for m in members:
                 if m["id"] != mgr["id"]:
@@ -83,15 +103,15 @@ def build():
         for eid in emp_ids[:4]:
             conn.execute("UPDATE employees SET status='Active' WHERE id=?", (eid,))
 
-    # Demo portal credentials (synthetic only):
-    # Aisha Okafor, Liam Nguyen, Sofia Rossi and Noah Andersen use
-    # portal.demo@fasthr.example-style addresses and password PortalDemo2026!
+    # Demo portal credentials (synthetic only): the four fixed accounts above
+    # (mari.tamm@, jaan.saar@, kadri.magi@, peeter.sepp@fasthr.example)
+    # use password PortalDemo2026!
     for eid in emp_ids[:4]:
         db.set_employee_password(eid, "PortalDemo2026!")
 
     for eid in emp_ids[:4]:
         people.start_onboarding(eid)
-        people.create_goal(title="Make a strong start", owner_id=eid, metric="Progress",
+        people.create_goal(title="Tee tugev algus", owner_id=eid, metric="Edenemine",
                            target=100, current=35, unit="%", period="2026 H1",
                            due_date="2026-06-30")
 
@@ -152,14 +172,14 @@ def build():
     with db.cursor() as conn:
         conn.executemany("""INSERT INTO shift_types(name,start_time,end_time,break_minutes,hourly_rate_multiplier,color)
                            VALUES (?,?,?,?,?,?)""", [
-            ("Day", "09:00", "17:00", 30, 1.0, "#4f7cff"),
-            ("Evening", "14:00", "22:00", 30, 1.1, "#a855f7"),
-            ("Night", "22:00", "06:00", 45, 1.25, "#334155"),
-            ("Split", "09:00", "17:00", 60, 1.0, "#f59e0b"),
+            ("Päev", "09:00", "17:00", 30, 1.0, "#4f7cff"),
+            ("Õhtu", "14:00", "22:00", 30, 1.1, "#a855f7"),
+            ("Öö", "22:00", "06:00", 45, 1.25, "#334155"),
+            ("Jagatud", "09:00", "17:00", 60, 1.0, "#f59e0b"),
         ])
         conn.executemany("INSERT INTO shift_locations(label,latitude,longitude,radius_m) VALUES (?,?,?,?)", [
-            ("Tallinn HQ", 59.4370, 24.7536, 180),
-            ("Warehouse B", 59.4230, 24.7920, 250),
+            ("Tallinna peakontor", 59.4370, 24.7536, 180),
+            ("Ladu B", 59.4230, 24.7920, 250),
         ])
         type_ids = {r["name"]: r["id"] for r in conn.execute("SELECT id,name FROM shift_types")}
         shift_ids = [e["id"] for e in emp_rows if e["id"] in emp_ids[:12]]
@@ -170,21 +190,21 @@ def build():
             d = TODAY + timedelta(days=offset)
             if d.weekday() >= 5:
                 continue
-            kind = ["Day", "Evening", "Night", "Split"][(index + offset) % 4]
+            kind = ["Päev", "Õhtu", "Öö", "Jagatud"][(index + offset) % 4]
             status = "Scheduled" if d > TODAY else "Completed"
             if index == 0 and offset == -8:
                 status = "Missed"
             aid = db.create_shift_assignment(eid, type_ids[kind], d.isoformat(),
-                                              "Tallinn HQ" if index % 3 else "Warehouse B")
+                                              "Tallinna peakontor" if index % 3 else "Ladu B")
             assignments.append((aid, eid, d, kind, status))
     for aid, eid, d, kind, status in assignments:
         with db.cursor() as conn:
             conn.execute("UPDATE shift_assignments SET status=? WHERE id=?", (status, aid))
         if status != "Completed":
             continue
-        start_hour = {"Day": 9, "Evening": 14, "Night": 22, "Split": 9}[kind]
+        start_hour = {"Päev": 9, "Õhtu": 14, "Öö": 22, "Jagatud": 9}[kind]
         start = datetime(d.year, d.month, d.day, start_hour, 0)
-        end = start + timedelta(hours=7, minutes=30 if kind != "Night" else 15)
+        end = start + timedelta(hours=7, minutes=30 if kind != "Öö" else 15)
         db.clock_in(eid, aid, "Web", 59.4370, 24.7536, 12, punched_at=start.isoformat(sep=" "))
         db.clock_out(eid, aid, "Web", 59.4370, 24.7536, 12, punched_at=end.isoformat(sep=" "))
 
@@ -206,43 +226,43 @@ def build():
 
     # Expenses, advances and travel — deterministic synthetic Phase 3 data.
     categories = [
-        ("Travel & accommodation", 1, 250.0, 1800.0), ("Mileage", 1, None, 600.0),
-        ("Meals", 1, 35.0, 450.0), ("Office supplies", 1, None, 500.0),
-        ("Software", 0, None, 1000.0), ("Training", 1, None, 1500.0),
-        ("Client entertainment", 1, 150.0, 800.0), ("Other", 1, None, None),
+        ("Reis ja majutus", 1, 250.0, 1800.0), ("Sõidukompensatsioon", 1, None, 600.0),
+        ("Toitlustus", 1, 35.0, 450.0), ("Kontoritarbed", 1, None, 500.0),
+        ("Tarkvara", 0, None, 1000.0), ("Koolitus", 1, None, 1500.0),
+        ("Kliendikulud", 1, 150.0, 800.0), ("Muu", 1, None, None),
     ]
     with db.cursor() as conn:
         conn.executemany("INSERT INTO expense_categories(name,requires_receipt,daily_limit,monthly_limit) VALUES (?,?,?,?)", categories)
         cat_ids = {r["name"]: r["id"] for r in conn.execute("SELECT id,name FROM expense_categories")}
-        descriptions = ["Hotel in Tallinn", "Client visit mileage", "Lunch during workshop", "Printer paper",
-                        "Figma team subscription", "First aid training", "Customer dinner", "Taxi to station"]
-        cat_names = ["Travel & accommodation", "Mileage", "Meals", "Office supplies", "Software", "Training", "Client entertainment", "Other"]
+        descriptions = ["Hotell Tartus", "Kliendikülastuse sõit", "Lõuna koolituse ajal", "Printeripaber",
+                        "Fig Jam meeskonnatellimus", "Esmaabikoolitus", "Kliendiõhtusöök", "Takso jaama"]
+        cat_names = ["Reis ja majutus", "Sõidukompensatsioon", "Toitlustus", "Kontoritarbed", "Tarkvara", "Koolitus", "Kliendikulud", "Muu"]
         claim_rows = []
         claim_statuses = ["Submitted", "Approved", "Reimbursed", "Rejected", "Draft"]
         for i in range(20):
             cat_name = cat_names[i % len(cat_names)]
-            amount = round((420 if cat_name == "Travel & accommodation" else 0) +
-                           (0.35 * (35 + i * 7) if cat_name == "Mileage" else RNG.uniform(12, 95)), 2)
+            amount = round((420 if cat_name == "Reis ja majutus" else 0) +
+                           (0.35 * (35 + i * 7) if cat_name == "Sõidukompensatsioon" else RNG.uniform(12, 95)), 2)
             claim_rows.append((emp_ids[i % 16], cat_ids[cat_name], _d((i * 5) % 88), descriptions[i % len(descriptions)],
-                               amount, "EUR", 0.22 if cat_name not in ("Mileage", "Other") else 0,
+                               amount, "EUR", 0.22 if cat_name not in ("Sõidukompensatsioon", "Muu") else 0,
                                claim_statuses[i % len(claim_statuses)], emp_ids[(i + 20) % len(emp_ids)] if i % 5 in (0, 1, 2) else None,
                                _d((i * 5 + 2) % 88) if i % 5 in (0, 1, 2) else None,
-                               _d((i * 5 + 4) % 88) if i % 5 == 2 else None, "Synthetic seed claim"))
+                               _d((i * 5 + 4) % 88) if i % 5 == 2 else None, "Sünteetiline näidiskanne"))
         conn.executemany("""INSERT INTO expense_claims(employee_id,category_id,claim_date,description,amount,currency,tax_rate,status,approver_id,decided_at,reimbursed_at,notes)
                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""", claim_rows)
         conn.executemany("""INSERT INTO employee_advances(employee_id,requested_amount,approved_amount,currency,reason,status,requested_at,decided_at,notes)
                            VALUES (?,?,?,?,?,?,datetime('now'),?,?)""", [
-            (emp_ids[2], 800, None, "EUR", "Conference travel", "Requested", None, "Awaiting approval"),
-            (emp_ids[0], 1200, 1200, "EUR", "Relocation support", "Approved", _d(18), "Approved seed advance"),
-            (emp_ids[11], 450, None, "EUR", "Equipment purchase", "Repaid", _d(70), "Repaid seed advance"),
+            (emp_ids[2], 800, None, "EUR", "Konverentsisõit", "Requested", None, "Ootab kinnitamist"),
+            (emp_ids[0], 1200, 1200, "EUR", "Kolimistoetus", "Approved", _d(18), "Kinnitatud näidisavanss"),
+            (emp_ids[11], 450, None, "EUR", "Seadmeost", "Repaid", _d(70), "Tagasi makstud näidisavanss"),
         ])
         conn.executemany("""INSERT INTO travel_requests(employee_id,destination,purpose,from_date,to_date,estimated_cost,advance_requested,status,approver_id,decided_at,notes)
                            VALUES (?,?,?,?,?,?,?,?,?,?,?)""", [
-            (emp_ids[1], "Tartu", "Customer workshop", _d(4), _d(2), 260, 100, "Submitted", None, None, "Synthetic seed request"),
-            (emp_ids[4], "Helsinki", "Partner planning", _d(15), _d(13), 720, 300, "Approved", emp_ids[30], _d(20), "Synthetic seed request"),
-            (emp_ids[8], "Riga", "Sales conference", _d(28), _d(25), 980, 400, "Returned", emp_ids[31], _d(30), "Add agenda"),
-            (emp_ids[12], "Vilnius", "Team offsite", _d(42), _d(39), 650, 0, "Rejected", emp_ids[32], _d(45), "Synthetic seed request"),
-            (emp_ids[15], "Pärnu", "Planning day", _d(60), _d(59), 180, 0, "Approved", emp_ids[33], _d(63), "Synthetic seed request"),
+            (emp_ids[1], "Tartu", "Kliendikoolitus", _d(4), _d(2), 260, 100, "Submitted", None, None, "Sünteetiline näidistaotlus"),
+            (emp_ids[4], "Helsingi", "Partneri planeerimine", _d(15), _d(13), 720, 300, "Approved", emp_ids[30], _d(20), "Sünteetiline näidistaotlus"),
+            (emp_ids[8], "Riia", "Müügikonverents", _d(28), _d(25), 980, 400, "Returned", emp_ids[31], _d(30), "Lisa päevakava"),
+            (emp_ids[12], "Vilnius", "Meeskonnapäev", _d(42), _d(39), 650, 0, "Rejected", emp_ids[32], _d(45), "Sünteetiline näidistaotlus"),
+            (emp_ids[15], "Pärnu", "Planeerimispäev", _d(60), _d(59), 180, 0, "Approved", emp_ids[33], _d(63), "Sünteetiline näidistaotlus"),
         ])
 
     pays = db.scalar("SELECT COUNT(*) FROM payslips") or 0
