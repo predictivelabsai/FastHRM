@@ -311,7 +311,7 @@ def build():
                              (e["id"], s, RNG.choice(["Intermediate", "Advanced", "Expert"]),
                               round(RNG.uniform(1, 9), 1)))
 
-    print(f"FastHRM platform seeded → {db.DB_PATH}")
+    print(f"FastHR platform seeded → {db.DB_PATH}")
     print(f"  {len(COMPETENCIES)} competencies · {n_iv} interviews · {n_sc} scorecard entries · {n_off} offers")
     print(f"  {len(COMPANY_GOALS)} company + {len(dept_ids)} team + {n_goals} individual goals · {n_fb} feedback")
     print(f"  {n_rev} reviews submitted · {n_onb} onboarding checklists · {n_chg} changes · {n_sep} separations")

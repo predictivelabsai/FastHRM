@@ -1,4 +1,4 @@
-"""Generate a synthetic FastHRM database (deterministic, no PII)."""
+"""Generate a synthetic FastHR database (deterministic, no PII)."""
 from __future__ import annotations
 
 import random
@@ -247,7 +247,7 @@ def build():
 
     pays = db.scalar("SELECT COUNT(*) FROM payslips") or 0
 
-    print(f"FastHRM seeded -> {db.DB_PATH}")
+    print(f"FastHR seeded -> {db.DB_PATH}")
     print(f"  {n} employees · {len(DEPTS)} depts · {len(reqs)} leave requests · {len(att)} attendance · "
           f"{len(assignments)} shifts · {pays} payslips · 3 pay runs · 20 expense claims · 5 travel requests")
 

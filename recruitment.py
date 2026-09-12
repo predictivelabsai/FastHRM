@@ -45,7 +45,7 @@ def ensure_default_site() -> dict:
             """INSERT INTO career_sites
                (name,slug,headline,introduction,brand_color,accent_color,
                 privacy_policy_url,is_active,created,updated)
-               VALUES ('FastHRM Careers','careers','Do work that matters.',
+               VALUES ('FastHR Careers','careers','Do work that matters.',
                        'Explore open roles and find your next team.','#0891b2','#0e7490',
                        '/privacy',1,datetime('now'),datetime('now'))"""
         )

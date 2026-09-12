@@ -1,4 +1,4 @@
-"""Public and in-app developer documentation for FastHRM."""
+"""Public and in-app developer documentation for FastHR."""
 from __future__ import annotations
 
 from fasthtml.common import *

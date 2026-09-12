@@ -1,4 +1,4 @@
-# FastHRM Rework Plan — 2026
+# FastHR Rework Plan — 2026
 
 *Status: draft for review · Author: platform team · Date: 2026-09-09*
 
@@ -15,11 +15,11 @@ the same commit.
 |---|---|---|
 | Technical direction | **Overhaul the existing FastHTML app** | Keep Python/FastHTML + SQLite/migrations + the ATS/performance/lifecycle work. Redesign UI/UX, add missing modules on top. No rewrite. |
 | First product priority | **Estonian statutory depth** | TÖR, TSD, full payroll engine, holiday/sick pay, Smart-ID/Mobile-ID, summated working time come before broad breadth. This is the moat vs. international HR tools. |
-| Landing scope | **FastHRM page on a reusable FastSME design system** | Build tokens/components once; the other 46 FastSME products reuse them. |
+| Landing scope | **FastHR page on a reusable FastSME design system** | Build tokens/components once; the other 46 FastSME products reuse them. |
 
 ## 1. Positioning
 
-**FastHRM** — *Estonian HR, payroll and recruiting without the licence fees.*
+**FastHR** — *Estonian HR, payroll and recruiting without the licence fees.*
 
 - Part of the **FastSME suite** (47 products in progress: FastMail, FastOffice,
   FastDrive, FastMeet, FastAccounts, …). Shared identity, shared design system.
@@ -45,9 +45,9 @@ Feature sets pulled from the eight products in `hrm-competitors.md`:
 | **Wemply** | HR + scheduling + time + leave + **Estonian payroll (TSD, TÖR)** + analytics + open API — ~€7/emp (+€1 payroll) |
 | **Persona** | Personnel + **payroll (tax, holiday pay, incapacity, auto tax rates)** + T&A + self-service — 56k employees, 327 clients |
 
-### 2.1 Gap analysis vs. FastHRM today
+### 2.1 Gap analysis vs. FastHR today
 
-| Capability | Competitors with it | FastHRM status | Plan phase |
+| Capability | Competitors with it | FastHR status | Plan phase |
 |---|---|---|---|
 | Core HR / employee records / org | all | ✅ shipped | maintain |
 | Departments / reporting line | all | ✅ shipped | maintain |
@@ -83,7 +83,7 @@ Feature sets pulled from the eight products in `hrm-competitors.md`:
 
 ## 3. Workstream A — Landing page (do first)
 
-**Goal:** a new marketing site for FastHRM's own domain, built on a reusable
+**Goal:** a new marketing site for FastHR's own domain, built on a reusable
 **FastSME design system** so the rest of the suite inherits it. Waiting on the
 reference screenshots you're adding to `references/`.
 
@@ -97,7 +97,7 @@ reference screenshots you're adding to `references/`.
 - Ship as reusable FastHTML components + a token CSS file; document in
   `docs/DESIGN-SYSTEM.md`. Light/dark, responsive, WCAG AA.
 
-### A2. FastHRM landing content
+### A2. FastHR landing content
 - Rework hero, feature narrative, demo embed, pricing (€1/seat beta + BYOC free),
   competitor comparison (extend the existing `COMPARISONS` to include the ET
   competitors, honestly), partners, FAQ, SEO/sitemap (already in `web/seo.py`).
@@ -210,7 +210,7 @@ tests + roadmap/change-log entries. UI reskinned onto the design system as we go
 ## 7. Sequencing & immediate next actions
 
 ```
-Now → landing:   A1 design system → A2 FastHRM content → A3 visual pass (needs references/)
+Now → landing:   A1 design system → A2 FastHR content → A3 visual pass (needs references/)
 In parallel:     Phase 1 foundation (design system in-app, tenancy, RBAC, self-service, leave)
 Then:            Phase 2 Estonian statutory core (the differentiator)
 Then:            Phase 3 → 4 → 5 → 6
@@ -220,7 +220,7 @@ Continuous:      demo/seed refresh + docs sync as each module lands
 **Immediate (this week):**
 1. You add landing inspiration to `references/`.
 2. Stand up `web/design/` tokens + core components (design-system extraction).
-3. Rebuild the FastHRM landing on top of it.
+3. Rebuild the FastHR landing on top of it.
 4. Draft the Phase 1 migration set (tenant scoping + RBAC) as a spike.
 
 ## 8. Open questions
@@ -228,7 +228,7 @@ Continuous:      demo/seed refresh + docs sync as each module lands
 - Target customer size for launch (micro 1–10 vs SME 10–200)? Sets payroll depth
   and self-service priorities.
 - Pricing granularity: €1/seat/product across the suite vs bundled — how does
-  FastHRM's beta price interact with multi-product accounts?
+  FastHR's beta price interact with multi-product accounts?
 - Smart-ID/Mobile-ID: certified provider (SK ID Solutions) account/timeline?
 - Do we build the LMS or integrate (e.g. PocoBit) for Phase 5?
 - Hosting/tenancy model: single shared DB with row-level isolation vs DB-per-tenant?

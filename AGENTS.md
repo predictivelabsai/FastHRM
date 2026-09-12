@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-FastHRM is a Python 3.12 FastHTML application. `web_app.py` bootstraps routes. Domain and persistence logic lives in `db.py`, `talent.py`, `people.py`, and `integrations.py`; page and API code is under `web/`. Put sequential SQL migrations in `migrations/` (for example, `0004_feature_name.sql`) and tests in `tests/`. Runtime assets belong in `static/` or `web/static/`; guides belong in `docs/`. Seed scripts must use synthetic data only.
+FastHR is a Python 3.12 FastHTML application. `web_app.py` bootstraps routes. Domain and persistence logic lives in `db.py`, `talent.py`, `people.py`, and `integrations.py`; page and API code is under `web/`. Put sequential SQL migrations in `migrations/` (for example, `0004_feature_name.sql`) and tests in `tests/`. Runtime assets belong in `static/` or `web/static/`; guides belong in `docs/`. Seed scripts must use synthetic data only.
 
 ## Build, Test, and Development Commands
 

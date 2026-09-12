@@ -17,7 +17,7 @@ import recruitment
 import talent
 
 
-def ensure_organization(name: str = "FastHRM", *, slug: str = "fasthr",
+def ensure_organization(name: str = "FastHR", *, slug: str = "fasthr",
                         default_locale: str = "en", timezone_name: str = "UTC") -> dict:
     row = db.one("SELECT * FROM organizations WHERE slug=?", (slug,))
     if row:
