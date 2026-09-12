@@ -51,25 +51,25 @@ def _name(employee):
 
 
 def _shell(active: str, employee, *content):
-    links = [("home", "Home", "/me"), ("pay", "Pay", "/me/pay"), ("leave", "Leave", "/me/leave"),
-             ("time", "Time", "/me/time"), ("expenses", "Expenses & travel", "/me/expenses"),
-             ("onboarding", "Onboarding & goals", "/me/onboarding")]
-    return (Title("FastHR · Employee portal"), Style(PORTAL_CSS),
-            Div(Div(A("Fast HRM", href="/me", cls="me-brand"),
-                    Div(Span(_name(employee), cls="me-muted"), A("Sign out", href="/me/logout"), style="display:flex;gap:16px;align-items:center"), cls="me-top"),
+    links = [("home", "Avaleht", "/me"), ("pay", "Palk", "/me/pay"), ("leave", "Puhkused", "/me/leave"),
+             ("time", "Tööaeg", "/me/time"), ("expenses", "Kulud ja lähetused", "/me/expenses"),
+             ("onboarding", "Sisseelamine ja eesmärgid", "/me/onboarding")]
+    return (Title("FastHR · töötaja iseteenindus"), Style(PORTAL_CSS),
+            Div(Div(A("FastHR", href="/me", cls="me-brand"),
+                    Div(Span(_name(employee), cls="me-muted"), A("Logi välja", href="/me/logout"), style="display:flex;gap:16px;align-items:center"), cls="me-top"),
                 Div(*[A(label, href=href, cls="active" if active == key else "") for key, label, href in links], cls="me-nav"),
                 Main(*content, cls="me-main"), cls="me-shell"))
 
 
 def login_page(error=""):
-    return (Title("FastHR · Employee sign in"), Style(PORTAL_CSS),
-            Div(Div(A("Fast HRM", href="/", cls="me-brand"), H1("Employee portal"),
-                    P("Sign in to view your pay, time, leave and people tasks."),
+    return (Title("FastHR · töötaja sisselogimine"), Style(PORTAL_CSS),
+            Div(Div(A("FastHR", href="/", cls="me-brand"), H1("Töötaja iseteenindus"),
+                    P("Logi sisse, et vaadata palka, tööaega, puhkusi ja tööülesandeid."),
                     P(error, cls="me-error") if error else None,
-                    Form(Label("Work email"), Input(type="email", name="email", required=True, autocomplete="email"),
-                         Label("Password"), Input(type="password", name="password", required=True, autocomplete="current-password"),
-                         Button("Sign in", type="submit", cls="me-btn lime"), method="post", action="/me/login", cls="me-form"),
-                    P(A("Admin sign in", href="/login"), cls="me-muted"), cls="me-card me-login"), cls="me-shell"))
+                    Form(Label("Töö e-post"), Input(type="email", name="email", required=True, autocomplete="email"),
+                         Label("Parool"), Input(type="password", name="password", required=True, autocomplete="current-password"),
+                         Button("Logi sisse", type="submit", cls="me-btn lime"), method="post", action="/me/login", cls="me-form"),
+                    P(A("Administraatori sisselogimine", href="/login"), cls="me-muted"), cls="me-card me-login"), cls="me-shell"))
 
 
 def _card(title, body, cls="me-half"):
@@ -77,7 +77,12 @@ def _card(title, body, cls="me-half"):
 
 
 def _status(value):
-    return Span(value or "—", cls="me-pill")
+    return Span(value or "Puudub", cls="me-pill")
+
+
+def _count_text(count, singular, plural):
+    noun = singular if count == 1 else plural
+    return f"{count} {noun}"
 
 
 def dashboard(employee):
@@ -91,68 +96,68 @@ def dashboard(employee):
     goals = people.goals(owner_type="employee", owner_id=eid, status="All")
     open_punch = db.one("SELECT id FROM clock_punches WHERE employee_id=? AND punch_type='In' AND NOT EXISTS (SELECT 1 FROM clock_punches o WHERE o.employee_id=clock_punches.employee_id AND o.punch_type='Out' AND o.punched_at>clock_punches.punched_at) ORDER BY punched_at DESC LIMIT 1", (eid,))
     today_assignment = next((s for s in db.roster(db.TODAY.isoformat(), db.TODAY.isoformat(), eid)), None)
-    clock = Form(Button("Clock out" if open_punch else "Clock in", type="submit", cls="me-btn lime"), method="post", action="/me/time/clock-out" if open_punch else "/me/time/clock-in")
-    shift = P(f"{upcoming[0]['shift_date']} · {upcoming[0]['shift_name']} · {upcoming[0]['start_time']}–{upcoming[0]['end_time']}" if upcoming else "No upcoming shifts.", cls="me-muted")
-    return _shell("home", employee, Div(Div(H1(f"Tere, {employee['first_name']}"), P(f"{employee.get('designation') or 'Employee'} · {employee.get('dept') or ''}")), clock, cls="me-title"),
-                  Div(_card("Next shift", shift, "me-wide"), _card("Today", P("Punched in" if open_punch else "Not clocked in", cls="me-stat") , "me-third"),
-                      _card("Leave", Ul(*[Li(Span(b["leave_type"]), Strong(f"{b['remaining']:g} days")) for b in balances[:4]] or [Li("No balances yet")], cls="me-list"), "me-third"),
-                      _card("Latest payslip", P(f"{slips[0]['period']} · {slips[0]['net']:,.2f} EUR" if slips else "No payslips yet", cls="me-stat"), "me-third"),
-                      _card("Open expenses", P(f"{len(claims)} claim(s) awaiting action", cls="me-stat"), "me-third"),
-                      _card("Travel", P(f"{len(travel)} request(s) in progress", cls="me-stat"), "me-third"),
-                      _card("Onboarding", P(f"{sum(t['status'] == 'Done' for t in tasks)} / {len(tasks)} tasks complete", cls="me-stat"), "me-third"),
-                      _card("Active goals", P(f"{sum(g['status'] not in ('Complete','Cancelled') for g in goals)} goal(s)", cls="me-stat"), "me-third"), cls="me-grid"))
+    clock = Form(Button("Lõpeta tööaeg" if open_punch else "Alusta tööaega", type="submit", cls="me-btn lime"), method="post", action="/me/time/clock-out" if open_punch else "/me/time/clock-in")
+    shift = P(f"{upcoming[0]['shift_date']} · {upcoming[0]['shift_name']} · {upcoming[0]['start_time']}–{upcoming[0]['end_time']}" if upcoming else "Tulevasi vahetusi pole.", cls="me-muted")
+    return _shell("home", employee, Div(Div(H1(f"Tere, {employee['first_name']}"), P(f"{employee.get('designation') or 'Töötaja'} · {employee.get('dept') or ''}")), clock, cls="me-title"),
+                  Div(_card("Järgmine vahetus", shift, "me-wide"), _card("Täna", P("Tööaeg on alanud" if open_punch else "Tööaega pole alustatud", cls="me-stat") , "me-third"),
+                      _card("Puhkus", Ul(*[Li(Span(b["leave_type"]), Strong(f"{b['remaining']:g} päeva")) for b in balances[:4]] or [Li("Puhkusejääke pole")], cls="me-list"), "me-third"),
+                      _card("Viimane palgaleht", P(f"{slips[0]['period']} · {slips[0]['net']:,.2f} EUR" if slips else "Palgalehti pole", cls="me-stat"), "me-third"),
+                      _card("Avatud kulud", P(f"{_count_text(len(claims), 'kulunõue', 'kulunõuet')} ootab tegevust", cls="me-stat"), "me-third"),
+                      _card("Lähetused", P(f"{_count_text(len(travel), 'taotlus', 'taotlust')} on menetluses", cls="me-stat"), "me-third"),
+                      _card("Sisseelamine", P(f"{sum(t['status'] == 'Done' for t in tasks)} / {len(tasks)} ülesannet tehtud", cls="me-stat"), "me-third"),
+                      _card("Aktiivsed eesmärgid", P(f"{_count_text(sum(g['status'] not in ('Complete','Cancelled') for g in goals), 'eesmärk', 'eesmärki')}", cls="me-stat"), "me-third"), cls="me-grid"))
 
 
 def pay_page(employee):
     slips = db.payslips_for(employee["id"])
-    body = Table(Tr(Th("Period"), Th("Status"), Th("Net"), Th("")), *[Tr(Td(p["period"]), Td(_status(p["status"])), Td(f"{p['net']:,.2f} EUR"), Td(A("View", href=f"/me/pay/{p['id']}", cls="me-btn"))) for p in slips] or [Tr(Td("No payslips yet.", colspan="4"))], cls="me-table")
+    body = Table(Tr(Th("Periood"), Th("Staatus"), Th("Netosumma"), Th("")), *[Tr(Td(p["period"]), Td(_status(p["status"])), Td(f"{p['net']:,.2f} EUR"), Td(A("Vaata", href=f"/me/pay/{p['id']}", cls="me-btn"))) for p in slips] or [Tr(Td("Palgalehti pole.", colspan="4"))], cls="me-table")
     latest = slips[0] if slips else None
-    latest_lines = Table(Tr(Th("Item / Rida"), Th("Amount")),
+    latest_lines = Table(Tr(Th("Rida"), Th("Summa")),
                          *[Tr(Td(f"{line['kind']} · {line['label']}"),
                               Td(f"{line['amount']:,.2f} EUR"))
                            for line in db.payslip_lines(latest["id"])]
-                         if latest else [Tr(Td("No payslip lines yet. / Palgalehe ridu veel pole.", colspan="2"))],
+                         if latest else [Tr(Td("Palgalehe ridu veel pole.", colspan="2"))],
                          cls="me-table")
     active = [row for row in benefits.active_enrolments(db.TODAY)
               if row["employee_id"] == employee["id"]]
-    benefit_body = Table(Tr(Th("Soodustus / Benefit"), Th("Tööandja kulu / Employer contribution")),
+    benefit_body = Table(Tr(Th("Soodustus"), Th("Tööandja kulu")),
                          *[Tr(Td(row["name"]), Td(f"{row['employer_contribution']:,.2f} EUR"))
-                           for row in active] or [Tr(Td("Aktiivseid soodustusi pole / No active benefits.", colspan="2"))],
+                           for row in active] or [Tr(Td("Aktiivseid soodustusi pole.", colspan="2"))],
                          cls="me-table")
-    return _shell("pay", employee, Div(H1("My pay"), P("Payslips and pay history", cls="me-muted"), cls="me-title"),
-                  _card("Payslips", body, "me-full"),
-                  _card("Latest payslip breakdown / Viimase palgalehe jaotus", latest_lines, "me-full"),
-                  _card("Minu soodustused / My benefits", benefit_body, "me-full"))
+    return _shell("pay", employee, Div(H1("Minu palk"), P("Palgalehed ja palgaajalugu", cls="me-muted"), cls="me-title"),
+                  _card("Palgalehed", body, "me-full"),
+                  _card("Viimase palgalehe jaotus", latest_lines, "me-full"),
+                  _card("Minu soodustused", benefit_body, "me-full"))
 
 
 def payslip_page(employee, pid):
     p = db.one("SELECT * FROM payslips WHERE id=? AND employee_id=?", (pid, employee["id"]))
     if not p:
-        return _shell("pay", employee, H1("Payslip not found"), P("This payslip is not available."))
+        return _shell("pay", employee, H1("Palgalehte ei leitud"), P("See palgaleht pole kättesaadav."))
     lines = db.payslip_lines(pid)
-    body = Table(Tr(Th("Item"), Th("Amount")), *[Tr(Td(line["label"]), Td(f"{line['amount']:,.2f} EUR")) for line in lines], Tr(Td(Strong("Net pay")), Td(Strong(f"{p['net']:,.2f} EUR"))), cls="me-table")
-    return _shell("pay", employee, Div(H1(f"Payslip · {p['period']}"), A("← My pay", href="/me/pay", cls="me-btn"), cls="me-title"), _card("Pay breakdown", body, "me-half"))
+    body = Table(Tr(Th("Rida"), Th("Summa")), *[Tr(Td(line["label"]), Td(f"{line['amount']:,.2f} EUR")) for line in lines], Tr(Td(Strong("Netosumma")), Td(Strong(f"{p['net']:,.2f} EUR"))), cls="me-table")
+    return _shell("pay", employee, Div(H1(f"Palgaleht · {p['period']}"), A("← Minu palk", href="/me/pay", cls="me-btn"), cls="me-title"), _card("Palga jaotus", body, "me-half"))
 
 
 def leave_page(employee):
     eid = employee["id"]
     balances = db.leave_balance(eid)
     requests = db.rows("SELECT * FROM leave_requests WHERE employee_id=? ORDER BY applied_on DESC, id DESC", (eid,))
-    body = Table(Tr(Th("Leave type"), Th("Remaining")), *[Tr(Td(b["leave_type"]), Td(f"{b['remaining']:g} days")) for b in balances], cls="me-table")
-    reqs = Table(Tr(Th("Dates"), Th("Type"), Th("Status")), *[Tr(Td(f"{r['from_date']} → {r['to_date']}"), Td(r["leave_type"]), Td(_status(r["status"]))) for r in requests] or [Tr(Td("No requests yet.", colspan="3"))], cls="me-table")
-    form = Form(Select(*[Option(t, value=t) for t in db.LEAVE_TYPES], name="leave_type"), Input(type="date", name="from_date", required=True), Input(type="date", name="to_date", required=True), Input(name="reason", placeholder="Reason"), Button("Apply for leave", type="submit", cls="me-btn lime"), method="post", action="/me/leave/apply", cls="me-form")
-    return _shell("leave", employee, Div(H1("My leave"), P("Balances and requests", cls="me-muted"), cls="me-title"), _card("Balances", body, "me-half"), _card("Apply", form, "me-half"), _card("My requests", reqs, "me-full"))
+    body = Table(Tr(Th("Puhkuse liik"), Th("Jääk")), *[Tr(Td(b["leave_type"]), Td(f"{b['remaining']:g} päeva")) for b in balances], cls="me-table")
+    reqs = Table(Tr(Th("Kuupäevad"), Th("Liik"), Th("Staatus")), *[Tr(Td(f"{r['from_date']} → {r['to_date']}"), Td(r["leave_type"]), Td(_status(r["status"]))) for r in requests] or [Tr(Td("Taotlusi pole.", colspan="3"))], cls="me-table")
+    form = Form(Select(*[Option(t, value=t) for t in db.LEAVE_TYPES], name="leave_type"), Input(type="date", name="from_date", required=True), Input(type="date", name="to_date", required=True), Input(name="reason", placeholder="Põhjus"), Button("Taotle puhkust", type="submit", cls="me-btn lime"), method="post", action="/me/leave/apply", cls="me-form")
+    return _shell("leave", employee, Div(H1("Minu puhkused"), P("Puhkusejäägid ja taotlused", cls="me-muted"), cls="me-title"), _card("Jäägid", body, "me-half"), _card("Uus taotlus", form, "me-half"), _card("Minu taotlused", reqs, "me-full"))
 
 
 def time_page(employee):
     eid = employee["id"]
     shifts = db.roster(db.TODAY.isoformat(), (db.TODAY + timedelta(days=30)).isoformat(), eid)
     punches = db.punches_for(eid, (db.TODAY - timedelta(days=30)).isoformat(), db.TODAY.isoformat())
-    rows = Table(Tr(Th("Shift"), Th("Date"), Th("Status")), *[Tr(Td(f"{s['shift_name']} · {s['start_time']}–{s['end_time']}"), Td(s["shift_date"]), Td(_status(s["status"]))) for s in shifts] or [Tr(Td("No scheduled shifts.", colspan="3"))], cls="me-table")
-    punch_rows = Table(Tr(Th("When"), Th("Type"), Th("Source")), *[Tr(Td(p["punched_at"]), Td(p["punch_type"]), Td(p["source"])) for p in punches] or [Tr(Td("No punches in the last 30 days.", colspan="3"))], cls="me-table")
+    rows = Table(Tr(Th("Vahetus"), Th("Kuupäev"), Th("Staatus")), *[Tr(Td(f"{s['shift_name']} · {s['start_time']}–{s['end_time']}"), Td(s["shift_date"]), Td(_status(s["status"]))) for s in shifts] or [Tr(Td("Graafikujärgseid vahetusi pole.", colspan="3"))], cls="me-table")
+    punch_rows = Table(Tr(Th("Aeg"), Th("Tüüp"), Th("Allikas")), *[Tr(Td(p["punched_at"]), Td(p["punch_type"]), Td(p["source"])) for p in punches] or [Tr(Td("Viimase 30 päeva kohta märkmeid pole.", colspan="3"))], cls="me-table")
     open_punch = db.one("SELECT id FROM clock_punches WHERE employee_id=? AND punch_type='In' AND NOT EXISTS (SELECT 1 FROM clock_punches o WHERE o.employee_id=clock_punches.employee_id AND o.punch_type='Out' AND o.punched_at>clock_punches.punched_at) ORDER BY punched_at DESC LIMIT 1", (eid,))
-    action = Form(Button("Clock out" if open_punch else "Clock in", type="submit", cls="me-btn lime"), method="post", action="/me/time/clock-out" if open_punch else "/me/time/clock-in")
-    return _shell("time", employee, Div(H1("My time"), action, cls="me-title"), _card("Upcoming roster", rows, "me-full"), _card("Punch history", punch_rows, "me-full"))
+    action = Form(Button("Lõpeta tööaeg" if open_punch else "Alusta tööaega", type="submit", cls="me-btn lime"), method="post", action="/me/time/clock-out" if open_punch else "/me/time/clock-in")
+    return _shell("time", employee, Div(H1("Minu tööaeg"), action, cls="me-title"), _card("Tulevased vahetused", rows, "me-full"), _card("Tööaja märgete ajalugu", punch_rows, "me-full"))
 
 
 def expenses_page(employee):
@@ -161,20 +166,20 @@ def expenses_page(employee):
     advances = db.rows("SELECT * FROM employee_advances WHERE employee_id=? ORDER BY requested_at DESC", (eid,))
     travel = db.rows("SELECT * FROM travel_requests WHERE employee_id=? ORDER BY from_date DESC", (eid,))
     cats = db.expense_categories()
-    claim_table = Table(Tr(Th("Date"), Th("Category"), Th("Amount"), Th("Status")), *[Tr(Td(c["claim_date"]), Td(c["category"]), Td(f"{c['amount']:,.2f} {c['currency']}"), Td(_status(c["status"]))) for c in claims] or [Tr(Td("No claims yet.", colspan="4"))], cls="me-table")
-    travel_table = Table(Tr(Th("Trip"), Th("Dates"), Th("Status")), *[Tr(Td(f"{t['destination']} · {t['purpose']}"), Td(f"{t['from_date']} → {t['to_date']}"), Td(_status(t["status"]))) for t in travel] or [Tr(Td("No travel requests yet.", colspan="3"))], cls="me-table")
-    form = Form(Select(*[Option(c["name"], value=str(c["id"])) for c in cats], name="category_id"), Input(type="date", name="claim_date", value=db.TODAY.isoformat()), Input(type="number", name="amount", min="0", step="0.01", required=True), Input(name="description", placeholder="What was this for?", required=True), Button("Submit claim", type="submit", cls="me-btn lime"), method="post", action="/me/expenses/claim", cls="me-form")
-    travel_form = Form(Input(name="destination", placeholder="Destination", required=True), Input(name="purpose", placeholder="Purpose", required=True), Input(type="date", name="from_date", required=True), Input(type="date", name="to_date", required=True), Input(type="number", name="estimated_cost", min="0", step="0.01", required=True), Button("Request travel", type="submit", cls="me-btn lime"), method="post", action="/me/expenses/travel", cls="me-form")
-    return _shell("expenses", employee, Div(H1("Expenses & travel"), P("Submit and track your requests", cls="me-muted"), cls="me-title"), _card("My claims", claim_table, "me-full"), _card("New claim", form, "me-half"), _card("Travel request", travel_form, "me-half"), _card("My travel", travel_table, "me-full"), _card("Advances", P(f"{len(advances)} advance(s) on record", cls="me-stat"), "me-half"))
+    claim_table = Table(Tr(Th("Kuupäev"), Th("Kategooria"), Th("Summa"), Th("Staatus")), *[Tr(Td(c["claim_date"]), Td(c["category"]), Td(f"{c['amount']:,.2f} {c['currency']}"), Td(_status(c["status"]))) for c in claims] or [Tr(Td("Kulunõudeid pole.", colspan="4"))], cls="me-table")
+    travel_table = Table(Tr(Th("Lähetus"), Th("Kuupäevad"), Th("Staatus")), *[Tr(Td(f"{t['destination']} · {t['purpose']}"), Td(f"{t['from_date']} → {t['to_date']}"), Td(_status(t["status"]))) for t in travel] or [Tr(Td("Lähetuse taotlusi pole.", colspan="3"))], cls="me-table")
+    form = Form(Select(*[Option(c["name"], value=str(c["id"])) for c in cats], name="category_id"), Input(type="date", name="claim_date", value=db.TODAY.isoformat()), Input(type="number", name="amount", min="0", step="0.01", required=True), Input(name="description", placeholder="Mille eest kulu tekkis?", required=True), Button("Esita kulunõue", type="submit", cls="me-btn lime"), method="post", action="/me/expenses/claim", cls="me-form")
+    travel_form = Form(Input(name="destination", placeholder="Sihtkoht", required=True), Input(name="purpose", placeholder="Eesmärk", required=True), Input(type="date", name="from_date", required=True), Input(type="date", name="to_date", required=True), Input(type="number", name="estimated_cost", min="0", step="0.01", required=True), Button("Taotle lähetust", type="submit", cls="me-btn lime"), method="post", action="/me/expenses/travel", cls="me-form")
+    return _shell("expenses", employee, Div(H1("Kulud ja lähetused"), P("Esita ja jälgi oma taotlusi", cls="me-muted"), cls="me-title"), _card("Minu kulunõuded", claim_table, "me-full"), _card("Uus kulunõue", form, "me-half"), _card("Lähetuse taotlus", travel_form, "me-half"), _card("Minu lähetused", travel_table, "me-full"), _card("Avansid", P(f"{_count_text(len(advances), 'avanss', 'avanssi')} registris", cls="me-stat"), "me-half"))
 
 
 def onboarding_page(employee):
     tasks = people.onboarding_tasks(employee["id"])
     goals = people.goals(owner_type="employee", owner_id=employee["id"], status="All")
-    task_list = Ul(*[Li(Span(t["title"]), _status(t["status"])) for t in tasks] or [Li("No onboarding tasks yet.")], cls="me-list")
-    goal_list = Ul(*[Li(Span(g["title"]), _status(g["status"])) for g in goals] or [Li("No active goals yet.")], cls="me-list")
+    task_list = Ul(*[Li(Span(t["title"]), _status(t["status"])) for t in tasks] or [Li("Sisseelamise ülesandeid pole.")], cls="me-list")
+    goal_list = Ul(*[Li(Span(g["title"]), _status(g["status"])) for g in goals] or [Li("Aktiivseid eesmärke pole.")], cls="me-list")
     plans = learning.plans_for(employee["id"])
     certifications = learning.list_for(employee["id"])
-    learning_list = Ul(*[Li(Span(p["course_name"]), Span(f"{p['progress']}% · {p['status']}", cls="me-pill")) for p in plans] or [Li("Arengukava puudub / No learning plans yet.")], cls="me-list")
-    cert_list = Ul(*[Li(Span(c["name"]), Span(c["expires_on"] or "—", cls="me-pill")) for c in certifications] or [Li("Sertifikaate pole / No certifications yet.")], cls="me-list")
-    return _shell("onboarding", employee, Div(H1("Onboarding & goals"), P("Your progress at FastHRM", cls="me-muted"), cls="me-title"), _card("Onboarding tasks", task_list, "me-half"), _card("Goals", goal_list, "me-half"), _card("Minu arengukava / My learning", learning_list, "me-half"), _card("Sertifikaadid / Certifications", cert_list, "me-half"))
+    learning_list = Ul(*[Li(Span(p["course_name"]), Span(f"{p['progress']}% · {p['status']}", cls="me-pill")) for p in plans] or [Li("Arengukavasid pole.")], cls="me-list")
+    cert_list = Ul(*[Li(Span(c["name"]), Span(c["expires_on"] or "Puudub", cls="me-pill")) for c in certifications] or [Li("Sertifikaate pole.")], cls="me-list")
+    return _shell("onboarding", employee, Div(H1("Sisseelamine ja eesmärgid"), P("Sinu areng FastHR-is", cls="me-muted"), cls="me-title"), _card("Sisseelamise ülesanded", task_list, "me-half"), _card("Eesmärgid", goal_list, "me-half"), _card("Minu arengukava", learning_list, "me-half"), _card("Sertifikaadid", cert_list, "me-half"))

@@ -60,8 +60,8 @@ def test_cancel_and_seed_views(fresh_db):
     assert fresh_db.cancel_shift_assignment(aid)
     assert not fresh_db.cancel_shift_assignment(aid)
     from web import views
-    assert "Weekly roster" in str(views.shifts_roster())
-    assert "Today's clock board" in str(views.time_clocks())
+    assert "Nädala töögraafik" in str(views.shifts_roster())
+    assert "Tänane tööaja ülevaade" in str(views.time_clocks())
 
 
 def test_shift_route_registration_and_seed_idempotency(fresh_db, monkeypatch):

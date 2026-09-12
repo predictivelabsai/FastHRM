@@ -193,7 +193,7 @@ def test_learning_certification_expiry_and_bilingual_pages(fresh_db):
     assert "Learning &amp; development" in str(learning.staff_page("en"))
     assert isinstance(web_app._guard({}, "learning", learning.staff_page), RedirectResponse)
     portal = str(selfservice.onboarding_page(fresh_db.employee(eid)))
-    assert "Minu arengukava / My learning" in portal
+    assert "Minu arengukava" in portal
     assert "First aid" in portal
 
 
@@ -258,7 +258,7 @@ def test_benefit_staff_page_and_portal_card_render_bilingually(fresh_db):
     assert "Soodustused" in str(benefits.staff_page("et"))
     assert "Benefits" in str(benefits.staff_page("en"))
     portal = str(selfservice.pay_page(fresh_db.employee(eid)))
-    assert "Minu soodustused / My benefits" in portal
+    assert "Minu soodustused" in portal
     assert "Lunch" in portal and "25.00 EUR" in portal
 
 
@@ -279,8 +279,8 @@ def test_pay_run_totals_and_reprepare_are_itemised_and_idempotent(fresh_db):
     lines = fresh_db.payslip_lines(slip["id"])
     assert "Base salary" in first and "Income tax" in first
     assert "Employer cost" in first
-    assert "Gross total" in first and "Net total" in first
-    assert "Employer costs" in first and "Employees" in first
+    assert "Bruto kokku" in first and "Netosumma kokku" in first
+    assert "Tööandja kulud" in first and "Töötajaid" in first
     assert second.count("Benefit: Health") == 1
     assert sum("Benefit: Health" in line["label"] for line in lines) == 1
 
@@ -296,7 +296,7 @@ def test_payslip_and_portal_keep_employer_costs_out_of_deductions(fresh_db):
     slip = fresh_db.one("SELECT * FROM payslips WHERE run_id=?", (rid,))
     detail = str(views.payslip_detail(slip["id"]))
     portal = str(selfservice.pay_page(fresh_db.employee(eid)))
-    assert "Tööandja kulud / Employer costs" in detail
+    assert "Tööandja kulud" in detail
     assert "− 25.00" not in detail
     assert "Benefit: Lunch" in detail and "Benefit: Lunch" in portal
     assert "Deduction" in portal and "25.00 EUR" in portal
