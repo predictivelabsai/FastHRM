@@ -1,6 +1,16 @@
-# FastHRM Change Log
+# FastHR Change Log
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
+
+## 2026-09-12 — Product renamed FastHRM to FastHR
+
+### Changed
+
+- Renamed the product from FastHRM to FastHR across docs, seed scripts, recruitment strings and public docstrings. The code identifier `FASTHRM` and the repository URL stay unchanged.
+
+### Verification
+
+- Verified with the full pytest suite (138 passed, 1 skipped).
 
 ## 2026-09-10 — FastHR logo
 
@@ -462,7 +472,7 @@ Product changes are listed newest first. This file must remain synchronized with
 
 ### Changed
 
-- Corrected the landing hero dashboard mockup brand from FastHRM to FastHR.
+- Corrected the landing hero dashboard mockup brand to FastHR.
 - Updated auth modal open focus to skip hidden language inputs and enter the visible panel.
 
 ### Data and configuration
@@ -510,7 +520,7 @@ Product changes are listed newest first. This file must remain synchronized with
   e-identity support; payroll-live copy does not imply that all provider
   integrations are live.
 - Adapted the shared public navigation and page frames for mobile, including a
-  full FastHRM brand label at 375px and touch-sized controls without horizontal
+  full FastHR brand label at 375px and touch-sized controls without horizontal
   page scrolling.
 - Completed the final polish: removed the unused legacy landing layer, aligned
   the favicon and public footer with FastSME identity, repaired mockup semantics
@@ -613,18 +623,18 @@ Product changes are listed newest first. This file must remain synchronized with
 
 - Reworked the public home page (`web/landing.py::landing_page`) onto the new
   design system: a confident dark-hero direction with a lime accent, a stylized
-  HTML/CSS FastHRM dashboard mockup (no screenshot dependency), and localized
+  HTML/CSS FastHR dashboard mockup (no screenshot dependency), and localized
   feature, Estonian-statutory, pricing, comparison, FAQ and CTA sections.
 - Rebuilt the hero dashboard mockup to mirror the real light-theme app: white top
   bar, grouped sidebar, KPI cards with coloured right edges, headcount bar chart,
   leave tables with pills, and an AI Assistant panel. Comparison tables now put
-  FastHRM first and show pricing for FastHRM only; the logo-strip/features-heading
+  FastHR first and show pricing for FastHR only; the logo-strip/features-heading
   area is a compact suite band with an asymmetric header, and ET/EN landing copy
   was humanized without em dashes or AI cliches.
 - Migrated `/features` and `/compare` onto the shared design tokens, fonts,
   `fs_nav`/`fs_footer`, and dark page heroes with summary chips. Feature cards now
   use Available/Coming-soon pills; the sourced international comparison table
-  uses `COMPARISON_TABLE_CSS`, highlighting the FastHRM column and pricing row
+  uses `COMPARISON_TABLE_CSS`, highlighting the FastHR column and pricing row
   with a ✓/◐/✕ legend.
 - Localized both page frames through the ET/EN `feat_pg_*` and `cmp_pg_*` copy
   keys in `web/i18n.py`; detailed catalogue data, comparison data, and FAQ text
@@ -662,7 +672,7 @@ Product changes are listed newest first. This file must remain synchronized with
 
 ### Changed
 
-- Bumped the FastHRM release from v0.3.0 to v0.4.0.
+- Bumped the FastHR release from v0.3.0 to v0.4.0.
 - Added the runtime-derived version and commit identity to the bottom of every public product page; the authenticated top bar continues to expose the same linked build identity.
 - Replaced the stale demo-only `/login` surface with the shared Google/local account experience, including registration and forgotten-password recovery.
 - Preserved safe same-origin feature destinations through local and Google authentication, so opening Payroll returns to `/payroll` after sign-in.
@@ -673,12 +683,12 @@ Product changes are listed newest first. This file must remain synchronized with
 
 - No migration or environment configuration is required. Coolify continues to stamp the deployed source commit into the existing build metadata.
 - Audited all 22 FastSME services configured for Google sign-in: every production route and Coolify key is present. The shared GCP OAuth client already covered the fleet except FastVC, whose missing callback was added, bringing the client to 26 authorized redirects.
-- Confirmed FastHRM already uses the same non-empty Postmark token as its sister repositories; no secret was copied into source control or rotated.
+- Confirmed FastHR already uses the same non-empty Postmark token as its sister repositories; no secret was copied into source control or rotated.
 
 ### Verification
 
 - Added regression checks for the v0.4.0 release file, public footers, authenticated shell, collapsible navigation, shared `/about` build link, current login surface, and open-redirect rejection.
-- Browser-verified Google sign-in through the FastHRM callback, safe `/payroll` return routing, persistent sidebar collapse state, the GCP callback inventory, and Postmark delivery of a password-reset email.
+- Browser-verified Google sign-in through the FastHR callback, safe `/payroll` return routing, persistent sidebar collapse state, the GCP callback inventory, and Postmark delivery of a password-reset email.
 
 ### Roadmap
 
@@ -689,7 +699,7 @@ Product changes are listed newest first. This file must remain synchronized with
 ### Added
 
 - Renamed the public Products navigation and canonical catalogue to Features at `/features`; `/products` remains as a permanent compatibility redirect.
-- Added `/compare`, a source-linked table covering FastHRM, Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo. The grid highlights Free/open-source status and omits Capterra or other review-site ratings.
+- Added `/compare`, a source-linked table covering FastHR, Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo. The grid highlights Free/open-source status and omits Capterra or other review-site ratings.
 - Added FAQPage and ItemList structured data, explicit zero-price Offer metadata, and `/llms.txt` for answer-engine discovery.
 - Expanded `sitemap.xml` to cover the home, Features, comparison, careers, developer, privacy, and every published job page with page-specific crawl hints.
 
@@ -710,7 +720,7 @@ Product changes are listed newest first. This file must remain synchronized with
 
 ### Added
 
-- Added a public `/products` catalogue covering shipped and planned FastHRM modules. Every card displays Free pricing; incomplete scope is explicitly labelled Coming soon.
+- Added a public `/products` catalogue covering shipped and planned FastHR modules. Every card displays Free pricing; incomplete scope is explicitly labelled Coming soon.
 - Added product navigation to the landing and developer pages, and `/products` to the public sitemap.
 - Expanded `/developers` with the v1 contract, pagination, filtering, structured errors, bearer-token writes, and executable examples.
 - Added `docs/fasthrm_platform_guide_2026-08-08` in Markdown, PDF, and editable PowerPoint formats.

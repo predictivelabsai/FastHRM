@@ -1,6 +1,6 @@
-# FastHRM
+# FastHR
 
-**FastHRM** is an open-source **HR system** built with
+**FastHR** is an open-source **HR system** built with
 [FastHTML](https://fastht.ml) — a server-side, HTMX-driven port of the core of
 [Frappe HR (HRMS)](https://github.com/frappe/hrms), scoped to three pillars:
 **people** (employee directory + departments), **time** (leave + attendance),
@@ -17,7 +17,7 @@ assistant grounded in the live (synthetic) data.
 
 ## Demo
 
-![FastHRM walkthrough](docs/demo/fasthr-walkthrough.gif)
+![FastHR walkthrough](docs/demo/fasthr-walkthrough.gif)
 
 **User guide** — [PDF](docs/fasthrm_user_guide_2026-08-08.pdf) ·
 [PPTX](docs/fasthrm_user_guide_2026-08-08.pptx) ·
@@ -35,7 +35,7 @@ bash scripts/build_demo_gif.sh      # README walkthrough GIF
 bash scripts/build_user_guide.sh    # PDF + PPTX
 .venv/bin/python scripts/generate_api_docs.py  # swagger.json
 .venv/bin/python scripts/build_pptx.py docs/fasthrm_platform_guide_2026-08-08.md \
-  docs/fasthrm_platform_guide_2026-08-08.pptx "FastHRM Platform Guide"
+  docs/fasthrm_platform_guide_2026-08-08.pptx "FastHR Platform Guide"
 ```
 
 ## Quickstart (native)
@@ -123,7 +123,7 @@ docker compose up --build      # http://localhost:5010
 ## Scope
 
 Frappe HR is ~160 doctypes (full payroll engine, recruitment, performance,
-onboarding, expenses, shifts…). FastHRM ports the three pillars an HR team touches
+onboarding, expenses, shifts…). FastHR ports the three pillars an HR team touches
 daily, plus the ATS core; the rest is mapped in
 **[docs/ROADMAP.md](docs/ROADMAP.md)**, and the plan to grow this into a full
 Talent + Performance + Lifecycle platform is in
@@ -185,7 +185,7 @@ initiative.
 
 ## Heritage
 
-FastHRM consolidates the earlier **openhr** project (a pure-Python HR platform
+FastHR consolidates the earlier **openhr** project (a pure-Python HR platform
 explored for Nordic / EU public-sector deployments). Its reference architecture,
 CBRE deck, diagrams and earlier implementation are preserved in
 [`docs/openhr-reference/`](docs/openhr-reference/).

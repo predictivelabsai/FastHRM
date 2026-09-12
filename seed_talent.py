@@ -179,7 +179,7 @@ def build():
                     conn.execute("UPDATE job_openings SET filled=filled+1 WHERE id=?", (job_id,))
                     conn.execute("UPDATE candidates SET status='Hired' WHERE id=?", (cid,))
 
-    print(f"FastHRM talent seeded → {db.DB_PATH}")
+    print(f"FastHR talent seeded → {db.DB_PATH}")
     print(f"  {len(job_ids)} requisitions · {n_cand} candidates · {n_app} applications")
     print("  CV extraction prompt: v%s active" % (talent.active_prompt(cv_extract.PROMPT_KEY) or {}).get("version"))
 
