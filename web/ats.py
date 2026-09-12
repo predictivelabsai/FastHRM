@@ -132,7 +132,7 @@ def _applications_table(job_id, stage):
             actions = [Button(f"→ {stages[idx]}", cls="btn sm primary",
                               **{"hx-post": f"/talent/applications/{a['id']}/stage?stage={stages[idx]}",
                                  "hx-target": "#job-main", "hx-swap": "innerHTML"}),
-                       Button("✕", cls="btn sm", title="Reject",
+                       Button("✕ Reject", cls="btn sm", title="Reject",
                               **{"hx-post": f"/talent/applications/{a['id']}/stage?stage=Rejected",
                                  "hx-target": "#job-main", "hx-swap": "innerHTML"})]
         rows.append(Tr(
