@@ -1,4 +1,4 @@
-# FastHRM → Talent Platform: extension plan
+# FastHR → Talent Platform: extension plan
 
 Turning the three-pillar demonstrator (people, time, pay) into a production-grade
 **Talent + Performance + Lifecycle** platform, without abandoning what makes it

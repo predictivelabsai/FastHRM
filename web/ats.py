@@ -53,7 +53,7 @@ def jobs_list(status="All"):
             Td(_pill(j["status"])))
             for j in js] or [Tr(Td("No requisitions.", colspan="9"))]), cls="tbl")
     return (
-        _title("Requisitions", f"{len(js)} shown — synthetic demo pipeline",
+        _title("Requisitions", f"{len(js)} shown. This is a synthetic demo pipeline.",
                Div(A("Careers site", href="/talent/careers", cls="btn"),
                    A("New job", href="/talent/jobs/new", cls="btn primary"),
                    style="display:flex;gap:6px;")),
@@ -163,11 +163,11 @@ def upload_card(default_job: int | None = None):
         warn,
         Form(
             Div(Div("Drop a CV here, or choose a file", cls="big"),
-                Div("PDF, DOCX, TXT or MD — parsed into a structured profile by the AI", cls="small"),
+                Div("PDF, DOCX, TXT or MD files are parsed into a structured profile by the AI", cls="small"),
                 Input(type="file", name="cv", accept=".pdf,.docx,.txt,.md", required=True,
                       style="margin-top:12px;"),
                 cls="drop-zone"),
-            Div(Select(Option("No requisition — add to talent pool", value="0"),
+            Div(Select(Option("No requisition. Add to talent pool", value="0"),
                        *[Option(f"{j['title']} ({j['code']})", value=str(j["id"]),
                                 selected=(default_job == j["id"])) for j in jobs],
                        name="job_id", cls="hr-inp", style="flex:1;min-width:220px;"),
@@ -202,8 +202,8 @@ def extraction_status(cid: int, *, poll: bool = True):
     prof = talent.candidate_profile(cid)
     return Div(
         P(Strong("✓ Parsed. "),
-          f"{_cand_name(c)} — {c['current_title'] or 'role not stated'} at "
-          f"{c['current_employer'] or 'employer not stated'}. "
+          f"{_cand_name(c)}. Role: {c['current_title'] or 'not stated'}. "
+          f"Employer: {c['current_employer'] or 'not stated'}. "
           f"{len(prof['skills'])} skills, {len(prof['experience'])} roles, "
           f"{len(prof['education'])} qualifications in {run['latency_ms'] or 0} ms.",
           style="margin:0 0 8px;"),
@@ -239,7 +239,7 @@ def candidates_list(q="", status="All", *, location="", tag="", skill=""):
     tbl = Table(Thead(Tr(Th("Candidate"), Th("Current title"), Th("Employer"), Th("Exp", cls="num"),
                          Th("Location"), Th("Skills", cls="num"), Th("Applied to"), Th("Stage"),
                          Th("Source"), Th("CV parse"))),
-                Tbody(*rows or [Tr(Td("No candidates yet — upload a CV below.", colspan="10"))]), cls="tbl")
+                Tbody(*rows or [Tr(Td("No candidates yet. Upload a CV below.", colspan="10"))]), cls="tbl")
     return (_title("Candidates", f"{len(cs)} shown"), seg, search,
             Div(tbl, cls="card"), upload_card())
 
@@ -395,8 +395,8 @@ def prompts_page(key: str = cv_extract.PROMPT_KEY, saved: str = ""):
         Div(Div(Div(H3("CV extraction guidance"),
                     Small(f"active: v{active['version'] if active else 0} · {llm.model_name()}",
                           style="color:var(--text-mute);"), cls="card-header"),
-                P("Plain English only. Describe what to capture and how to interpret it — "
-                  "the output format is fixed in code below and cannot be changed from here, "
+                P("Plain English only. Describe what to capture and how to interpret it. "
+                  "The output format is fixed in code below and cannot be changed from here, "
                   "so an edit can never break the parser.",
                   style="color:var(--text-mute);font-size:12.5px;margin:0 0 10px;"),
                 editor, cls="card"),

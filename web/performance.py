@@ -93,9 +93,9 @@ def _new_goal_form():
                    Option("Employee", value="employee", selected=True),
                    name="owner_type", cls="hr-inp"),
             Select(Option("— owner —", value="0"),
-                   *[Option(f"👤 {e['first_name']} {e['last_name']}", value=f"e{e['id']}")
+                   *[Option(f"{e['first_name']} {e['last_name']}", value=f"e{e['id']}")
                      for e in emps],
-                   *[Option(f"🏢 {d['name']}", value=f"d{d['id']}") for d in depts],
+                   *[Option(d["name"], value=f"d{d['id']}") for d in depts],
                    name="owner", cls="hr-inp"),
             Select(Option("— no parent —", value="0"),
                    *[Option(p["title"][:40], value=str(p["id"])) for p in parents],

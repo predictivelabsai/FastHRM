@@ -18,7 +18,7 @@ class Product:
     mark: str = "F"                  # short brand mark glyph
 
 
-FASTHRM = Product(name="FastHR", tagline="Estonian HR, payroll & hiring — open source.")
+FASTHRM = Product(name="FastHR", tagline="Estonian HR, payroll & hiring, open source.")
 
 
 # The FastHR logo glyph — a forward-leaning "F" that reads as "Fast". Ink on the

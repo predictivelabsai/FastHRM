@@ -1,4 +1,4 @@
-# FastHRM Product Roadmap
+# FastHR Product Roadmap
 
 **Baseline date:** 2026-08-08  
 **Comparison source:** [Teamdash pricing and feature matrix](https://www.teamdash.com/pricing/), reviewed 2026-08-08.
@@ -59,7 +59,7 @@
   cells, raised no-mark contrast across desktop/mobile, and kept public body
   paragraphs inside the mobile viewport gutter (2026-09-10).
 
-This roadmap closes the useful product gaps without copying Teamdash’s packaging. `[x]` means delivered and verified in FastHRM; `[~]` means a baseline exists but the named scope is incomplete; `[ ]` is unimplemented. Dates are target completion dates, not commitments.
+This roadmap closes the useful product gaps without copying Teamdash’s packaging. `[x]` means delivered and verified in FastHR; `[~]` means a baseline exists but the named scope is incomplete; `[ ]` is unimplemented. Dates are target completion dates, not commitments.
 
 ## Phase 0 — Safe multi-user foundation (target 2026-08-31)
 
@@ -76,7 +76,7 @@ This roadmap closes the useful product gaps without copying Teamdash’s packagi
 - [x] Draft, review, publish, close, and archive workflow with preview and version history.
 - [x] Branded, responsive careers index and unique job subpages with editable colours, logo, headline, privacy link, canonical metadata, sitemap discovery, and JobPosting structured data.
 - [x] Public application form with CV, contact details, cover note, privacy consent, candidate deduplication, ATS creation, and asynchronous CV extraction.
-- [x] Standard FastHRM-hosted careers route with no product-level caps on jobs, job pages, candidates, or hiring projects.
+- [x] Standard FastHR-hosted careers route with no product-level caps on jobs, job pages, candidates, or hiring projects.
 - [x] Page-builder sections, reusable ad templates, custom fonts, uploaded images/media library, campaign landing pages, social previews, and JPG export (2026-08-08).
 - [x] Custom/conditional application forms, internal job ads, scheduled publishing, custom domain/favicon, and applicant confirmation email (2026-08-08).
 
@@ -116,25 +116,25 @@ This roadmap closes the useful product gaps without copying Teamdash’s packagi
 
 ## Public product and developer experience (delivered 2026-08-08)
 
-- [x] Public `/features` catalogue lists every current and planned FastHRM module with a single Free price and unambiguous Available/Coming soon status; legacy `/products` permanently redirects to it (2026-08-08).
+- [x] Public `/features` catalogue lists every current and planned FastHR module with a single Free price and unambiguous Available/Coming soon status; legacy `/products` permanently redirects to it (2026-08-08).
 - [x] Landing, sitemap, and developer navigation expose the feature catalogue without requiring an account (2026-08-08).
-- [x] Public `/compare` page compares FastHRM with Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo using source-linked price, licence, payroll/global, fit, and limitation fields without review-site ratings (2026-08-08).
+- [x] Public `/compare` page compares FastHR with Gusto, BambooHR, Rippling, Deel, Zoho People, and Odoo using source-linked price, licence, payroll/global, fit, and limitation fields without review-site ratings (2026-08-08).
 - [x] Migrated `/features` and `/compare` to the shared FastSME design system with ET/EN page frames and path-preserving language switches; detailed catalogue descriptions, FAQ text, and comparison data remain English (2026-09-09).
-- [x] Rebuilt the landing hero mockup to mirror the light-theme app, redesigned the suite band and asymmetric heading, reordered comparison tables with FastHRM first and FastHRM-only pricing, and humanized ET/EN landing copy (2026-09-09).
+- [x] Rebuilt the landing hero mockup to mirror the light-theme app, redesigned the suite band and asymmetric heading, reordered comparison tables with FastHR first and FastHR-only pricing, and humanized ET/EN landing copy (2026-09-09).
 - [x] Localized the auth modal, landing comparison data and FAQs, and hero dashboard mockup in Estonian and English; added inline recovery errors, accessible labels, focus management, and corrected real-demo copy (2026-09-09).
 - [x] Added the real bilingual product-demo recording to the landing between features and the compliance/pricing flow, with browser-style framing and layout-shift-safe image dimensions (2026-09-09).
 - [x] Clarified the public pricing formulation and marked the shipped Estonian payroll engine, including TÖR/TSD registration and e-identity copy, as available today across the landing and comparison pages (2026-09-09).
-- [x] Completed public experience batches 1–4: ET/EN localization and hardening, clarified copy with the payroll-live decision, mobile navigation adaptation, and final polish for the shared FastSME layer, including the full 375px FastHRM label, WCAG 2.1 AA contrast fixes, semantic inert mockup markup, FastSME favicon/footer identity, and removal of unused legacy landing CSS (2026-09-09).
+- [x] Completed public experience batches 1–4: ET/EN localization and hardening, clarified copy with the payroll-live decision, mobile navigation adaptation, and final polish for the shared FastSME layer, including the full 375px FastHR label, WCAG 2.1 AA contrast fixes, semantic inert mockup markup, FastSME favicon/footer identity, and removal of unused legacy landing CSS (2026-09-09).
 - [x] SEO/AEO discovery includes every canonical public page and published job in `sitemap.xml`, plus Free/open-source Offer metadata, FAQ/ItemList schema, crawler policy, and `llms.txt` (2026-08-08).
 - [x] Regenerated the committed OpenAPI contract and expanded `/developers` with version, pagination, filtering, errors, authentication, and write examples (2026-08-08).
-- [x] Generated a dated FastHRM platform guide in Markdown, PDF, and editable PowerPoint formats (2026-08-08).
+- [x] Generated a dated FastHR platform guide in Markdown, PDF, and editable PowerPoint formats (2026-08-08).
 - [x] Released v0.4.0 with one runtime-derived build/version identity in public page footers and the authenticated app shell (2026-08-08).
 - [x] Replaced the stale demo-only `/login` page with Google sign-in, local registration, password reset, and safe return-to-feature routing (2026-08-08).
 - [x] Added persistent per-section sidebar minimisation plus global `<<` / `>>` controls for denser in-app navigation (2026-08-08).
-- [x] Verified the shared Google OAuth/Postmark production path, including every Google-enabled FastSME service callback and a delivered FastHRM password-reset email (2026-08-08).
+- [x] Verified the shared Google OAuth/Postmark production path, including every Google-enabled FastSME service callback and a delivered FastHR password-reset email (2026-08-08).
 
 ## Roadmap/change-log rule
 
 Every roadmap status, scope, or date change must update `docs/change_log.md` in the same commit or pull request. The matching dated entry must name the phase, summarize user-visible behavior, identify migrations/configuration, and record verification. Do not mark `[x]` until implementation and tests are complete.
 
-Teamdash plan quotas, “paid add-on” labels, and pricing tiers are deliberately not replicated. Capabilities are prioritized by candidate experience, recruiter time saved, compliance risk, and fit with FastHRM’s open-source model.
+Teamdash plan quotas, “paid add-on” labels, and pricing tiers are deliberately not replicated. Capabilities are prioritized by candidate experience, recruiter time saved, compliance risk, and fit with FastHR’s open-source model.
