@@ -36,7 +36,7 @@ def test_authenticated_sidebar_sections_are_collapsible(fresh_db):
     assert rendered.count('class="nav-section"') == len(NAV_ITEMS)
     assert 'id="nav-collapse-all"' in rendered
     assert 'id="nav-expand-all"' in rendered
-    assert 'aria-label="Expand or collapse People"' in rendered
+    assert 'aria-label="Ava või sulge Inimesed"' in rendered
     assert 'href="/payroll"' in rendered
 
 
@@ -47,7 +47,8 @@ def test_env_stamp_wins_over_git(fresh_db, monkeypatch):
     assert v.commit() == "deadbeef99"
     assert v.branch() == "main"
     assert v.build_date() == "2026-08-04"
-    assert "deadbeef99" in v.label()
+    assert v.label() == "v0.4.0"
+    assert "deadbeef99" in v.detail()
 
 
 def test_stamped_build_is_never_marked_dirty(fresh_db, monkeypatch):

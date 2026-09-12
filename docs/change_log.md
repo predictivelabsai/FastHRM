@@ -2,6 +2,17 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — Estonian app shell with SVG navigation
+
+### Changed
+
+- Replaced the sidebar emoji icons with matching SVG icons and localized the authenticated app shell (navigation, top bar, AI rail) to Estonian-first.
+- Shortened the top-bar build pill to a plain version label; full commit provenance stays in the tooltip and on `/about`.
+
+### Verification
+
+- Targeted tests pass (`tests/test_version.py`, `tests/test_shifts.py`: 15 passed).
+
 ## 2026-09-12 — Product renamed FastHRM to FastHR
 
 ### Changed
