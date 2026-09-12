@@ -93,7 +93,7 @@ def employees_list(dept="All", q=""):
                     Td(A(_name(e), href=f"/employees/{e['id']}")),
                     Td(e["designation"] or "Puudub"), Td(e["dept"] or "Puudub"), Td(e["branch"] or "Puudub"),
                     Td(_pill(e["status"])), Td(e["date_of_joining"] or "Puudub", style="color:var(--text-mute);"))
-                    for e in emps]), cls="tbl")
+                    for e in emps] or [Tr(Td("Töötajaid ei leitud.", colspan="6"))]), cls="tbl")
     search = Form(Input(type="search", name="q", value=q, placeholder="Otsi töötajaid…"),
                   Input(type="hidden", name="dept", value=dept), cls="toolbar", method="get", action="/employees")
     return _title("Töötajad", f"{len(emps)} kuvatud"), seg, search, Div(tbl, cls="card")
@@ -132,7 +132,7 @@ def employee_detail(eid):
                                Td(money(p["tax"] + p["pension"] + p["other_ded"]), cls="num"),
                                Td(Strong(money(p["net"])), cls="num"),
                                Td(A("Palgaleht", href=f"/payroll/{p['id']}", cls="btn sm")))
-                            for p in pays]), cls="tbl")
+                            for p in pays] or [Tr(Td("Palgalehti pole.", colspan="5"))]), cls="tbl")
     return (head, A("← Kõik töötajad", href="/employees", cls="btn"),
             Div(Div(info, Div(Div(H3("Palgalehed"), cls="card-header"), pay_tbl, cls="card")),
                 Div(bal_card, att_card), cls="detail-grid", style="margin-top:14px;"))
@@ -147,7 +147,8 @@ def departments_list():
                       GROUP BY d.id ORDER BY n DESC""")
     tbl = Table(Thead(Tr(Th("Osakond"), Th("Juht"), Th("Töötajaid", cls="num"), Th("Aastane palgakulu", cls="num"))),
                 Tbody(*[Tr(Td(Strong(d["name"])), Td(d["lead"] or "Puudub"), Td(str(d["n"]), cls="num"),
-                           Td(money(d["payroll"]), cls="num")) for d in deps]), cls="tbl")
+                           Td(money(d["payroll"]), cls="num")) for d in deps]
+                or [Tr(Td("Osakondi pole.", colspan="4"))]), cls="tbl")
     return _title("Osakonnad", f"{len(deps)} osakonda"), Div(tbl, cls="card")
 
 
@@ -213,7 +214,7 @@ def attendance_view():
     tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Status"), Th("Hours", cls="num"))),
                 Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "Puudub"),
                            Td(_pill(r["status"])), Td(f"{r['hours']:.1f}" if r["hours"] else "Puudub", cls="num"))
-                        for r in reg]), cls="tbl")
+                        for r in reg] or [Tr(Td("Tänaseid kohalolekuid pole.", colspan="4"))]), cls="tbl")
     return _title("Kohalolek", f"Täna: {today}"), kpis, Div(Div(H3("Tänane register"), cls="card-header"), tbl, cls="card")
 
 
@@ -286,7 +287,8 @@ def time_clocks():
     board = Table(Thead(Tr(Th("Töötaja"), Th("Olek"), Th("Viimane märge"), Th("Allikas"))),
                   Tbody(*[Tr(Td(_name(e)), Td(_pill(state_for(e["id"]))),
                            Td(latest[e["id"]]["punched_at"] if e["id"] in latest else "Puudub"),
-                           Td(latest[e["id"]]["source"] if e["id"] in latest else "Puudub")) for e in employees]), cls="tbl")
+                           Td(latest[e["id"]]["source"] if e["id"] in latest else "Puudub")) for e in employees]
+                  or [Tr(Td("Töötajaid pole.", colspan="4"))]), cls="tbl")
     selector = Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp")
     widget = Div(Form(selector, Input(type="hidden", name="source", value="Veeb"), Button("Alusta tööaega", type="submit", cls="btn primary"),
                       method="post", action="/timeclock/in"),

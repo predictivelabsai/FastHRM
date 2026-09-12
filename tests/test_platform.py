@@ -693,3 +693,23 @@ def test_attrition_signals_always_carry_their_reasons(fresh_db):
     for r in people.attrition_signals():
         assert r["factors"], "a flag without factors is an unexplained score"
         assert r["score"] >= 3
+
+
+def test_list_pages_render_empty_states_on_empty_db(fresh_db):
+    from web import views
+
+    assert "Töötajaid ei leitud." in str(views.employees_list())
+    assert "Töötajaid ei leitud." in str(views.employees_list(q="zzz-no-match"))
+    assert "Osakondi pole." in str(views.departments_list())
+    assert "Tänaseid kohalolekuid pole." in str(views.attendance_view())
+    assert "Töötajaid pole." in str(views.time_clocks())
+
+
+def test_employee_detail_shows_empty_payslip_state(fresh_db):
+    from web import views
+
+    with fresh_db.cursor() as conn:
+        conn.execute("""INSERT INTO employees(first_name,last_name,status,base_salary)
+                        VALUES ('Ada','Lovelace','Active',60000)""")
+        eid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    assert "Palgalehti pole." in str(views.employee_detail(eid))
