@@ -92,7 +92,7 @@ def employees_list(dept="All", q=""):
                     Td(A(_name(e), href=f"/employees/{e['id']}")),
                     Td(e["designation"] or "—"), Td(e["dept"] or "—"), Td(e["branch"] or "—"),
                     Td(_pill(e["status"])), Td(e["date_of_joining"] or "—", style="color:var(--text-mute);"))
-                    for e in emps]), cls="tbl")
+                    for e in emps] or [Tr(Td("No employees found.", colspan="6"))]), cls="tbl")
     search = Form(Input(type="search", name="q", value=q, placeholder="Search employees…"),
                   Input(type="hidden", name="dept", value=dept), cls="toolbar", method="get", action="/employees")
     return _title("Employees", f"{len(emps)} shown"), seg, search, Div(tbl, cls="card")
@@ -131,7 +131,7 @@ def employee_detail(eid):
                                Td(money(p["tax"] + p["pension"] + p["other_ded"]), cls="num"),
                                Td(Strong(money(p["net"])), cls="num"),
                                Td(A("Payslip", href=f"/payroll/{p['id']}", cls="btn sm")))
-                            for p in pays]), cls="tbl")
+                            for p in pays] or [Tr(Td("No payslips yet.", colspan="5"))]), cls="tbl")
     return (head, A("← All employees", href="/employees", cls="btn"),
             Div(Div(info, Div(Div(H3("Payslips"), cls="card-header"), pay_tbl, cls="card")),
                 Div(bal_card, att_card), cls="detail-grid", style="margin-top:14px;"))
@@ -146,7 +146,8 @@ def departments_list():
                       GROUP BY d.id ORDER BY n DESC""")
     tbl = Table(Thead(Tr(Th("Department"), Th("Head"), Th("Headcount", cls="num"), Th("Annual payroll", cls="num"))),
                 Tbody(*[Tr(Td(Strong(d["name"])), Td(d["lead"] or "—"), Td(str(d["n"]), cls="num"),
-                           Td(money(d["payroll"]), cls="num")) for d in deps]), cls="tbl")
+                           Td(money(d["payroll"]), cls="num")) for d in deps]
+                or [Tr(Td("No departments.", colspan="4"))]), cls="tbl")
     return _title("Departments", f"{len(deps)} departments"), Div(tbl, cls="card")
 
 
@@ -212,7 +213,7 @@ def attendance_view():
     tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Status"), Th("Hours", cls="num"))),
                 Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "—"),
                            Td(_pill(r["status"])), Td(f"{r['hours']:.1f}" if r["hours"] else "—", cls="num"))
-                        for r in reg]), cls="tbl")
+                        for r in reg] or [Tr(Td("No attendance records today.", colspan="4"))]), cls="tbl")
     return _title("Attendance", f"Today — {today}"), kpis, Div(Div(H3("Today's register"), cls="card-header"), tbl, cls="card")
 
 
@@ -285,7 +286,8 @@ def time_clocks():
     board = Table(Thead(Tr(Th("Employee"), Th("State"), Th("Last punch"), Th("Source"))),
                   Tbody(*[Tr(Td(_name(e)), Td(_pill(state_for(e["id"]))),
                            Td(latest[e["id"]]["punched_at"] if e["id"] in latest else "—"),
-                           Td(latest[e["id"]]["source"] if e["id"] in latest else "—")) for e in employees]), cls="tbl")
+                           Td(latest[e["id"]]["source"] if e["id"] in latest else "—")) for e in employees]
+                  or [Tr(Td("No employees.", colspan="4"))]), cls="tbl")
     selector = Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp")
     widget = Div(Form(selector, Input(type="hidden", name="source", value="Web"), Button("Clock in", type="submit", cls="btn primary"),
                       method="post", action="/timeclock/in"),

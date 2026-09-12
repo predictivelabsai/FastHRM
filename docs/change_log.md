@@ -2,6 +2,16 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — Empty states for list pages
+
+### Fixed
+
+- List pages that rendered a bare empty table now show a no-data row: the employees list (including no-match searches), the employee payslip history, departments, today's attendance register and the time-clock board.
+
+### Verification
+
+- Added empty-state assertions in `tests/test_platform.py`; suite passes.
+
 ## 2026-09-10 — FastHR logo
 
 ### Changed
