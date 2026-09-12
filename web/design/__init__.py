@@ -2,7 +2,7 @@
 
 Tokens, fonts and reusable public-page primitives shared across every FastSME
 product. Product-specific colour is injected via a single ``--accent`` token so
-FastHRM, FastMail, FastDrive … can each set their own without forking the CSS.
+FastHR, FastMail, FastDrive … can each set their own without forking the CSS.
 """
 from .system import (
     Product,

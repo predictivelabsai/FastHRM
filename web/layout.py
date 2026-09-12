@@ -1,4 +1,4 @@
-"""FastHRM 3-pane layout — emerald palette, SSE AI rail."""
+"""FastHR 3-pane layout — emerald palette, SSE AI rail."""
 from __future__ import annotations
 
 from fasthtml.common import (
@@ -35,7 +35,8 @@ a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
 .nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;color:var(--text-dim);cursor:pointer;border-left:3px solid transparent;}
 .nav-item:hover{background:var(--surface-2);color:var(--text);text-decoration:none;}
 .nav-item.active{background:var(--accent-light);color:var(--accent-hover);border-left-color:var(--accent);font-weight:600;}
-.nav-icon{width:18px;display:inline-block;text-align:center;}
+.nav-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex:none;}
+.nav-icon svg{width:20px;height:20px;display:block;overflow:visible;}
 .center-pane{grid-area:center;overflow-y:auto;padding:20px 24px;}
 .page-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .page-title h1{margin:0;font-size:22px;font-weight:700;} .page-title .sub{color:var(--text-mute);font-size:13px;margin-top:3px;}
@@ -101,7 +102,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .sample-cards{padding:.4rem 1rem .8rem;background:var(--surface);border-top:1px solid var(--border);}
 .sample-cards-label{display:inline-block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--text-mute);margin-bottom:6px;}
 .sample-card{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);padding:9px 12px;border-radius:10px;font-size:12.5px;cursor:pointer;color:var(--text-dim);width:100%;text-align:left;line-height:1.35;margin-bottom:6px;font-family:inherit;}
-.sample-card::before{content:"💬";flex-shrink:0;} .sample-card:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+.sample-card:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
 .thinking-indicator{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:12.5px;color:var(--text-mute);align-self:flex-start;}
 .thinking-indicator .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:.35;transform:scale(.85);}50%{opacity:1;transform:scale(1.1);}}
@@ -253,55 +254,95 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 """
 
 NAV_ITEMS = [
-    ("OVERVIEW", [("dashboard", "Dashboard", "📊", "/"), ("ai", "AI Assistant", "🤖", "/ai"),
-                   ("employee-portal", "Employee portal", "🙋", "/me")]),
-    ("PEOPLE", [("employees", "Employees", "👥", "/employees"),
-                ("departments", "Departments", "🏢", "/departments")]),
-    ("TIME", [("leave", "Leave", "🌴", "/leave"), ("attendance", "Attendance", "🕘", "/attendance"),
-               ("shifts", "Shifts & roster", "🗓", "/shifts"), ("timeclock", "Time clocks", "⏱", "/timeclock")]),
-    ("PAY", [("payroll", "Payroll", "💷", "/payroll"),
-              ("benefits", "Benefits", "🎁", "/benefits"),
-              ("expenses", "Expenses & travel", "🧾", "/expenses"),
-              ("travel", "Travel requests", "✈️", "/travel")]),
-    ("TALENT", [("platform", "Recruiting platform", "🧭", "/talent/platform"),
-                ("jobs", "Requisitions", "📌", "/talent/jobs"),
-                ("candidates", "Candidates", "🎯", "/talent/candidates"),
-                ("offers", "Offers", "📨", "/talent/offers"),
-                ("talent-analytics", "Analytics", "📈", "/talent/analytics")]),
-    ("PERFORMANCE", [("goals", "Goals & OKRs", "🎯", "/performance/goals"),
-                     ("feedback", "Feedback", "💬", "/performance/feedback"),
-                     ("reviews", "Review cycles", "📝", "/performance/reviews"),
-                     ("signals", "Signals", "📡", "/performance/signals"),
-                     ("learning", "Learning & development", "🎓", "/learning")]),
-    ("LIFECYCLE", [("onboarding", "Onboarding", "🚀", "/lifecycle/onboarding"),
-                   ("changes", "Changes", "🔀", "/lifecycle/changes"),
-                   ("separations", "Separations", "👋", "/lifecycle/separations"),
-                   ("workforce", "Workforce planning", "🧮", "/workforce"),
-                   ("cases", "Cases", "🗂", "/lifecycle/cases"),
-                   ("org", "Org chart", "🌳", "/lifecycle/org")]),
-    ("SETTINGS", [("integrations", "Integrations", "🔌", "/settings/integrations"),
-                  ("prompts", "AI Prompts", "✎", "/talent/prompts"),
-                  ("roles", "Roles & access", "🔑", "/settings/roles")]),
-    ("HELP", [("guide", "User Guide", "📖", "/guide"),
-              ("developers", "Developers", "⌘", "/developers")]),
+    ("Ülevaade", [("dashboard", "Töölaud", "layout-dashboard", "/"), ("ai", "AI-abiline", "sparkles", "/ai"),
+                   ("employee-portal", "Töötaja portaal", "user-round", "/me")]),
+    ("Inimesed", [("employees", "Töötajad", "users-round", "/employees"),
+                  ("departments", "Osakonnad", "building-2", "/departments")]),
+    ("Aeg", [("leave", "Puhkused", "palmtree", "/leave"), ("attendance", "Kohalolek", "clock-3", "/attendance"),
+             ("shifts", "Vahetused", "calendar-days", "/shifts"), ("timeclock", "Tööaja märkimine", "timer", "/timeclock")]),
+    ("Palk", [("payroll", "Palgaarvestus", "banknote", "/payroll"),
+              ("benefits", "Soodustused", "gift", "/benefits"),
+              ("expenses", "Kulud ja avansid", "receipt", "/expenses"),
+              ("travel", "Lähetused", "plane", "/travel")]),
+    ("Värbamine", [("platform", "Värbamise platvorm", "compass", "/talent/platform"),
+                   ("jobs", "Ametikohad", "briefcase-business", "/talent/jobs"),
+                   ("candidates", "Kandidaadid", "target", "/talent/candidates"),
+                   ("offers", "Pakkumised", "mail-plus", "/talent/offers"),
+                   ("talent-analytics", "Analüütika", "chart-no-axes-combined", "/talent/analytics")]),
+    ("Tulemuslikkus", [("goals", "Eesmärgid ja OKR-id", "goal", "/performance/goals"),
+                       ("feedback", "Tagasiside", "message-circle", "/performance/feedback"),
+                       ("reviews", "Ülevaatustsüklid", "file-pen-line", "/performance/reviews"),
+                       ("signals", "Signaalid", "radio", "/performance/signals"),
+                       ("learning", "Õpe ja areng", "graduation-cap", "/learning")]),
+    ("Töötaja elukaar", [("onboarding", "Sisseelamine", "rocket", "/lifecycle/onboarding"),
+                         ("changes", "Muudatused", "git-branch", "/lifecycle/changes"),
+                         ("separations", "Lahkumised", "door-open", "/lifecycle/separations"),
+                         ("workforce", "Tööjõu planeerimine", "calculator", "/workforce"),
+                         ("cases", "Juhtumid", "folder-kanban", "/lifecycle/cases"),
+                         ("org", "Organisatsiooni skeem", "network", "/lifecycle/org")]),
+    ("Seaded", [("integrations", "Integratsioonid", "plug", "/settings/integrations"),
+                ("prompts", "AI-juhised", "pencil-line", "/talent/prompts"),
+                ("roles", "Rollid ja juurdepääs", "key-round", "/settings/roles")]),
+    ("Abi", [("guide", "Kasutusjuhend", "book-open", "/guide"),
+             ("developers", "Arendajad", "code-2", "/developers")]),
 ]
-SAMPLE_QUESTIONS = ["Who's on leave today?", "Which team is biggest?", "How many leave requests are pending?"]
+
+NAV_ICON_PATHS = {
+    "layout-dashboard": '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    "sparkles": '<path d="m12 3-1.2 4.2L7 8.5l3.8 1.3L12 14l1.2-4.2L17 8.5l-3.8-1.3L12 3Z"/><path d="m19 14-.6 2.1L16.5 17l1.9.9L19 20l.6-2.1 1.9-.9-1.9-.9L19 14Z"/>',
+    "user-round": '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    "users-round": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    "building-2": '<path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M2 21h20M8 7h2m2 0h2M8 11h2m2 0h2M8 15h2m2 0h2M9 21v-3h4v3"/>',
+    "palmtree": '<path d="M12 22V9M12 9C8 9 5 7 4 4c3-.2 6 .7 8 3M12 9c4 0 7-2 8-5-3-.2-6 .7-8 3M12 9c0-3 1-6 4-8-3-.4-5 1-4 8Z"/>',
+    "clock-3": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    "calendar-days": '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
+    "timer": '<path d="M10 2h4M12 14V9M7 4.5a9 9 0 1 0 10 0"/><path d="m16 5 2-2"/>',
+    "banknote": '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+    "gift": '<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8H7.5a2.5 2.5 0 1 1 0-5C11 3 12 8 12 8Zm0 0h4.5a2.5 2.5 0 1 0 0-5C13 3 12 8 12 8Z"/>',
+    "receipt": '<path d="M4 2h16v20l-4-2-4 2-4-2-4 2V2Z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+    "plane": '<path d="m3 11 18-5-5 18-4-8-9-5Z"/><path d="m12 16 3-7"/>',
+    "compass": '<circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5L16 8Z"/>',
+    "briefcase-business": '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"/>',
+    "target": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    "mail-plus": '<rect x="3" y="5" width="14" height="14" rx="2"/><path d="m3 7 7 5 7-5M19 12v6M16 15h6"/>',
+    "chart-no-axes-combined": '<path d="M3 3v18h18"/><path d="m7 16 4-5 3 3 5-7"/>',
+    "goal": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="m12 12 4-4"/>',
+    "message-circle": '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 9.3 9.3 0 0 1-4-.9L3 21l1.9-4A8.3 8.3 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5Z"/>',
+    "file-pen-line": '<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M13 2v7h7M8 18h2l6.5-6.5a1.4 1.4 0 0 0-2-2L8 16v2Z"/>',
+    "radio": '<circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/>',
+    "graduation-cap": '<path d="m2 10 10-5 10 5-10 5L2 10Z"/><path d="M6 12.5V17c3 2 9 2 12 0v-4.5M22 10v6"/>',
+    "rocket": '<path d="M14.5 4.5C17 2 20 2 22 2c0 2 0 5-2.5 7.5L14 15l-5-5 4.5-5.5Z"/><path d="m9 10-4 1-3 3 6 1M14 15l-1 4-3 3-1-6M7 17l-3 3"/><circle cx="17" cy="7" r="1"/>',
+    "git-branch": '<circle cx="6" cy="5" r="2"/><circle cx="18" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M6 7v4a4 4 0 0 0 4 4h6M18 7v10"/>',
+    "door-open": '<path d="M13 3H5a2 2 0 0 0-2 2v16h12V3Z"/><path d="M15 21h6M15 21V5a2 2 0 0 0-2-2M7 12h.01"/>',
+    "calculator": '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h4"/>',
+    "folder-kanban": '<path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="M8 11v5M12 11v3M16 11v1"/>',
+    "network": '<rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-3h14v3"/>',
+    "plug": '<path d="M8 12h8M10 2v5M14 2v5M7 7h10v3a5 5 0 0 1-10 0V7ZM12 15v7"/>',
+    "pencil-line": '<path d="m14 4 6 6M4 20l4.5-1L19 8.5a2.1 2.1 0 0 0-3-3L5.5 16 4 20Z"/><path d="M4 22h16"/>',
+    "key-round": '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 6l2 2M14 8l2 2"/>',
+    "book-open": '<path d="M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v17a3 3 0 0 0-3-3H4a2 2 0 0 0-2 2V4ZM22 4a2 2 0 0 0-2-2h-6a2 2 0 0 0-2 2v17a3 3 0 0 1 3-3h5a2 2 0 0 1 2 2V4Z"/>',
+    "code-2": '<path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/>',
+}
+
+
+def nav_icon(name):
+    return NotStr(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{NAV_ICON_PATHS[name]}</svg>')
+SAMPLE_QUESTIONS = ["Kes on täna puhkusel?", "Milline meeskond on suurim?", "Mitu puhkuse taotlust on ootel?"]
 
 
 def topbar(env, user_email):
     import version
     right = Div(
-        Button(NotStr("&laquo; Chat"), id="copilot-topbar-toggle", cls="btn", onclick="toggleCopilot()") if user_email else None,
-        Span(env, cls="env-pill"),
+        Button(NotStr("&laquo; Vestlus"), id="copilot-topbar-toggle", cls="btn", onclick="toggleCopilot()") if user_email else None,
+        Span(env, cls="env-pill") if env else None,
         # Which build am I looking at? Answerable without opening a terminal.
         A(version.label(), href="/about", cls="ver-pill", title=version.detail()) if user_email else None,
         Span(user_email or "", style="color:var(--text-mute);font-size:12px;") if user_email else None,
-        A("Logout", href="/logout", cls="btn") if user_email else None, cls="actions")
-    brand = Div(Span(cls="brand-dot"), Span("Fast", style="font-weight:800;"),
-                Span("HRM", style="color:var(--accent);font-weight:700;letter-spacing:.5px;"), cls="brand")
+        A("Logi välja", href="/logout", cls="btn") if user_email else None, cls="actions")
+    brand = Div(Span(cls="brand-dot"), Span("FastHR", style="font-weight:800;"), cls="brand")
     left = Div(
         Button(NotStr("&#9776;"), type="button", id="nav-toggle", cls="nav-toggle",
-               aria_label="Open navigation menu", aria_expanded="false",
+               aria_label="Ava menüü", aria_expanded="false",
                onclick="toggleNav()") if user_email else None,
         brand, cls="topbar-left")
     return Div(left, right, cls="topbar")
@@ -310,21 +351,21 @@ def topbar(env, user_email):
 def left_pane(active):
     sections = []
     for name, items in NAV_ITEMS:
-        links = [A(Span(icon, cls="nav-icon"), Span(label), href=href,
+        links = [A(Span(nav_icon(icon), cls="nav-icon"), Span(label), href=href,
                    cls=f"nav-item {'active' if active == key else ''}") for key, label, icon, href in items]
         sections.append(
             Details(
                 Summary(H4(name), Span(cls="nav-section-arrow", aria_hidden="true"),
-                        cls="nav-section-toggle", aria_label=f"Expand or collapse {name.title()}"),
+                        cls="nav-section-toggle", aria_label=f"Ava või sulge {name}"),
                 Div(*links, cls="nav-section-items"),
                 open=True, cls="nav-section", data_section=name.lower(),
             )
         )
     controls = Div(
-        Button("<<", type="button", id="nav-collapse-all", title="Minimise all menu sections",
-               aria_label="Minimise all menu sections"),
-        Button(">>", type="button", id="nav-expand-all", title="Expand all menu sections",
-               aria_label="Expand all menu sections"),
+        Button("<<", type="button", id="nav-collapse-all", title="Ahenda kõik menüüjaotised",
+               aria_label="Ahenda kõik menüüjaotised"),
+        Button(">>", type="button", id="nav-expand-all", title="Ava kõik menüüjaotised",
+               aria_label="Ava kõik menüüjaotised"),
         cls="nav-section-controls",
     )
     return Div(controls, *sections, cls="left-pane")
@@ -332,22 +373,22 @@ def left_pane(active):
 
 def _sample_cards():
     cards = [Button(Span(q), cls="sample-card", onclick=f"fillChat({q!r});sendMessage(null);", title=q) for q in SAMPLE_QUESTIONS]
-    return Div(Div(Span("Try asking:", cls="sample-cards-label")), Div(*cards), cls="sample-cards")
+    return Div(Div(Span("Proovi küsida:", cls="sample-cards-label")), Div(*cards), cls="sample-cards")
 
 
 def right_pane_chat(thread_id):
     return Div(
-        Div(H3("AI Assistant"),
-            Div(Button("New", cls="btn", hx_get="/chat/new", hx_target="#chat-body", hx_swap="innerHTML"),
+        Div(H3("AI-abiline"),
+            Div(Button("Uus", cls="btn", hx_get="/chat/new", hx_target="#chat-body", hx_swap="innerHTML"),
                 Button(NotStr("&laquo;"), id="copilot-exp-btn", cls="copilot-exp", onclick="toggleExpand()"),
                 Button(NotStr("&rsaquo;"), cls="copilot-min", onclick="toggleCopilot()"), cls="tabs"),
             cls="right-header"),
-        Div(Div(P("Ask about headcount, leave or attendance — or use /headcount /leave /help.",
+        Div(Div(P("Küsi töötajate, puhkuste või kohaloleku kohta. Võid kasutada ka /headcount, /leave või /help.",
                   cls="chat-empty-hint"), id="chat-body", cls="chat-body"),
             Form(Input(type="hidden", name="thread_id", value=thread_id, id="thread-id"),
                  Div(Input(type="text", name="message", id="chat-input",
-                           placeholder="Ask HR a question or /leave /help …", autocomplete="off"),
-                     Button("Send", type="submit", cls="chat-send-btn", id="chat-send-btn"), cls="chat-input-row"),
+                           placeholder="Küsi HR-i kohta või kirjuta /leave /help …", autocomplete="off"),
+                     Button("Saada", type="submit", cls="chat-send-btn", id="chat-send-btn"), cls="chat-input-row"),
                  onsubmit="return streamChat(event)", cls="chat-input"),
             _sample_cards(),
             style="display:flex;flex-direction:column;flex:1;overflow:hidden;"),
@@ -362,7 +403,7 @@ def page(active, env, user_email, thread_id, *content, right_override=None):
             Style(LAYOUT_CSS),
             Div(topbar(env, user_email), left_pane(active), Div(*content, cls="center-pane"), right,
                 Button(type="button", id="app-backdrop", aria_hidden="true", tabindex="-1", onclick="closeOverlays()"),
-                Div(NotStr("&lsaquo; AI Assistant"), id="copilot-reopen", onclick="toggleCopilot()"), cls="app"),
+                Div(NotStr("&lsaquo; AI-abiline"), id="copilot-reopen", onclick="toggleCopilot()"), cls="app"),
             Script(LAYOUT_JS))
 
 
@@ -381,7 +422,7 @@ LAYOUT_JS = """
 function _sync(){var app=document.querySelector('.app');if(!app)return;
   var ex=app.classList.contains('right-expanded'),col=app.classList.contains('right-collapsed');
   var eb=document.getElementById('copilot-exp-btn');if(eb){eb.innerHTML=ex?'\\u00BB':'\\u00AB';}
-  var tb=document.getElementById('copilot-topbar-toggle');if(tb){tb.innerHTML=col?'\\u00AB Chat':'Chat \\u203A';}}
+  var tb=document.getElementById('copilot-topbar-toggle');if(tb){tb.innerHTML=col?'\\u00AB Vestlus':'Vestlus \\u203A';}}
 function isMobileNav(){return window.matchMedia('(max-width:900px)').matches;}
 function closeOverlays(){var app=document.querySelector('.app');if(!app)return;
   app.classList.remove('nav-open','chat-open');
@@ -423,7 +464,7 @@ function addBubble(role,html){var cb=document.getElementById('chat-body');if(!cb
   var d=document.createElement('div');d.className='msg '+role;d.innerHTML=html||'';cb.appendChild(d);_scroll();return d;}
 function showThinking(){var cb=document.getElementById('chat-body');if(!cb)return;
   _thinker={el:document.createElement('div')};_thinker.el.className='thinking-indicator';
-  _thinker.el.innerHTML='<span class="dot"></span> Thinking…';cb.appendChild(_thinker.el);_scroll();}
+  _thinker.el.innerHTML='<span class="dot"></span> Mõtlen…';cb.appendChild(_thinker.el);_scroll();}
 function hideThinking(){if(_thinker){if(_thinker.el.parentNode)_thinker.el.parentNode.removeChild(_thinker.el);_thinker=null;}}
 async function streamChat(ev){if(ev&&ev.preventDefault)ev.preventDefault();if(_streaming)return false;
   var input=document.getElementById('chat-input');var msg=input?input.value.trim():'';if(!msg)return false;
@@ -432,7 +473,7 @@ async function streamChat(ev){if(ev&&ev.preventDefault)ev.preventDefault();if(_s
   var tid=(document.getElementById('thread-id')||{}).value||'';var bubble=null,acc='';showThinking();
   try{var resp=await fetch('/chat/stream',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
     body:new URLSearchParams({message:msg,thread_id:tid})});
-    if(!resp.ok){hideThinking();addBubble('assistant','Error: '+resp.status);_streaming=false;if(btn)btn.disabled=false;return false;}
+    if(!resp.ok){hideThinking();addBubble('assistant','Viga: '+resp.status);_streaming=false;if(btn)btn.disabled=false;return false;}
     var reader=resp.body.getReader(),dec=new TextDecoder(),buf='';
     while(true){var r=await reader.read();if(r.done)break;buf+=dec.decode(r.value,{stream:true});
       var idx;while((idx=buf.indexOf('\\n\\n'))!==-1){var raw=buf.slice(0,idx);buf=buf.slice(idx+2);

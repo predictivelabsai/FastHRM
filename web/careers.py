@@ -141,7 +141,7 @@ document.querySelectorAll('.custom-field[data-condition-field]').forEach(w=>{let
 """)) if custom_fields else None
     return Html(
         _site_head(site, title, description, path=job_path, structured=structured),
-        Body(Div("Preview — this page is not public", cls="preview") if preview else None,
+        Body(Div("Preview, this page is not public", cls="preview") if preview else None,
              Nav(_brand(site, careers_path), A("All open roles", href=careers_path, cls="c-link"), cls="c-nav"),
              Main(Section(A("← All open roles", href=careers_path, cls="c-link back"),
                           Span(job.get("department") or "Open role", cls="c-kicker"),
@@ -218,11 +218,11 @@ def editor(job_id: int | None = None, *, saved: str = "", error: str = ""):
         control = Textarea(value or "", name=name, cls="prompt-box", style="min-height:110px") if kind == "textarea" else Input(type=kind, name=name, value=value or "", required=required, cls="hr-inp")
         return Div(Label(label, style="font-size:12px;font-weight:700"), control, style="display:grid;gap:5px")
 
-    dept_options = [Option("— Department —", value="")] + [
+    dept_options = [Option("Department", value="")] + [
         Option(x["name"], value=str(x["id"]), selected=(str(data.get("dept_id") or "") == str(x["id"])))
         for x in recruitment.departments()
     ]
-    manager_options = [Option("— Hiring manager —", value="")] + [
+    manager_options = [Option("Hiring manager", value="")] + [
         Option(x["name"], value=str(x["id"]), selected=(str(data.get("hiring_manager_id") or "") == str(x["id"])))
         for x in recruitment.hiring_managers()
     ]

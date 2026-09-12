@@ -1,4 +1,4 @@
-"""FastHRM — an open-source HR system built with FastHTML.
+"""FastHR — an open-source HR system built with FastHTML.
 
 A server-side, HTMX-driven port of the core of Frappe HR (HRMS), scoped to three
 pillars: people (employee directory + departments), time (leave + attendance),
@@ -65,7 +65,7 @@ logger = logging.getLogger("fasthr")
 
 VALID_EMAIL = os.getenv("FASTHR_ADMIN_EMAIL", "admin@fasthr.example")
 VALID_PASSWORD = os.getenv("FASTHR_ADMIN_PASSWORD", "FastHR2026$")
-ENV_LABEL = os.getenv("FASTHR_ENV_LABEL", "FastHR")
+ENV_LABEL = os.getenv("FASTHR_ENV_LABEL", "")
 SECRET = os.getenv("FASTHR_SECRET", secrets.token_hex(32))
 PORT = int(os.getenv("FASTHR_PORT", "5010"))
 
@@ -321,7 +321,7 @@ def delete(request, member_id: int):
 
 
 def _login_card(error="", email=""):
-    return Title("FastHR — Sign in"), Style(LAYOUT_CSS), Div(
+    return Title("FastHR · Logi sisse"), Style(LAYOUT_CSS), Div(
         Form(H1("FastHR"), P("Sign in to your HR workspace"),
              Input(name="email", type="email", placeholder="Email", value=email, required=True),
              Input(name="password", type="password", placeholder="Password", required=True),
@@ -2182,7 +2182,7 @@ async def post(session, request):
     if upload is None or not getattr(upload, "filename", ""):
         return P("Choose a CV file to upload.", cls="flag")
     if not cv_extract.supported(upload.filename):
-        return P(f"{upload.filename} is not a supported format — use PDF, DOCX, TXT or MD.", cls="flag")
+        return P(f"{upload.filename} ei ole toetatud failivorming. Kasuta PDF-, DOCX-, TXT- või MD-faili.", cls="flag")
 
     data = await upload.read()
     if not data:
@@ -2227,7 +2227,7 @@ def post(session, key: str = "", content: str = "", restore: str = ""):
     if not body:
         return RedirectResponse(f"/talent/prompts?key={key}", status_code=303)
     version = talent.save_prompt(key, body, title="CV extraction", updated_by=_user(session))
-    note = f"Saved as v{version}{' (restored the built-in default)' if restore else ''} — it takes effect on the next upload."
+    note = f"Salvestatud versioonina v{version}{' (sisseehitatud vaikeväärtus taastati)' if restore else ''}. Muudatus jõustub järgmisel üleslaadimisel."
     return RedirectResponse(f"/talent/prompts?key={key}&saved={quote(note)}", status_code=303)
 
 
@@ -3010,35 +3010,29 @@ def get(session):
                    + "</tbody></table></div>")),
         Div(NotStr("<p style='color:var(--text-mute);font-size:12.5px;'>"
                    "<code>/healthz</code> returns the same build details as JSON, without "
-                   "requiring a login — use it to confirm what a deployment is running.</p>")),
+                   "sisselogimist nõudmata. Kasuta seda käivitatud versiooni kontrollimiseks.</p>")),
     )
     return _guard(session, "about", tuple(b for b in body if b is not None))
 
 
 @rt("/guide")
 def get(session):
-    body = (views._title("User Guide", "How to drive FastHR"), Div(NotStr("""
-<div class='card'><h3>Dashboard</h3><p>Headcount, attendance, on-leave-today and pending leave, with headcount by department.</p></div>
-<div class='card'><h3>Employees & Departments</h3><p>Searchable directory filtered by department; each employee shows
-leave balance, recent attendance, and payslips. Departments lists headcount, head and annual payroll.</p></div>
-<div class='card'><h3>Leave & Attendance</h3><p>Leave requests by status, and today's attendance register with a per-status breakdown.</p></div>
-<div class='card'><h3>Payroll</h3><p>Payslips per pay period with a full deductions breakdown on each payslip.</p></div>
-<div class='card'><h3>Public Careers & Job Pages</h3><p>Author, preview and publish role specifications as shareable
-sub-pages. Candidate applications, form answers and consent flow directly into the matching requisition.</p></div>
-<div class='card'><h3>Recruiting Platform</h3><p>Use Operations for projects, tasks and talent pools; Communications for
-mailboxes, templates, automations and privacy; Scheduling for interview availability; Marketing for job boards and campaigns;
-Analytics for conversion reporting; and Enterprise for brands, identity, screening, video and service controls.</p></div>
-<div class='card'><h3>Performance & Lifecycle</h3><p>Manage goals, feedback, reviews and explainable signals, then coordinate
-onboarding, internal changes, separations, employee-relations cases and the organisation chart.</p></div>
-<div class='card'><h3>AI Assistant</h3><p>The right rail chats over a live HR snapshot. Set <code>MODEL_PROVIDER</code> + a key in
-<code>.env</code> for free-form chat; slash-commands always work.</p></div>""")))
+    body = (views._title("Kiirjuhend", "Peamised sammud HR-administraatorile."), Div(NotStr("""
+<div class='card'><h3>Töölaud</h3><p>Alusta siit. Vaata töötajate arvu, tänast kohalolekut ja kinnitamist ootavaid puhkuse taotlusi.</p></div>
+<div class='card'><h3>Töötajad</h3><p>Otsi töötajat nime või osakonna järgi. Töötaja vaates näed tema andmeid, puhkusejääki, kohalolekut ja palgalehti.</p></div>
+<div class='card'><h3>Palgaarvestus</h3><p>Vali <strong>Uus palgaperiood</strong>, vali lõppenud arvestuskuu ja aktiivsed töötajad ning loo mustand. Ava periood, kontrolli summasid ja palgalehti, vajadusel valmista arvestus uuesti ette. Kui andmed on õiged, liigu järgmisse olekusse ja ekspordi TÖR või TSD.</p></div>
+<div class='card'><h3>Puhkused</h3><p>Vali <strong>Puhkuse taotlus</strong>, töötaja, puhkuse liik ja kuupäevad ning lisa põhjus. Ootel taotluse puhul vali <strong>Kinnita</strong> või lükka taotlus tagasi. Töölaud näitab kinnitamist ootavaid taotlusi.</p></div>
+<div class='card'><h3>Tööaeg ja vahetused</h3><p>Lisa vahetus töötajale kuupäeva, kellaaja ja asukohaga. Tööaja märkimise vaates vali töötaja ning alusta või lõpeta tööaega. Kontrolli hiljem tööaja märkmeid ja puuduvaid märkeid.</p></div>
+<div class='card'><h3>Kulud ja avansid</h3><p>Uue kulunõude jaoks vali töötaja ja kategooria, lisa kuupäev, summa ning kirjeldus. Kinnita esitatud nõue, hüvita kinnitatud nõue või lükka see tagasi. Avansi jaoks sisesta töötaja, summa ja põhjus.</p></div>
+<div class='card'><h3>Värbamine</h3><p>Alusta ametikohast ja lisa kandidaadid. Hoia kandidaadi andmed sama ametikoha juures, vaata läbi avaldus ja liiguta kandidaat järgmisse värbamise etappi. Enne avaldamist kontrolli ametinimetust, kirjeldust ja kandideerimise vormi.</p></div>
+<div class='card'><h3>Kui alustad esimest korda</h3><p>Lisa osakonnad ja töötajad, kontrolli puhkusejääke ning määra vahetused. Seejärel tee prooviperiood sünteetiliste andmetega läbi, et kinnitused ja ekspordid oleksid enne päris kasutust arusaadavad.</p></div>""")))
     return _guard(session, "guide", body)
 
 
 @rt("/chat/new")
 def get(session):
     session["thread"] = uuid.uuid4().hex
-    return P("Ask about headcount, leave or attendance — or use /headcount /leave /help.", cls="chat-empty-hint")
+    return P("Küsi töötajate arvu, puhkuste või kohaloleku kohta. Võid kasutada ka käske /headcount, /leave ja /help.", cls="chat-empty-hint")
 
 
 @rt("/chat/stream")
@@ -3106,5 +3100,5 @@ _ensure_db()
 register_seo_routes(app)
 
 if __name__ == "__main__":
-    logger.info("FastHRM on http://localhost:%s  (login %s)", PORT, VALID_EMAIL)
+    logger.info("FastHR on http://localhost:%s  (login %s)", PORT, VALID_EMAIL)
     serve(port=PORT, reload=os.getenv("FASTHR_RELOAD", "0") == "1")

@@ -1,4 +1,4 @@
-"""FastHRM public reads and token-gated integration writes."""
+"""FastHR public reads and token-gated integration writes."""
 
 import db
 

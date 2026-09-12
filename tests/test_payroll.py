@@ -37,7 +37,7 @@ def test_new_pay_run_page_has_form_with_select_all_and_search(fresh_db):
     _employee(fresh_db)
     html = str(views.pay_run_new())
     assert 'action="/payroll/runs/new"' in html
-    assert "Select all" in html
+    assert "Vali kõik" in html
     assert 'type="search"' in html
     assert "prToggle" in html and "prFilter" in html
 

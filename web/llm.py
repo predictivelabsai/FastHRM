@@ -42,7 +42,7 @@ def available() -> bool:
 def unavailable_reason() -> str:
     p = provider()
     return (f"No {KEY_VARS[p]} configured, so CV extraction is disabled. "
-            f"Add it to .env and restart — the rest of the ATS works without it.")
+            f"Add it to .env and restart. The rest of the ATS works without it.")
 
 
 def get_llm(*, temperature: float = 0.1, timeout: int = 120):

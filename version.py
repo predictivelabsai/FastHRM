@@ -72,16 +72,13 @@ def dirty() -> bool:
 
 
 def label() -> str:
-    """Short form for the top bar: ``v0.3.0 · 4ee9ebe``."""
-    parts = [f"v{version()}"]
-    if commit():
-        parts.append(commit() + ("+" if dirty() else ""))
-    return " · ".join(parts)
+    """Clean semantic version for compact UI surfaces."""
+    return f"v{version()}"
 
 
 def detail() -> str:
     """Long form for the tooltip and the About page."""
-    bits = [f"FastHRM v{version()}"]
+    bits = [f"FastHR v{version()}"]
     if commit():
         bits.append(f"commit {commit()}{' (uncommitted changes)' if dirty() else ''}")
     if branch():
@@ -89,7 +86,7 @@ def detail() -> str:
     if build_date():
         bits.append(f"built {build_date()}")
     if not commit():
-        bits.append("build provenance unknown — no FASTHR_COMMIT stamped and no git available")
+        bits.append("build provenance unknown, no FASTHR_COMMIT stamped and no git available")
     return " · ".join(bits)
 
 

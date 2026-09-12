@@ -20,70 +20,67 @@ RNG = random.Random(20260611)
 TODAY = db.TODAY
 
 COMPETENCIES = [
-    ("Technical depth", "Technical", "Command of the craft their role requires."),
-    ("Problem solving", "Technical", "Breaks ambiguous problems into tractable pieces."),
-    ("Delivery", "Delivery", "Ships work of the right size, on a predictable rhythm."),
-    ("Ownership", "Delivery", "Takes responsibility for outcomes, not just tasks."),
-    ("Communication", "Collaboration", "Writes and speaks clearly to the right audience."),
-    ("Collaboration", "Collaboration", "Makes the people around them more effective."),
-    ("Leadership", "Leadership", "Sets direction and grows others."),
-    ("Customer focus", "Delivery", "Keeps the customer's problem in view."),
+    ("Erialane pädevus", "Erialane", "Valdab oma rolliks vajalikku eriala."),
+    ("Probleemilahendus", "Erialane", "Jagab ebaselged probleemid lahendatavateks osadeks."),
+    ("Tulemuslikkus", "Tulemus", "Toimetab paraja mahuga tööd etteaimatavas rütmis."),
+    ("Vastutus", "Tulemus", "Vastutab tulemuste, mitte ainult ülesannete eest."),
+    ("Suhtlemine", "Koostöö", "Kirjutab ja räägib selgelt õigele kuulajale."),
+    ("Koostöö", "Koostöö", "Muudab enda ümber olevad inimesed tõhusamaks."),
+    ("Eestvedamine", "Eestvedamine", "Seab suuna ja kasvatab teisi."),
+    ("Kliendikesksus", "Tulemus", "Hoiab kliendi probleemi fookuses."),
 ]
 
 COMPANY_GOALS = [
-    ("Grow annual recurring revenue to £12m", "ARR", 12_000_000, 8_400_000, "£"),
-    ("Reach 95% customer retention", "Retention", 95, 91, "%"),
-    ("Cut time-to-hire below 30 days", "Days to hire", 30, 41, "days"),
+    ("Kasvata korduvtulu 12 miljoni euroni", "Korduvtulu", 12_000_000, 8_400_000, "€"),
+    ("Hoia kliendihoid 95 protsendi juures", "Hoidmine", 95, 91, "%"),
+    ("Vii värbamisaeg alla 30 päeva", "Värbamispäevad", 30, 41, "päeva"),
 ]
 DEPT_GOAL_TEMPLATES = {
-    "Engineering": [("Ship the platform migration", "Milestones", 8),
-                    ("Hold p95 latency under 200ms", "ms", 200)],
-    "Sales": [("Close £4m of new business", "£", 4_000_000),
-              ("Build £12m of qualified pipeline", "£", 12_000_000)],
-    "Marketing": [("Generate 2,400 qualified leads", "Leads", 2400)],
-    "Customer Success": [("Lift NPS to 45", "NPS", 45)],
-    "Finance": [("Close the books within 5 days", "Days", 5)],
-    "People & Culture": [("Fill 12 open roles", "Hires", 12),
-                         ("Complete 100% of review cycle", "%", 100)],
-    "Operations": [("Reduce supplier spend by 8%", "%", 8)],
-    "Product": [("Launch 4 major features", "Features", 4)],
+    "Arendus": [("Vii platvormimigratsioon lõpule", "Etappi", 8),
+                ("Hoia p95 viive alla 200 ms", "ms", 200)],
+    "Müük": [("Sõlmi 4 miljoni euro eest uusi lepinguid", "€", 4_000_000),
+              ("Ehita 12 miljoni euro väärtuses müügitoru", "€", 12_000_000)],
+    "Turundus": [("Too 2400 kvalifitseeritud kontakti", "Kontakti", 2400)],
+    "Klienditugi": [("Tõsta NPS 45ni", "NPS", 45)],
+    "Finants": [("Sulge raamatupidamine 5 päevaga", "Päeva", 5)],
+    "Personal": [("Täida 12 avatud ametikohta", "Töötajat", 12),
+                 ("Vii 100% ülevaatustsüklist lõpule", "%", 100)],
+    "Operatsioonid": [("Vähenda hankekulu 8%", "%", 8)],
+    "Toode": [("Anna välja 4 suurt funktsiooni", "Funktsiooni", 4)],
 }
 IND_GOALS = [
-    "Own the {area} workstream end to end", "Improve {area} by a measurable margin",
-    "Mentor a colleague through {area}", "Document and hand over {area}",
-    "Reduce time spent on {area}", "Raise quality of {area} reporting",
+    "Vii {area} töö otsast lõpuni", "Paranda {area} mõõdetavalt",
+    "Juhenda kolleegi {area} teemal", "Dokumenteeri {area} ja anna üle",
+    "Vähenda {area} kuluvat aega", "Tõsta {area} aruandluse kvaliteeti",
 ]
-AREAS = ["onboarding", "reporting", "the release process", "customer escalations",
-         "the data pipeline", "forecast accuracy", "our documentation", "incident response"]
+AREAS = ["sisseelamine", "aruandlus", "väljalaskeprotsess", "kliendieskalatsioonid",
+         "andmetöötlus", "prognoositäpsus", "dokumentatsioon", "intsidendilahendus"]
 
 PRAISE = [
-    "Stepped in on the {a} escalation at short notice and steadied it — the customer noticed.",
-    "The {a} write-up was the clearest thing I've read this quarter.",
-    "Quietly unblocked three people this week on {a}. Not glamorous, very valuable.",
-    "Ran the {a} session so well that the follow-up actions wrote themselves.",
-    "Caught a problem in {a} before it reached the customer.",
+    'Teema "{a}" sai lühikesel etteteatamisel korda aetud ja klient märkas seda.',
+    'Teema "{a}" kokkuvõte oli selgeim, mida sel kvartalil lugesin.',
+    'Aitas sel nädalal vaikselt kolme inimest teemal "{a}". Ei ole särav, aga väga väärtuslik.',
+    'Vedult teema "{a}" arutelu nii hästi, et järgmised sammud panid end ise kirja.',
+    'Märkas teemas "{a}" probleemi enne, kui see kliendini jõudis.',
 ]
 CONSTRUCTIVE = [
-    "The {a} work landed well, but the update came late — flag slippage sooner.",
-    "Strong analysis on {a}; the recommendation was buried on page four.",
-    "Great instincts on {a}. Try bringing others in earlier rather than finishing alone.",
-    "Consider handing {a} over — you're the only person who knows how it works.",
+    'Teema "{a}" töö sai tehtud, aga uuendus tuli hilja. Anna libisemisest varem märku.',
+    'Teema "{a}" analüüs oli tugev, aga soovitus oli neljanda lehekülje lõpus peidus.',
+    'Hea vaist teemas "{a}". Proovi teisi varem kaasata, mitte üksi lõpuni teha.',
+    'Kaalu teema "{a}" üleandmist. Praegu tunned seda ainult sina.',
 ]
 EXIT_NOTES = [
-    ("Leaving for a step up in scope that we couldn't offer right now. No complaints about "
-     "the team — I'd come back if the right role opened.", "Positive"),
-    ("Workload became unsustainable after two people left and weren't replaced. Raised it "
-     "twice; nothing changed.", "Negative"),
-    ("Relocating for family reasons. Genuinely sorry to go — the last project was the best "
-     "work I've done.", "Positive"),
-    ("Wanted a clearer path to management. The conversations kept being deferred.", "Mixed"),
+    ("Lahkub suurema vastutuse pärast, mida me praegu pakkuda ei saanud. Meeskonna kohta pole midagi halba öelda, sobiva rolli avanedes tuleksin tagasi.", "Positiivne"),
+    ("Töökoormus muutus jätkusuutmatuks pärast kahe inimese lahkumist, keda ei asendatud. Tõstatasin seda kaks korda, midagi ei muutunud.", "Negatiivne"),
+    ("Kolin pere pärast. On tõesti kahju lahkuda, viimane projekt oli parim töö, mida teinud olen.", "Positiivne"),
+    ("Tahtsin selgemat teed juhtimisse. Vestlused lükkusid kogu aeg edasi.", "Segatud"),
 ]
 CASES = [
-    ("Pay query", "Overtime for the March on-call rota appears not to have been paid.", "Normal"),
-    ("Wellbeing", "Requesting a phased return after extended sick leave.", "High"),
-    ("Grievance", "Reports being consistently talked over in team meetings.", "High"),
-    ("Conduct", "Repeated late arrival without notice; manager has raised it informally.", "Normal"),
-    ("Other", "Asking about the flexible working policy for a compressed week.", "Low"),
+    ("Pay query", "Märtsi valveaja ületunnid näivad olevat maksmata.", "Normal"),
+    ("Wellbeing", "Palub pärast pikka haiguslehte järkjärgulist naasmist.", "High"),
+    ("Grievance", "Annab teada, et temast räägitakse koosolekutel järjepidevalt üle.", "High"),
+    ("Conduct", "Korduv etteteatamata hilinemine, juht on seda mitteametlikult maininud.", "Normal"),
+    ("Other", "Küsimus paindliku tööaja poliitika kohta lühendatud nädala puhul.", "Low"),
 ]
 
 
@@ -140,8 +137,8 @@ def build():
                 rec = ("Strong hire" if base > 4.2 else "Hire" if base > 3.4
                        else "No decision" if base > 2.9 else "No hire")
                 talent.record_scorecard(iid, scores, recommendation=rec,
-                                        notes=f"Probed {RNG.choice(AREAS)}; evidence was "
-                                              f"{'convincing' if base > 3.5 else 'thin in places'}.",
+                                        notes=f"Hinnatud: {RNG.choice(AREAS)}. Tõendid olid "
+                                              f"{'veenvad' if base > 3.5 else 'kohati napid'}.",
                                         actor="seed")
                 n_sc += len(scores)
 
@@ -207,7 +204,7 @@ def build():
                     conn.execute("""INSERT INTO goal_checkins(goal_id,value,status,note,created_by,created)
                                     VALUES (?,?,?,?,'seed',?)""",
                                  (gid, round(current * (k + 1) / 3, 1), status,
-                                  f"Progress on {RNG.choice(AREAS)}.", _d(RNG.randint(3, 60))))
+                                  f"Edusammud valdkonnas {RNG.choice(AREAS)}.", _d(RNG.randint(3, 60))))
             n_goals += 1
 
     # --- feedback -----------------------------------------------------------
@@ -228,7 +225,7 @@ def build():
         n_fb += 1
 
     # --- a review cycle, part-completed --------------------------------------
-    cid = people.create_cycle(name="2026 H1 review", period_start="2026-01-01",
+    cid = people.create_cycle(name="2026. aasta esimese poolaasta ülevaatus", period_start="2026-01-01",
                               period_end="2026-06-30", actor="seed")
     people.open_cycle(cid, actor="seed")
     n_rev = 0
@@ -237,8 +234,8 @@ def build():
             overall = round(RNG.gauss(3.5, 0.7), 1)
             overall = max(1.0, min(5.0, overall))
             people.submit_review(r["id"], overall=overall,
-                                 narrative=f"Delivered consistently on {RNG.choice(AREAS)}. "
-                                           f"Next: {RNG.choice(AREAS)}.",
+                                 narrative=f"Töö valdkonnas {RNG.choice(AREAS)} on stabiilne. "
+                                           f"Järgmine samm: {RNG.choice(AREAS)}.",
                                  ratings={c["name"]: max(1, min(5, round(overall + RNG.uniform(-.8, .8))))
                                           for c in RNG.sample(comps, 4)}, actor="seed")
             n_rev += 1
@@ -259,16 +256,16 @@ def build():
         ctype = RNG.choice(people.CHANGE_TYPES)
         to_vals = {}
         if ctype in ("Promotion", "Role change"):
-            to_vals["designation"] = "Senior " + (e["designation"] or "Specialist")
+            to_vals["designation"] = "Vanem " + (e["designation"] or "spetsialist")
         if ctype == "Salary change" or ctype == "Promotion":
             cur = db.scalar("SELECT base_salary FROM employees WHERE id=?", (e["id"],)) or 50000
             to_vals["base_salary"] = round(cur * RNG.uniform(1.05, 1.18), -2)
         if ctype == "Transfer":
             to_vals["dept_id"] = RNG.choice(depts)["id"]
         if not to_vals:
-            to_vals["designation"] = e["designation"] or "Specialist"
+            to_vals["designation"] = e["designation"] or "spetsialist"
         chg = people.propose_change(e["id"], change_type=ctype, effective_date=_fwd(RNG.randint(5, 60)),
-                                    to_values=to_vals, note="Proposed during the quarterly review.",
+                                    to_values=to_vals, note="Pakutud kvartaalsel ülevaatusel.",
                                     actor="seed")
         n_chg += 1
         if RNG.random() < 0.45:
@@ -281,8 +278,8 @@ def build():
         sid = people.start_separation(e["id"], kind=RNG.choice(people.SEPARATION_KINDS),
                                       notice_date=_d(RNG.randint(10, 40)),
                                       last_day=_fwd(RNG.randint(-10, 30)),
-                                      reason=RNG.choice(["New role elsewhere", "Relocation",
-                                                         "End of fixed term", "Personal reasons"]),
+                                      reason=RNG.choice(["Uus ametikoht mujal", "Kolimine",
+                                                         "Tähtajalise lepingu lõpp", "Isiklikud põhjused"]),
                                       actor="seed")
         people.record_exit_interview(sid, notes=notes, sentiment=sentiment, actor="seed")
         n_sep += 1
@@ -295,23 +292,23 @@ def build():
         emp = RNG.choice(emps)
         cid2 = people.open_case(employee_id=emp["id"] if RNG.random() < 0.8 else None,
                                 kind=kind, summary=summary, severity=severity,
-                                visibility=RNG.choice(["HR only", "HR and manager"]), actor="seed")
+                                visibility=RNG.choice(["Ainult HR", "HR ja juht"]), actor="seed")
         if RNG.random() < 0.4:
             people.set_case_status(cid2, "Investigating", actor="seed")
 
     # --- employee skills for internal mobility ------------------------------
-    skills_pool = ["Python", "SQL", "Stakeholder management", "Forecasting", "Figma",
-                   "Salesforce", "Coaching", "Data analysis", "Project delivery", "Copywriting",
-                   "Employment law", "Negotiation", "Kubernetes", "Accounting"]
+    skills_pool = ["Python", "SQL", "Huvigruppide juhtimine", "Prognoosimine", "Figma",
+                   "Salesforce", "Juhendamine", "Andmeanalüüs", "Projektijuhtimine", "Tekstiloome",
+                   "Tööõigus", "Läbirääkimised", "Kubernetes", "Raamatupidamine"]
     with db.cursor() as conn:
         for e in emps:
             for s in RNG.sample(skills_pool, RNG.randint(2, 5)):
                 conn.execute("""INSERT INTO employee_skills(employee_id,skill,level,years,source)
                                 VALUES (?,?,?,?,'manual')""",
-                             (e["id"], s, RNG.choice(["Intermediate", "Advanced", "Expert"]),
+                             (e["id"], s, RNG.choice(["Kesktase", "Edasijõudnud", "Ekspert"]),
                               round(RNG.uniform(1, 9), 1)))
 
-    print(f"FastHRM platform seeded → {db.DB_PATH}")
+    print(f"FastHR platform seeded → {db.DB_PATH}")
     print(f"  {len(COMPETENCIES)} competencies · {n_iv} interviews · {n_sc} scorecard entries · {n_off} offers")
     print(f"  {len(COMPANY_GOALS)} company + {len(dept_ids)} team + {n_goals} individual goals · {n_fb} feedback")
     print(f"  {n_rev} reviews submitted · {n_onb} onboarding checklists · {n_chg} changes · {n_sep} separations")

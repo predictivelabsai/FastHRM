@@ -1,4 +1,4 @@
-"""Center-pane renderers for FastHRM."""
+"""Center-pane renderers for FastHR."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -50,25 +50,25 @@ def dashboard():
     pending = db.rows("""SELECT lr.*, e.first_name,e.last_name FROM leave_requests lr
                          JOIN employees e ON e.id=lr.employee_id WHERE lr.status='Pending'
                          ORDER BY lr.from_date LIMIT 8""")
-    pend_tbl = Table(Thead(Tr(Th("Employee"), Th("Type"), Th("Dates"), Th("Days"), Th("Reason"))),
+    pend_tbl = Table(Thead(Tr(Th("Töötaja"), Th("Liik"), Th("Kuupäevad"), Th("Päevad"), Th("Põhjus"))),
                      Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(_pill(r["leave_type"])),
                                 Td(f"{r['from_date']} → {r['to_date']}", style="white-space:nowrap;"),
                                 Td(str(r["days"]), cls="num"), Td(r["reason"]))
-                             for r in pending] or [Tr(Td("No pending requests 🎉", colspan="5"))]), cls="tbl")
-    leave_tbl = Table(Thead(Tr(Th("On leave today"), Th("Department"))),
-                      Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "—"))
-                              for r in on_leave] or [Tr(Td("Nobody on leave today.", colspan="2"))]), cls="tbl")
+                              for r in pending] or [Tr(Td("Ootel taotlusi pole", colspan="5"))]), cls="tbl")
+    leave_tbl = Table(Thead(Tr(Th("Täna puhkusel"), Th("Osakond"))),
+                      Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "Puudub"))
+                               for r in on_leave] or [Tr(Td("Täna pole keegi puhkusel.", colspan="2"))]), cls="tbl")
 
     return (
-        _title("HR Dashboard", "People, time and pay at a glance — fully synthetic demo data."),
-        Div(kpi_card("Headcount", k["headcount"], f"{k['depts']} departments"),
-            kpi_card("Present today", k["present_today"], f"{k['on_leave_today']} on leave"),
-            kpi_card("Attendance (30d)", f"{k['attendance_rate']}%", tone="warn" if k["attendance_rate"] < 85 else ""),
-            kpi_card("Pending leave", k["pending_leave"], "awaiting approval", tone="danger" if k["pending_leave"] else ""),
+        _title("Töölaud", "Töötajad, tööaeg ja palgaarvestus ühel lehel."),
+        Div(kpi_card("Töötajaid", k["headcount"], f"{k['depts']} osakonda"),
+            kpi_card("Täna tööl", k["present_today"], f"{k['on_leave_today']} puhkusel"),
+            kpi_card("Kohalolek (30 päeva)", f"{k['attendance_rate']}%", tone="warn" if k["attendance_rate"] < 85 else ""),
+            kpi_card("Ootel puhkused", k["pending_leave"], "ootab kinnitamist", tone="danger" if k["pending_leave"] else ""),
             cls="kpi-grid"),
-        Div(Div(Div(H3("Headcount by department"), cls="card-header"), *funnel, cls="card"),
-            Div(Div(H3("On leave today"), cls="card-header"), leave_tbl, cls="card"), cls="grid-2"),
-        Div(Div(H3("Pending leave requests"), cls="card-header"), pend_tbl, cls="card"),
+        Div(Div(Div(H3("Töötajate arv osakondade kaupa"), cls="card-header"), *funnel, cls="card"),
+            Div(Div(H3("Täna puhkusel"), cls="card-header"), leave_tbl, cls="card"), cls="grid-2"),
+        Div(Div(H3("Ootel puhkuse taotlused"), cls="card-header"), pend_tbl, cls="card"),
     )
 
 
@@ -88,21 +88,21 @@ def employees_list(dept="All", q=""):
     clause = ("WHERE " + " AND ".join(where)) if where else ""
     emps = db.rows(f"""SELECT e.*, d.name dept FROM employees e LEFT JOIN departments d ON d.id=e.dept_id
                        {clause} ORDER BY e.first_name LIMIT 300""", tuple(params))
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Designation"), Th("Department"), Th("Branch"), Th("Status"), Th("Joined"))),
+    tbl = Table(Thead(Tr(Th("Töötaja"), Th("Amet"), Th("Osakond"), Th("Üksus"), Th("Staatus"), Th("Tööle asumine"))),
                 Tbody(*[Tr(
                     Td(A(_name(e), href=f"/employees/{e['id']}")),
-                    Td(e["designation"] or "—"), Td(e["dept"] or "—"), Td(e["branch"] or "—"),
-                    Td(_pill(e["status"])), Td(e["date_of_joining"] or "—", style="color:var(--text-mute);"))
+                    Td(e["designation"] or "Puudub"), Td(e["dept"] or "Puudub"), Td(e["branch"] or "Puudub"),
+                    Td(_pill(e["status"])), Td(e["date_of_joining"] or "Puudub", style="color:var(--text-mute);"))
                     for e in emps]), cls="tbl")
-    search = Form(Input(type="search", name="q", value=q, placeholder="Search employees…"),
+    search = Form(Input(type="search", name="q", value=q, placeholder="Otsi töötajaid…"),
                   Input(type="hidden", name="dept", value=dept), cls="toolbar", method="get", action="/employees")
-    return _title("Employees", f"{len(emps)} shown"), seg, search, Div(tbl, cls="card")
+    return _title("Töötajad", f"{len(emps)} kuvatud"), seg, search, Div(tbl, cls="card")
 
 
 def employee_detail(eid):
     e = db.employee(eid)
     if not e:
-        return _title("Employee not found"), P("No such employee.")
+        return _title("Töötajat ei leitud"), P("Sellist töötajat pole.")
     bal = db.leave_balance(eid)
     att = db.recent_attendance(eid, 20)
     pays = db.payslips_for(eid)
@@ -110,31 +110,31 @@ def employee_detail(eid):
     head = Div(Span(_initials(e["first_name"], e["last_name"]), cls="avatar"),
                Div(H1(_name(e), style="margin:0;"),
                    P(f"{e['designation']} · {e['dept']} · {e['branch']}", cls="sub")), cls="emp-head")
-    info = Div(Div(H3("Details"), cls="card-header"),
-               Div(Span("Code", cls="k"), Span(e["code"]),
-                   Span("Email", cls="k"), Span(e["email"]),
-                   Span("Status", cls="k"), _pill(e["status"]),
-                   Span("Manager", cls="k"), Span(e["manager"] or "—"),
-                   Span("Joined", cls="k"), Span(e["date_of_joining"] or "—"),
-                   Span("Base salary", cls="k"), Span(money(e["base_salary"]) + "/yr"),
+    info = Div(Div(H3("Andmed"), cls="card-header"),
+               Div(Span("Kood", cls="k"), Span(e["code"]),
+                   Span("E-post", cls="k"), Span(e["email"]),
+                   Span("Staatus", cls="k"), _pill(e["status"]),
+                   Span("Juht", cls="k"), Span(e["manager"] or "Puudub"),
+                   Span("Tööle asumine", cls="k"), Span(e["date_of_joining"] or "Puudub"),
+                   Span("Põhitöötasu", cls="k"), Span(money(e["base_salary"]) + "/aastas"),
                    cls="kv"), cls="card")
-    bal_card = Div(Div(H3("Leave balance"), cls="card-header"),
+    bal_card = Div(Div(H3("Puhkusejääk"), cls="card-header"),
                    Div(*[Div(Div(b["leave_type"], cls="lt"), Div(f"{b['remaining']:.1f}", cls="rem"),
-                             Div(f"of {b['allocated']:.0f} days", cls="of"), cls="bal")
+                             Div(f"{b['allocated']:.0f} päevast", cls="of"), cls="bal")
                          for b in bal if b["allocated"]], cls="bal-grid"), cls="card")
     strip = Div(*[Span(ATT_LETTER[a["status"]], cls=f"att-cell {ATT_CLASS[a['status']]}",
                        title=f"{a['att_date']} {a['status']}") for a in reversed(att)], cls="att-strip")
-    att_card = Div(Div(H3("Recent attendance"), cls="card-header"), strip,
-                   P("P present · W WFH · L leave · ½ half-day · A absent",
+    att_card = Div(Div(H3("Viimane kohalolek"), cls="card-header"), strip,
+                   P("P kohal · W kaugtöö · L puhkusel · ½ poolik päev · A puudub",
                      style="color:var(--text-mute);font-size:11px;margin-top:8px;"), cls="card")
-    pay_tbl = Table(Thead(Tr(Th("Period"), Th("Gross", cls="num"), Th("Deductions", cls="num"), Th("Net", cls="num"), Th(""))),
+    pay_tbl = Table(Thead(Tr(Th("Periood"), Th("Bruto", cls="num"), Th("Mahaarvamised", cls="num"), Th("Netosumma", cls="num"), Th(""))),
                     Tbody(*[Tr(Td(p["period"]), Td(money(p["gross"]), cls="num"),
                                Td(money(p["tax"] + p["pension"] + p["other_ded"]), cls="num"),
                                Td(Strong(money(p["net"])), cls="num"),
-                               Td(A("Payslip", href=f"/payroll/{p['id']}", cls="btn sm")))
+                               Td(A("Palgaleht", href=f"/payroll/{p['id']}", cls="btn sm")))
                             for p in pays]), cls="tbl")
-    return (head, A("← All employees", href="/employees", cls="btn"),
-            Div(Div(info, Div(Div(H3("Payslips"), cls="card-header"), pay_tbl, cls="card")),
+    return (head, A("← Kõik töötajad", href="/employees", cls="btn"),
+            Div(Div(info, Div(Div(H3("Palgalehed"), cls="card-header"), pay_tbl, cls="card")),
                 Div(bal_card, att_card), cls="detail-grid", style="margin-top:14px;"))
 
 
@@ -145,25 +145,25 @@ def departments_list():
                       COALESCE(SUM(e.base_salary),0) payroll
                       FROM departments d LEFT JOIN employees e ON e.dept_id=d.id
                       GROUP BY d.id ORDER BY n DESC""")
-    tbl = Table(Thead(Tr(Th("Department"), Th("Head"), Th("Headcount", cls="num"), Th("Annual payroll", cls="num"))),
-                Tbody(*[Tr(Td(Strong(d["name"])), Td(d["lead"] or "—"), Td(str(d["n"]), cls="num"),
+    tbl = Table(Thead(Tr(Th("Osakond"), Th("Juht"), Th("Töötajaid", cls="num"), Th("Aastane palgakulu", cls="num"))),
+                Tbody(*[Tr(Td(Strong(d["name"])), Td(d["lead"] or "Puudub"), Td(str(d["n"]), cls="num"),
                            Td(money(d["payroll"]), cls="num")) for d in deps]), cls="tbl")
-    return _title("Departments", f"{len(deps)} departments"), Div(tbl, cls="card")
+    return _title("Osakonnad", f"{len(deps)} osakonda"), Div(tbl, cls="card")
 
 
 # ---------- leave -----------------------------------------------------------
 
 def _apply_form():
     emps = db.employees_min()
-    return Div(Div(H3("Apply for leave"), cls="card-header"),
+    return Div(Div(H3("Puhkuse taotlus"), cls="card-header"),
                Form(
                    Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in emps],
                           name="employee_id", cls="hr-inp"),
                    Select(*[Option(t, value=t) for t in db.LEAVE_TYPES], name="leave_type", cls="hr-inp"),
                    Input(type="date", name="from_date", cls="hr-inp", required=True),
                    Input(type="date", name="to_date", cls="hr-inp", required=True),
-                   Input(name="reason", placeholder="Reason", cls="hr-inp", style="flex:1;min-width:140px;"),
-                   Button("Submit", cls="btn primary", type="submit"),
+                   Input(name="reason", placeholder="Põhjus", cls="hr-inp", style="flex:1;min-width:140px;"),
+                   Button("Esita", cls="btn primary", type="submit"),
                    **{"hx-post": "/leave/apply", "hx-target": "#leave-main", "hx-swap": "innerHTML"},
                    cls="inline-form", style="flex-wrap:wrap;gap:8px;"),
                cls="card")
@@ -185,18 +185,18 @@ def leave_main(status="Pending"):
                              **{"hx-post": f"/leave/{r['id']}/reject", "hx-target": "#leave-main", "hx-swap": "innerHTML"}),
                       style="display:flex;gap:4px;")
         else:
-            act = Span("—", style="color:var(--text-mute);")
-        rows_.append(Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "—"),
+            act = Span("Puudub", style="color:var(--text-mute);")
+        rows_.append(Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "Puudub"),
                         Td(_pill(r["leave_type"])),
                         Td(f"{r['from_date']} → {r['to_date']}", style="white-space:nowrap;"),
                         Td(str(r["days"]), cls="num"), Td(_pill(r["status"])), Td(act)))
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Dept"), Th("Type"), Th("Dates"), Th("Days", cls="num"), Th("Status"), Th("Action"))),
-                Tbody(*rows_ or [Tr(Td("No requests.", colspan="7"))]), cls="tbl")
+    tbl = Table(Thead(Tr(Th("Töötaja"), Th("Osakond"), Th("Liik"), Th("Kuupäevad"), Th("Päevad", cls="num"), Th("Staatus"), Th("Tegevus"))),
+                Tbody(*rows_ or [Tr(Td("Taotlusi pole.", colspan="7"))]), cls="tbl")
     return Div(_apply_form(), seg, Div(tbl, cls="card"))
 
 
 def leave_list(status="Pending"):
-    return _title("Leave requests"), Div(leave_main(status), id="leave-main")
+    return _title("Puhkuse taotlused"), Div(leave_main(status), id="leave-main")
 
 
 # ---------- attendance ------------------------------------------------------
@@ -211,10 +211,10 @@ def attendance_view():
         counts[r["status"]] = counts.get(r["status"], 0) + 1
     kpis = Div(*[kpi_card(s, counts.get(s, 0)) for s in db.ATTEND_STATUSES[:4]], cls="kpi-grid")
     tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Status"), Th("Hours", cls="num"))),
-                Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "—"),
-                           Td(_pill(r["status"])), Td(f"{r['hours']:.1f}" if r["hours"] else "—", cls="num"))
+                Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "Puudub"),
+                           Td(_pill(r["status"])), Td(f"{r['hours']:.1f}" if r["hours"] else "Puudub", cls="num"))
                         for r in reg]), cls="tbl")
-    return _title("Attendance", f"Today — {today}"), kpis, Div(Div(H3("Today's register"), cls="card-header"), tbl, cls="card")
+    return _title("Kohalolek", f"Täna: {today}"), kpis, Div(Div(H3("Tänane register"), cls="card-header"), tbl, cls="card")
 
 
 # ---------- shifts and time clocks -----------------------------------------
@@ -248,25 +248,25 @@ def shifts_roster(week=""):
                                   href=f"/shifts?week={start.isoformat()}",
                                   style=f"border-left:3px solid {s['color'] or 'var(--accent)'};"),
                              _pill(s["status"]),
-                             Form(Button("Cancel", type="submit", cls="btn sm"), method="post",
+                             Form(Button("Tühista", type="submit", cls="btn sm"), method="post",
                                   action=f"/shifts/{s['id']}/cancel") if s["status"] in ("Scheduled", "Missed") else None,
-                             cls="note") for s in shifts] or [Span("—", cls="sub")]))
+                             cls="note") for s in shifts] or [Span("Puudub", cls="sub")]))
         rows_.append(Tr(Td(Strong(_name(emp))), *cells))
-    table = Table(Thead(Tr(Th("Employee"), *[Th(f"{d:%a}<br>{d:%d %b}", cls="num") for d in days])),
-                  Tbody(*rows_ or [Tr(Td("No shifts this week.", colspan="8"))]), cls="tbl")
+    table = Table(Thead(Tr(Th("Töötaja"), *[Th(f"{d:%a}<br>{d:%d %b}", cls="num") for d in days])),
+                  Tbody(*rows_ or [Tr(Td("Sel nädalal vahetusi pole.", colspan="8"))]), cls="tbl")
     types = db.shift_types()
     emps = db.employees_min()
     form = Form(Select(*[Option(_name(e), value=str(e["id"])) for e in emps], name="employee_id", required=True, cls="hr-inp"),
                 Select(*[Option(t["name"], value=str(t["id"])) for t in types], name="shift_type_id", required=True, cls="hr-inp"),
                 Input(type="date", name="shift_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp"),
-                Input(name="location_label", placeholder="Location (e.g. Tallinn HQ)", cls="hr-inp"),
-                Button("Create shift", type="submit", cls="btn primary"), method="post", action="/shifts/new")
+                Input(name="location_label", placeholder="Asukoht, näiteks Tallinna kontor", cls="hr-inp"),
+                Button("Loo vahetus", type="submit", cls="btn primary"), method="post", action="/shifts/new")
     prev_week, next_week = (start - timedelta(days=7)).isoformat(), (start + timedelta(days=7)).isoformat()
-    return (_title("Shifts & roster", f"Week of {start.isoformat()} — {end.isoformat()}",
-                   A("← Previous", href=f"/shifts?week={prev_week}", cls="btn"),
-                   A("Next →", href=f"/shifts?week={next_week}", cls="btn")),
-            Div(Div(H3("Weekly roster"), cls="card-header"), table, cls="card"),
-            Div(Div(H3("New shift"), P("Add a scheduled shift to the roster.", cls="sub"), cls="card-header"), form, cls="card"))
+    return (_title("Vahetused ja töögraafik", f"Nädal: {start.isoformat()} kuni {end.isoformat()}",
+                   A("← Eelmine", href=f"/shifts?week={prev_week}", cls="btn"),
+                   A("Järgmine →", href=f"/shifts?week={next_week}", cls="btn")),
+            Div(Div(H3("Nädala töögraafik"), cls="card-header"), table, cls="card"),
+            Div(Div(H3("Uus vahetus"), P("Lisa graafikusse uus vahetus.", cls="sub"), cls="card-header"), form, cls="card"))
 
 
 def time_clocks():
@@ -280,30 +280,30 @@ def time_clocks():
         latest[punch["employee_id"]] = punch
     def state_for(eid):
         kind = latest.get(eid, {}).get("punch_type")
-        return {"In": "Punched in", "Break Start": "On break", "Break End": "Punched in",
-                "Out": "Punched out"}.get(kind, "Not clocked")
+        return {"In": "Tööaeg alustatud", "Break Start": "Pausil", "Break End": "Tööaeg alustatud",
+                "Out": "Tööaeg lõpetatud"}.get(kind, "Märge puudub")
 
-    board = Table(Thead(Tr(Th("Employee"), Th("State"), Th("Last punch"), Th("Source"))),
+    board = Table(Thead(Tr(Th("Töötaja"), Th("Olek"), Th("Viimane märge"), Th("Allikas"))),
                   Tbody(*[Tr(Td(_name(e)), Td(_pill(state_for(e["id"]))),
-                           Td(latest[e["id"]]["punched_at"] if e["id"] in latest else "—"),
-                           Td(latest[e["id"]]["source"] if e["id"] in latest else "—")) for e in employees]), cls="tbl")
+                           Td(latest[e["id"]]["punched_at"] if e["id"] in latest else "Puudub"),
+                           Td(latest[e["id"]]["source"] if e["id"] in latest else "Puudub")) for e in employees]), cls="tbl")
     selector = Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp")
-    widget = Div(Form(selector, Input(type="hidden", name="source", value="Web"), Button("Clock in", type="submit", cls="btn primary"),
+    widget = Div(Form(selector, Input(type="hidden", name="source", value="Veeb"), Button("Alusta tööaega", type="submit", cls="btn primary"),
                       method="post", action="/timeclock/in"),
                  Form(Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp"),
-                      Button("Clock out", type="submit", cls="btn"), method="post", action="/timeclock/out"), cls="actions")
-    recent = Table(Thead(Tr(Th("Employee"), Th("Type"), Th("When"), Th("Site"))),
+                      Button("Lõpeta tööaeg", type="submit", cls="btn"), method="post", action="/timeclock/out"), cls="actions")
+    recent = Table(Thead(Tr(Th("Töötaja"), Th("Tüüp"), Th("Aeg"), Th("Asukoht"))),
                    Tbody(*[Tr(Td(_name(p)), Td(_pill(p["punch_type"])), Td(p["punched_at"]),
-                              Td("On site" if p["on_site"] else ("Off site" if p["on_site"] == 0 else "—"))) for p in punches[:20]] or
-                          [Tr(Td("No punches today.", colspan="4"))]), cls="tbl")
+                              Td("Kohapeal" if p["on_site"] else ("Eemal" if p["on_site"] == 0 else "Puudub"))) for p in punches[:20]] or
+                          [Tr(Td("Täna pole tööaja märkmeid.", colspan="4"))]), cls="tbl")
     gaps = db.auto_attendance_gap_report((db.TODAY - timedelta(days=7)).isoformat(), today)
     gap_list = [Tr(Td(_name(g)), Td(g["shift_date"]), Td(g["shift_name"])) for g in gaps]
-    return (_title("Time clocks", f"Today's board — {today}"),
-            Div(Div(H3("Clock now"), widget, cls="card-header"), P("Select an employee for this admin view."), cls="card"),
-            Div(Div(H3("Today's clock board"), cls="card-header"), board, cls="card"),
-            Div(Div(H3("Recent punches"), cls="card-header"), recent, cls="card"),
-            Div(Div(H3("Auto-attendance gaps"), P("Scheduled shifts with no clock-in.", cls="sub"), cls="card-header"),
-                Table(Thead(Tr(Th("Employee"), Th("Date"), Th("Shift"))), Tbody(*gap_list or [Tr(Td("No gaps found.", colspan="3"))]), cls="tbl"), cls="card"))
+    return (_title("Tööaja märkimine", f"Tänane ülevaade: {today}"),
+            Div(Div(H3("Märgi tööaeg"), widget, cls="card-header"), P("Vali töötaja, kelle tööaega märgid."), cls="card"),
+            Div(Div(H3("Tänane tööaja ülevaade"), cls="card-header"), board, cls="card"),
+            Div(Div(H3("Viimased märked"), cls="card-header"), recent, cls="card"),
+            Div(Div(H3("Puuduvad tööaja märked"), P("Graafikus on vahetus, kuid tööaega pole alustatud.", cls="sub"), cls="card-header"),
+                Table(Thead(Tr(Th("Töötaja"), Th("Kuupäev"), Th("Vahetus"))), Tbody(*gap_list or [Tr(Td("Puudumisi ei leitud.", colspan="3"))]), cls="tbl"), cls="card"))
 
 
 # ---------- payroll ---------------------------------------------------------
@@ -322,15 +322,15 @@ def _pay_run_form():
                   **{"data-name": f"{e['first_name']} {e['last_name']}".lower()},
                   style="display:block;padding:3px 0;")
             for e in emps]
-    return Div(Div(H3("New pay run"), P("Select a completed pay period and active employees.", cls="sub")),
+    return Div(Div(H3("Uus palgaperiood"), P("Vali lõppenud periood ja aktiivsed töötajad.", cls="sub")),
                Form(Select(*[Option(p, value=p) for p in periods], name="period", required=True, cls="hr-inp"),
-                    Input(type="search", placeholder="Search employees…", cls="hr-inp",
+                    Input(type="search", placeholder="Otsi töötajaid…", cls="hr-inp",
                           style="margin-top:8px;", oninput="prFilter(this.value)"),
                     Label(Input(type="checkbox", onchange="prToggle(this.checked)"),
-                          " Select all", style="display:block;padding:6px 0;font-weight:600;"),
-                    Div(*rows or [P("No active employees.", cls="sub")], id="pr-emps",
+                          " Vali kõik", style="display:block;padding:6px 0;font-weight:600;"),
+                    Div(*rows or [P("Aktiivseid töötajaid pole.", cls="sub")], id="pr-emps",
                         style="max-height:180px;overflow:auto;margin:10px 0;"),
-                    Button("Create draft", type="submit", cls="btn primary"),
+                    Button("Loo mustand", type="submit", cls="btn primary"),
                     method="post", action="/payroll/runs/new"),
                Script("function prToggle(on){document.querySelectorAll('#pr-emps .pr-emp').forEach(c=>c.checked=on);}"
                       "function prFilter(q){q=q.toLowerCase();document.querySelectorAll('#pr-emps label').forEach("
@@ -339,8 +339,8 @@ def _pay_run_form():
 
 
 def pay_run_new():
-    return (_title("New pay run", "Select a completed pay period and active employees.",
-                   A("← Pay runs", href="/payroll", cls="btn")),
+    return (_title("Uus palgaperiood", "Vali lõppenud periood ja aktiivsed töötajad.",
+                   A("← Palgaperioodid", href="/payroll", cls="btn")),
             _pay_run_form())
 
 
@@ -355,44 +355,44 @@ def payroll_list(period="latest"):
                           FROM payslips p JOIN employees e ON e.id=p.employee_id
                           LEFT JOIN departments d ON d.id=e.dept_id
                           WHERE p.period=? ORDER BY p.net DESC""", (period,))
-        tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Gross", cls="num"),
-                             Th("Net", cls="num"), Th("Status"), Th(""))),
-                    Tbody(*[Tr(Td(f"{p['first_name']} {p['last_name']}"), Td(p["dept"] or "—"),
+        tbl = Table(Thead(Tr(Th("Töötaja"), Th("Osakond"), Th("Bruto", cls="num"),
+                             Th("Netosumma", cls="num"), Th("Staatus"), Th(""))),
+                    Tbody(*[Tr(Td(f"{p['first_name']} {p['last_name']}"), Td(p["dept"] or "Puudub"),
                                Td(money(p["gross"]), cls="num"), Td(Strong(money(p["net"])), cls="num"),
-                               Td(_pill(p["status"])), Td(A("View", href=f"/payroll/{p['id']}", cls="btn sm")))
-                            for p in pays] or [Tr(Td("No payslips for this period.", colspan="6"))]), cls="tbl")
-        return _title("Payroll", f"{period} — legacy payslips"), Div(tbl, cls="card")
+                               Td(_pill(p["status"])), Td(A("Vaata", href=f"/payroll/{p['id']}", cls="btn sm")))
+                            for p in pays] or [Tr(Td("Selle perioodi palgalehti pole.", colspan="6"))]), cls="tbl")
+        return _title("Palgaarvestus", f"{period} · vanad palgalehed"), Div(tbl, cls="card")
     runs = db.pay_runs()
-    tbl = Table(Thead(Tr(Th("Period"), Th("Status"), Th("Employees", cls="num"),
-                         Th("Gross", cls="num"), Th("Net", cls="num"), Th(""))),
+    tbl = Table(Thead(Tr(Th("Periood"), Th("Staatus"), Th("Töötajaid", cls="num"),
+                         Th("Bruto", cls="num"), Th("Netosumma", cls="num"), Th(""))),
                 Tbody(*[Tr(Td(A(r["period"], href=f"/payroll/runs/{r['id']}")),
                            Td(_pill(r["status"])), Td(str(r["headcount"]), cls="num"),
                            Td(money(r["gross_total"]), cls="num"), Td(Strong(money(r["net_total"])), cls="num"),
-                           Td(A("Open", href=f"/payroll/runs/{r['id']}", cls="btn sm"),
+                           Td(A("Ava", href=f"/payroll/runs/{r['id']}", cls="btn sm"),
                               A("TÖR eksport", href=f"/payroll/runs/{r['id']}/export/tor", cls="btn sm"),
                               A("TSD eksport", href=f"/payroll/runs/{r['id']}/export/tsd", cls="btn sm")))
-                        for r in runs] or [Tr(Td("No pay runs yet.", colspan="6"))]), cls="tbl")
-    return (_title("Pay runs", "Prepare, review, approve and pay monthly payroll.",
+                        for r in runs] or [Tr(Td("Palgaperioode pole veel.", colspan="6"))]), cls="tbl")
+    return (_title("Palgaperioodid", "Koosta, kontrolli ja kinnita kuu palgaarvestus.",
                    A("Ekspordi ajalugu", href="/payroll/exports", cls="btn"),
-                   A("+ New pay run", href="/payroll/runs/new", cls="btn primary")),
+                   A("+ Uus palgaperiood", href="/payroll/runs/new", cls="btn primary")),
             Div(tbl, cls="card"))
 
 
 def pay_run_detail(rid, saved=False):
     run = db.pay_run(rid)
     if not run:
-        return _title("Pay run not found"), P("No such pay run.")
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Gross", cls="num"),
-                         Th("Net", cls="num"), Th("Status"), Th(""))),
+        return _title("Palgaperioodi ei leitud"), P("Sellist palgaperioodi pole.")
+    tbl = Table(Thead(Tr(Th("Töötaja"), Th("Osakond"), Th("Bruto", cls="num"),
+                         Th("Netosumma", cls="num"), Th("Staatus"), Th(""))),
                 Tbody(*[Tr(Td(Div(f"{p['first_name']} {p['last_name']}"),
                               *[Small(f"{line['kind']} · {line['label']}: {money(line['amount'])} · {line['base']}",
                                       style="display:block;color:var(--text-mute);font-size:11px;")
                                  for line in db.payslip_lines(p["id"])
                                  ]),
-                           Td(p["dept"] or "—"),
+                           Td(p["dept"] or "Puudub"),
                            Td(money(p["gross"]), cls="num"), Td(Strong(money(p["net"])), cls="num"),
-                           Td(_pill(p["status"])), Td(A("Payslip", href=f"/payroll/{p['id']}", cls="btn sm")))
-                        for p in run["payslips"]] or [Tr(Td("No payslips in this run.", colspan="6"))]), cls="tbl")
+                           Td(_pill(p["status"])), Td(A("Palgaleht", href=f"/payroll/{p['id']}", cls="btn sm")))
+                        for p in run["payslips"]] or [Tr(Td("Selles perioodis palgalehti pole.", colspan="6"))]), cls="tbl")
     next_status = db.PAY_RUN_TRANSITIONS.get(run["status"])
     advance = (Form(Button(f"Move to {next_status}", type="submit", cls="btn primary"),
                      method="post", action=f"/payroll/runs/{rid}/advance") if next_status else None)
@@ -403,10 +403,10 @@ def pay_run_detail(rid, saved=False):
                                     for p in run["payslips"]
                                     for line in db.payslip_lines(p["id"])
                                     if (line["base"] or "").startswith("Employer cost")), 2)
-    totals = Div(kpi_card("Gross total", money(sum(p["gross"] for p in run["payslips"]))),
-                 kpi_card("Net total", money(sum(p["net"] for p in run["payslips"]))),
-                 kpi_card("Employer costs", money(employer_cost_total)),
-                 kpi_card("Employees", str(len(run["payslips"]))), cls="kpi-grid")
+    totals = Div(kpi_card("Bruto kokku", money(sum(p["gross"] for p in run["payslips"]))),
+                 kpi_card("Netosumma kokku", money(sum(p["net"] for p in run["payslips"]))),
+                 kpi_card("Tööandja kulud", money(employer_cost_total)),
+                 kpi_card("Töötajaid", str(len(run["payslips"]))), cls="kpi-grid")
     offsets = db.rows("""SELECT a.id, a.reason, COALESCE(a.approved_amount,a.requested_amount) amount,
                                 e.first_name||' '||e.last_name employee
                          FROM employee_advances a JOIN employees e ON e.id=a.employee_id
@@ -421,17 +421,17 @@ def pay_run_detail(rid, saved=False):
                                        Td(Form(Button("Offset", type="submit", cls="btn sm primary"), method="post",
                                                action=f"/payroll/runs/{rid}/offset?advance_id={a['id']}"))) for a in offsets]
                                   or [Tr(Td("No approved advances are ready to offset.", colspan="4"))]), cls="tbl"), cls="card")
-    actions = [A("← Pay runs", href="/payroll", cls="btn"),
+    actions = [A("← Palgaperioodid", href="/payroll", cls="btn"),
                A("TÖR eksport", href=f"/payroll/runs/{rid}/export/tor", cls="btn"),
                A("TSD eksport", href=f"/payroll/runs/{rid}/export/tsd", cls="btn")]
     if reprepare:
         actions.append(reprepare)
-    return (_title(f"Pay run · {run['period']}",
-                   f"{len(run['payslips'])} employees · {money(sum(p['net'] for p in run['payslips']))} net",
+    return (_title(f"Palgaperiood · {run['period']}",
+                   f"{len(run['payslips'])} töötajat · netosumma {money(sum(p['net'] for p in run['payslips']))}",
                    *actions, advance),
             P("Pay run re-prepared and saved.", cls="flag") if saved else None,
             totals,
-            Div(Div(H3("Payslips"), _pill(run["status"]), cls="card-header"), tbl, cls="card"),
+            Div(Div(H3("Palgalehed"), _pill(run["status"]), cls="card-header"), tbl, cls="card"),
             offset_card)
 
 
@@ -440,7 +440,7 @@ def statutory_exports_page():
     table = Table(Thead(Tr(Th("Tüüp"), Th("Periood"), Th("Fail"), Th("Read", cls="num"),
                          Th("Loodud"), Th(""))),
                   Tbody(*[Tr(Td(e["kind"]), Td(e["period"]), Td(e["file_name"]),
-                           Td(str(e["row_count"]), cls="num"), Td(e["created_at"] or "—"),
+                           Td(str(e["row_count"]), cls="num"), Td(e["created_at"] or "Puudub"),
                            Td(A("Lae alla", href=f"/payroll/exports/{e['id']}", cls="btn sm")))
                         for e in exports] or [Tr(Td("Ekspordi ajalugu on tühi.", colspan="6"))]), cls="tbl")
     return (_title("Ekspordi ajalugu", "TÖR-i ja TSD ekspordid."), Div(table, cls="card"))
@@ -459,17 +459,16 @@ def payslip_detail(pid):
                           and (line["base"] or "").startswith("Employer cost")]
         deductions = [line for line in lines
                       if line["kind"] == "Deduction" and line not in employer_costs]
-        line_rows = [Tr(Td(Strong("Earnings")), Td(""))]
+        line_rows = [Tr(Td(Strong("Tulud")), Td(""))]
         line_rows += [Tr(Td(line["label"]), Td(money(line["amount"]), cls="num")) for line in earnings]
-        line_rows += [Tr(Td(Strong("Deductions")), Td(""))]
+        line_rows += [Tr(Td(Strong("Mahaarvamised")), Td(""))]
         line_rows += [Tr(Td(line["label"]), Td("− " + money(line["amount"]), cls="num",
                                              style="color:var(--danger);")) for line in deductions]
         if employer_costs:
-            line_rows += [Tr(Td(Strong(f"{t('et')['payroll_employer_costs']} / "
-                                      f"{t('en')['payroll_employer_costs']}")), Td(""))]
+            line_rows += [Tr(Td(Strong(t("et")["payroll_employer_costs"])), Td(""))]
             line_rows += [Tr(Td(line["label"]), Td(money(line["amount"]), cls="num"))
                           for line in employer_costs]
-        line_rows += [Tr(Td(Strong("Net pay")), Td(Strong(money(p["net"])), cls="num"))]
+        line_rows += [Tr(Td(Strong("Netosumma")), Td(Strong(money(p["net"])), cls="num"))]
     else:
         legacy = [("Gross pay", p["gross"], False), ("Income tax", p["tax"], True),
                   ("Pension", p["pension"], True), ("Other deductions", p["other_ded"], True),
@@ -480,8 +479,8 @@ def payslip_detail(pid):
                            style="color:var(--danger);" if neg else ""))
                      for label, amt, neg in legacy]
     body = Table(Tbody(*line_rows), cls="tbl")
-    return (_title(f"Payslip — {p['first_name']} {p['last_name']}", f"{p['period']} · {p['designation']} · {p['dept']}",
-                   A("← Payroll", href="/payroll", cls="btn")),
+    return (_title(f"Palgaleht: {p['first_name']} {p['last_name']}", f"{p['period']} · {p['designation']} · {p['dept']}",
+                   A("← Palgaarvestus", href="/payroll", cls="btn")),
             Div(Div(Div(H3(f"{p['period']} payslip"), _pill(p["status"]), cls="card-header"), body, cls="card",
                     style="max-width:520px;")))
 
@@ -502,38 +501,38 @@ def expenses_page():
     for c in claims:
         actions = []
         if c["status"] == "Submitted":
-            actions = [Form(Button("Approve", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/decide?decision=Approved") ,
-                        Form(Button("Reject", type="submit", cls="btn sm"), method="post",
+            actions = [Form(Button("Kinnita", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/decide?decision=Approved") ,
+                        Form(Button("Lükka tagasi", type="submit", cls="btn sm"), method="post",
                              action=f"/expenses/{c['id']}/decide?decision=Rejected")]
         elif c["status"] == "Approved":
-            actions = [Form(Button("Reimburse", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/reimburse")]
+            actions = [Form(Button("Hüvita", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/reimburse")]
         claim_rows.append(Tr(Td(f"{c['first_name']} {c['last_name']}"), Td(c["category"]),
                              Td(c["claim_date"]), Td(c["description"]), Td(money(c["amount"]), cls="num"),
                              Td(_pill(c["status"])), Td(*actions, cls="actions")))
     claim_form = Form(_employee_select(),
                       Select(*[Option(cat["name"], value=str(cat["id"])) for cat in cats], name="category_id", required=True, cls="hr-inp"),
                       Input(type="date", name="claim_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp"),
-                      Input(type="number", name="amount", min="0", step="0.01", placeholder="Amount", required=True, cls="hr-inp"),
-                      Input(name="description", placeholder="What was this for?", required=True, cls="hr-inp"),
-                      Input(type="number", name="tax_rate", min="0", max="1", step="0.01", value="0.22", title="Tax rate", cls="hr-inp"),
-                      Button("Save claim", type="submit", cls="btn primary"), method="post", action="/expenses/new")
+                      Input(type="number", name="amount", min="0", step="0.01", placeholder="Summa", required=True, cls="hr-inp"),
+                      Input(name="description", placeholder="Mille eest kulu tekkis?", required=True, cls="hr-inp"),
+                      Input(type="number", name="tax_rate", min="0", max="1", step="0.01", value="0.22", title="Maksumäär", cls="hr-inp"),
+                      Button("Salvesta kulunõue", type="submit", cls="btn primary"), method="post", action="/expenses/new")
     adv_rows = [Tr(Td(f"{a['first_name']} {a['last_name']}"), Td(a["reason"]),
                    Td(money(a["requested_amount"])), Td(_pill(a["status"])),
                    Td(Form(Button("Approve", type="submit", cls="btn sm primary"), method="post", action=f"/expenses/advance/{a['id']}/decide?decision=Approved"))) for a in advances]
-    advance_form = Form(_employee_select(), Input(type="number", name="requested_amount", min="0", step="0.01", placeholder="Amount", required=True, cls="hr-inp"),
-                        Input(name="reason", placeholder="Reason", required=True, cls="hr-inp"),
-                        Button("Request advance", type="submit", cls="btn primary"), method="post", action="/expenses/advance/new")
-    return (_title("Expenses & advances", "Claims, approvals and employee advances.", A("Travel →", href="/travel", cls="btn")),
+    advance_form = Form(_employee_select(), Input(type="number", name="requested_amount", min="0", step="0.01", placeholder="Summa", required=True, cls="hr-inp"),
+                        Input(name="reason", placeholder="Põhjus", required=True, cls="hr-inp"),
+                        Button("Taotle avanssi", type="submit", cls="btn primary"), method="post", action="/expenses/advance/new")
+    return (_title("Kulud ja avansid", "Kulunõuded, kinnitused ja töötajatele antud avansid.", A("Lähetused →", href="/travel", cls="btn")),
             Div(kpi_card("Pending total", money(summary["pending_total"])),
                 kpi_card("Approved this month", money(summary["approved_this_month"])),
                 kpi_card("Advances outstanding", money(summary["advances_outstanding"])), cls="kpi-grid"),
             Div(Div(H3("Expense claims"), cls="card-header"),
-                Table(Thead(Tr(Th("Employee"), Th("Category"), Th("Date"), Th("Description"), Th("Amount", cls="num"), Th("Status"), Th(""))),
-                      Tbody(*claim_rows or [Tr(Td("No open claims.", colspan="7"))]), cls="tbl"), cls="card"),
-            Div(Div(H3("New claim"), cls="card-header"), claim_form, cls="card"),
-            Div(Div(H3("Employee advances"), cls="card-header"),
-                Table(Thead(Tr(Th("Employee"), Th("Reason"), Th("Amount"), Th("Status"), Th(""))),
-                      Tbody(*adv_rows or [Tr(Td("No open advances.", colspan="5"))]), cls="tbl"), advance_form, cls="card"))
+                Table(Thead(Tr(Th("Töötaja"), Th("Kategooria"), Th("Kuupäev"), Th("Kirjeldus"), Th("Summa", cls="num"), Th("Staatus"), Th(""))),
+                      Tbody(*claim_rows or [Tr(Td("Avatud kulunõudeid pole.", colspan="7"))]), cls="tbl"), cls="card"),
+            Div(Div(H3("Uus kulunõue"), cls="card-header"), claim_form, cls="card"),
+            Div(Div(H3("Töötajate avansid"), cls="card-header"),
+                Table(Thead(Tr(Th("Töötaja"), Th("Põhjus"), Th("Summa"), Th("Staatus"), Th(""))),
+                      Tbody(*adv_rows or [Tr(Td("Avatud avansse pole.", colspan="5"))]), cls="tbl"), advance_form, cls="card"))
 
 
 def travel_page():
