@@ -12,6 +12,17 @@ Product changes are listed newest first. This file must remain synchronized with
 
 - Added empty-state assertions in `tests/test_platform.py`; suite passes.
 
+## 2026-09-12 — Leave filter fix and labelled reject buttons
+
+### Fixed
+
+- Removed the doubled "Pending" entry in the leave-request filter segment (the default tab duplicated the status list entry).
+- Gave the icon-only reject buttons a visible "Reject" label on leave approvals, the candidate pipeline and internal changes, matching the labelled approve buttons next to them.
+
+### Verification
+
+- Added `tests/test_leave.py` (no duplicate Pending filter, visible reject/approve labels); suite passes.
+
 ## 2026-09-12 — New pay run page with employee search and select-all
 
 ### Fixed

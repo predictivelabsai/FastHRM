@@ -107,7 +107,7 @@ def changes_page(status="All"):
         actions = (Div(Button("✓ Approve", cls="btn sm primary",
                               **{"hx-post": f"/lifecycle/changes/{c['id']}/approve",
                                  "hx-target": "#changes", "hx-swap": "innerHTML"}),
-                       Button("✕", cls="btn sm", title="Reject",
+                       Button("✕ Reject", cls="btn sm", title="Reject",
                               **{"hx-post": f"/lifecycle/changes/{c['id']}/reject",
                                  "hx-target": "#changes", "hx-swap": "innerHTML"}),
                        style="display:flex;gap:4px;")
