@@ -1,4 +1,4 @@
-"""FastHRM AI — grounded chat + slash-commands over HR data."""
+"""FastHR AI — grounded chat + slash-commands over HR data."""
 from __future__ import annotations
 
 import json
@@ -44,8 +44,8 @@ def handle_command(text):
     cmd = parts[0].lower() if parts else ""
     arg = " ".join(parts[1:])
     if cmd in ("help", "?"):
-        return ("**FastHR shortcuts**\n\n- `/headcount` — by department\n- `/leave` — pending requests\n"
-                "- `/today` — who's in / out today\n- `/payroll` — latest run summary\n\nOr ask a question in plain English.")
+        return ("**FastHR shortcuts**\n\n- `/headcount`: by department\n- `/leave`: pending requests\n"
+                "- `/today`: who's in / out today\n- `/payroll`: latest run summary\n\nOr ask a question in plain English.")
     if cmd == "headcount":
         return "**Headcount by department**\n\n" + _table(
             ["Department", "People"], [[d["dept"], d["n"]] for d in db.headcount_by_dept()])
@@ -54,7 +54,7 @@ def handle_command(text):
                        FROM leave_requests lr JOIN employees e ON e.id=lr.employee_id
                        WHERE lr.status='Pending' ORDER BY lr.from_date LIMIT 15""")
         if not r:
-            return "No pending leave requests. 🎉"
+            return "No pending leave requests."
         return "**Pending leave**\n\n" + _table(["Employee", "Type", "From", "Days"],
                                                 [[x["nm"], x["leave_type"], x["from_date"], x["days"]] for x in r])
     if cmd == "today":

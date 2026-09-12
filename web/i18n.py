@@ -1,9 +1,11 @@
-"""Lightweight bilingual (Estonian / English) copy for FastHRM public pages.
+"""Lightweight bilingual (Estonian / English) copy for FastHR public pages.
 
 Estonian is the primary market and the default. Language is chosen from the
 ``?lang=`` query parameter, then the session, then falls back to Estonian.
 """
 from __future__ import annotations
+
+from web.layout import nav_icon
 
 LANGS = ("et", "en")
 DEFAULT_LANG = "et"
@@ -292,13 +294,13 @@ COPY = {
             ("Kas FastHR-i tulekul olevad funktsioonid on juba kasutatavad?", "Ei. „Tulekul“ on saadavuse märge, mitte hinnatase. Võimaluste leht eristab valmis funktsioone teekaardi ulatusest."),
         ],
         "dashboard_mock": {
-            "groups": (("ÜLEVAADE", (("📊", "Töölaud"), ("🤖", "AI-abiline"))),
-                        ("INIMESED", (("👥", "Töötajad"), ("🏢", "Osakonnad"))),
-                        ("AEG", (("🌴", "Puhkus"), ("🕒", "Kohalolek"))),
-                        ("PALK", (("💰", "Palk"),)),
-                        ("TALENT", (("📋", "Värbamine"), ("🧲", "Kandidaadid"), ("📈", "Analüütika"))),
-                        ("TULEMUS", (("🎯", "Eesmärgid"), ("💬", "Tagasiside"))),
-                        ("ELUKAAR", (("🧭", "Sisseelamine"), ("🔀", "Muudatused")))),
+            "groups": (("ÜLEVAADE", ((nav_icon("layout-dashboard"), "Töölaud"), (nav_icon("sparkles"), "AI-abiline"))),
+                        ("INIMESED", ((nav_icon("users-round"), "Töötajad"), (nav_icon("building-2"), "Osakonnad"))),
+                        ("AEG", ((nav_icon("palmtree"), "Puhkus"), (nav_icon("clock-3"), "Kohalolek"))),
+                        ("PALK", ((nav_icon("banknote"), "Palk"),)),
+                        ("TALENT", ((nav_icon("compass"), "Värbamine"), (nav_icon("target"), "Kandidaadid"), (nav_icon("chart-no-axes-combined"), "Analüütika"))),
+                        ("TULEMUS", ((nav_icon("goal"), "Eesmärgid"), (nav_icon("message-circle"), "Tagasiside"))),
+                        ("ELUKAAR", ((nav_icon("rocket"), "Sisseelamine"), (nav_icon("git-branch"), "Muudatused")))),
             "bars": (("Müük", 10, 100), ("Tehnika", 9, 90), ("Turundus", 9, 90),
                      ("Rahandus", 9, 90), ("Inimesed ja kultuur", 7, 70), ("Toode", 7, 70)),
             "leave": (("Kadri Tamm", "Haigusleht", "22.–26. mai", "sick", "Haigus"),
@@ -574,13 +576,13 @@ COPY = {
             ("Are coming-soon FastHR features available today?", "No. Coming soon is an availability label, not a pricing tier. The Features page distinguishes shipped functionality from roadmap scope."),
         ],
         "dashboard_mock": {
-            "groups": (("OVERVIEW", (("📊", "Dashboard"), ("🤖", "AI Assistant"))),
-                        ("PEOPLE", (("👥", "Employees"), ("🏢", "Departments"))),
-                        ("TIME", (("🌴", "Leave"), ("🕒", "Attendance"))),
-                        ("PAY", (("💰", "Payroll"),)),
-                        ("TALENT", (("📋", "Recruiting platform"), ("🧲", "Candidates"), ("📈", "Analytics"))),
-                        ("PERFORMANCE", (("🎯", "Goals & OKRs"), ("💬", "Feedback"))),
-                        ("LIFECYCLE", (("🧭", "Onboarding"), ("🔀", "Changes")))),
+            "groups": (("OVERVIEW", ((nav_icon("layout-dashboard"), "Dashboard"), (nav_icon("sparkles"), "AI Assistant"))),
+                        ("PEOPLE", ((nav_icon("users-round"), "Employees"), (nav_icon("building-2"), "Departments"))),
+                        ("TIME", ((nav_icon("palmtree"), "Leave"), (nav_icon("clock-3"), "Attendance"))),
+                        ("PAY", ((nav_icon("banknote"), "Payroll"),)),
+                        ("TALENT", ((nav_icon("compass"), "Recruiting platform"), (nav_icon("target"), "Candidates"), (nav_icon("chart-no-axes-combined"), "Analytics"))),
+                        ("PERFORMANCE", ((nav_icon("goal"), "Goals & OKRs"), (nav_icon("message-circle"), "Feedback"))),
+                        ("LIFECYCLE", ((nav_icon("rocket"), "Onboarding"), (nav_icon("git-branch"), "Changes")))),
             "bars": (("Sales", 10, 100), ("Engineering", 9, 90), ("Marketing", 9, 90),
                      ("Finance", 9, 90), ("People & Culture", 7, 70), ("Product", 7, 70)),
             "leave": (("Nina Novak", "Sick Leave", "22–26 May", "sick", "Sick"),

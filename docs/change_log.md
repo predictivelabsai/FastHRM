@@ -2,6 +2,18 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — Estonian-first copy cleanup across app and portal
+
+### Changed
+
+- Removed AI-slop patterns (em dashes, emoji icons, English fragments) and localized the remaining app, portal, guide, careers and landing copy to Estonian-first through the bilingual copy layer.
+- Rewrote the in-app guide as an Estonian quick-start that follows the real workflow (pay runs, leave, shifts, expenses, recruiting).
+- Hid the redundant top-bar env pill unless `FASTHR_ENV_LABEL` is set.
+
+### Verification
+
+- Targeted tests pass (`tests/test_platform.py`, `tests/test_shifts.py`: 47 passed); copy proofread with estnltk checks.
+
 ## 2026-09-12 — Estonian app shell with SVG navigation
 
 ### Changed

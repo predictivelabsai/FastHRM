@@ -1,4 +1,4 @@
-"""Public FastHRM landing, feature, and comparison pages."""
+"""Public FastHR landing, feature, and comparison pages."""
 import json
 from dataclasses import replace
 from urllib.parse import quote
@@ -132,9 +132,7 @@ LANDING_CSS = """
 .lh-app-brand{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:13px;font-weight:800}
 .lh-app-dot{width:7px;height:7px;border-radius:50%;background:#3da46c}
 .lh-app-brand-fast{color:var(--accent-strong)}
-.lh-app-brand-hrm{color:var(--ink)}
 .lh-app-meta{display:flex;align-items:center;gap:7px;font-size:9px;font-weight:750;white-space:nowrap}
-.lh-badge{padding:4px 7px;border-radius:999px;background:#e9f7ef;color:#24704a;letter-spacing:.08em}
 .lh-version{padding:4px 7px;border-radius:999px;background:var(--paper-2);color:var(--muted)}
 .lh-logout{padding:4px 8px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--muted);font:inherit}
 .lh-side{background:color-mix(in srgb,var(--paper) 72%,var(--card));border-right:1px solid var(--line);padding:13px 10px;overflow:hidden}
@@ -329,7 +327,7 @@ def _lang_switch(lang: str, path: str = "/"):
 
 
 # Estonian HR competitors compared on the landing page. States per row are ordered
-# (Persona, Wemply, HRM4Baltics, hours24, Yester, FastHRM).
+# (Persona, Wemply, HRM4Baltics, hours24, Yester, FastHR).
 # Competitor states reflect public information (see docs footnote) and stay honest,
 # where we are behind today, we say "soon" rather than overclaim.
 CMP_PRODUCTS = ("FastHR", "Persona", "Wemply", "HRM4Baltics", "hours24", "Yester")
@@ -495,17 +493,17 @@ def _global_compare_table(c, heading=None, include_heading=True, items=None):
 
 
 def _dashboard_mock(c):
-    """A light, brand-controlled view of the real FastHRM dashboard."""
+    """A light, brand-controlled view of the real FastHR dashboard."""
     mock = c["dashboard_mock"]
     groups, bars, leave = mock["groups"], mock["bars"], mock["leave"]
     return Div(Div(
         Div(Span(cls="lh-dot"), Span(cls="lh-dot"), Span(cls="lh-dot"),
-            Span("app.fasthr.eu/dashboard", cls="lh-mock-url"), cls="lh-mock-bar"),
+            Span("hrm.fastsme.com/dashboard", cls="lh-mock-url"), cls="lh-mock-bar"),
         Div(
             Div(
-            Div(Span(cls="lh-app-dot"), Span("Fast", cls="lh-app-brand-fast"), Span("HR", cls="lh-app-brand-hrm"),
+            Div(Span(cls="lh-app-dot"), Span("FastHR", cls="lh-app-brand-fast"),
                     cls="lh-app-brand"),
-                 Div(Span("FASTR", cls="lh-badge"), Span(version.label(), cls="lh-version lh-mock-secondary"),
+                 Div(Span(version.label(), cls="lh-version lh-mock-secondary"),
                     Button(mock["logout"], cls="lh-logout"), cls="lh-app-meta"),
                 cls="lh-appbar"),
             Div(*[Div(Span(label, cls="lh-side-label"),
@@ -596,7 +594,7 @@ def landing_page(open_auth=False, lang="et"):
         Div(H2(c["demo_h2"]), P(c["demo_sub"]), cls="lh-head center"),
         Div(
             Div(Span(cls="lh-dot"), Span(cls="lh-dot"), Span(cls="lh-dot"),
-                Span("app.fasthr.eu/dashboard", cls="lh-mock-url"), cls="lh-mock-bar"),
+                Span("hrm.fastsme.com/dashboard", cls="lh-mock-url"), cls="lh-mock-bar"),
             Div(Picture(
                 Source(type="image/webp",
                        srcset=("/static/product-demo-880.webp 880w, "
