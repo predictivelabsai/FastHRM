@@ -66,8 +66,8 @@ def login_page(error=""):
             Div(Div(A("FastHR", href="/", cls="me-brand"), H1("Töötaja iseteenindus"),
                     P("Logi sisse, et vaadata palka, tööaega, puhkusi ja tööülesandeid."),
                     P(error, cls="me-error") if error else None,
-                    Form(Label("Töö e-post"), Input(type="email", name="email", required=True, autocomplete="email"),
-                         Label("Parool"), Input(type="password", name="password", required=True, autocomplete="current-password"),
+                    Form(Label("Töö e-post"), Input(type="email", name="email", required=True, autocomplete="email", aria_label="Töö e-post"),
+                         Label("Parool"), Input(type="password", name="password", required=True, autocomplete="current-password", aria_label="Parool"),
                          Button("Logi sisse", type="submit", cls="me-btn lime"), method="post", action="/me/login", cls="me-form"),
                     P(A("Administraatori sisselogimine", href="/login"), cls="me-muted"), cls="me-card me-login"), cls="me-shell"))
 

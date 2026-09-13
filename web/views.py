@@ -159,10 +159,11 @@ def _apply_form():
     return Div(Div(H3("Puhkuse taotlus"), cls="card-header"),
                Form(
                    Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in emps],
-                          name="employee_id", cls="hr-inp"),
-                   Select(*[Option(t, value=t) for t in db.LEAVE_TYPES], name="leave_type", cls="hr-inp"),
-                   Input(type="date", name="from_date", cls="hr-inp", required=True),
-                   Input(type="date", name="to_date", cls="hr-inp", required=True),
+                          name="employee_id", cls="hr-inp", aria_label="Töötaja"),
+                   Select(*[Option(t, value=t) for t in db.LEAVE_TYPES], name="leave_type", cls="hr-inp",
+                          aria_label="Puhkuseliik"),
+                   Input(type="date", name="from_date", cls="hr-inp", required=True, aria_label="Alguskuupäev"),
+                   Input(type="date", name="to_date", cls="hr-inp", required=True, aria_label="Lõppkuupäev"),
                    Input(name="reason", placeholder="Põhjus", cls="hr-inp", style="flex:1;min-width:140px;"),
                    Button("Esita", cls="btn primary", type="submit"),
                    **{"hx-post": "/leave/apply", "hx-target": "#leave-main", "hx-swap": "innerHTML"},
@@ -257,9 +258,9 @@ def shifts_roster(week=""):
                   Tbody(*rows_ or [Tr(Td("Sel nädalal vahetusi pole.", colspan="8"))]), cls="tbl")
     types = db.shift_types()
     emps = db.employees_min()
-    form = Form(Select(*[Option(_name(e), value=str(e["id"])) for e in emps], name="employee_id", required=True, cls="hr-inp"),
-                Select(*[Option(t["name"], value=str(t["id"])) for t in types], name="shift_type_id", required=True, cls="hr-inp"),
-                Input(type="date", name="shift_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp"),
+    form = Form(Select(*[Option(_name(e), value=str(e["id"])) for e in emps], name="employee_id", required=True, cls="hr-inp", aria_label="Töötaja"),
+                Select(*[Option(t["name"], value=str(t["id"])) for t in types], name="shift_type_id", required=True, cls="hr-inp", aria_label="Vahetuse liik"),
+                Input(type="date", name="shift_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp", aria_label="Vahetuse kuupäev"),
                 Input(name="location_label", placeholder="Asukoht, näiteks Tallinna kontor", cls="hr-inp"),
                 Button("Loo vahetus", type="submit", cls="btn primary"), method="post", action="/shifts/new")
     prev_week, next_week = (start - timedelta(days=7)).isoformat(), (start + timedelta(days=7)).isoformat()
@@ -512,8 +513,8 @@ def expenses_page():
                              Td(c["claim_date"]), Td(c["description"]), Td(money(c["amount"]), cls="num"),
                              Td(_pill(c["status"])), Td(*actions, cls="actions")))
     claim_form = Form(_employee_select(),
-                      Select(*[Option(cat["name"], value=str(cat["id"])) for cat in cats], name="category_id", required=True, cls="hr-inp"),
-                      Input(type="date", name="claim_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp"),
+                      Select(*[Option(cat["name"], value=str(cat["id"])) for cat in cats], name="category_id", required=True, cls="hr-inp", aria_label="Kategooria"),
+                      Input(type="date", name="claim_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp", aria_label="Kulu kuupäev"),
                       Input(type="number", name="amount", min="0", step="0.01", placeholder="Summa", required=True, cls="hr-inp"),
                       Input(name="description", placeholder="Mille eest kulu tekkis?", required=True, cls="hr-inp"),
                       Input(type="number", name="tax_rate", min="0", max="1", step="0.01", value="0.22", title="Maksumäär", cls="hr-inp"),

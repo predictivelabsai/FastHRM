@@ -167,12 +167,12 @@ def staff_page(lang: str = "et"):
               "certs": "Sertifikaadid" if et else "Certifications", "save": "Salvesta" if et else "Save",
               "assign": "Määra" if et else "Assign", "soon": "Tähtaeg läheneb" if et else "Expiring soon"}
     course_form = Form(Input(name="name", placeholder=labels["course"], required=True),
-                       Select(*[Option(c.title(), value=c) for c in COURSE_CATEGORIES], name="category"),
+                       Select(*[Option(c.title(), value=c) for c in COURSE_CATEGORIES], name="category", aria_label="Kategooria"),
                        Input(name="provider", placeholder="Pakkuja / Provider"), Button(labels["save"], type="submit", cls="btn primary"),
                        method="post", action="/learning/courses", cls="inline-form")
     course_table = Table(Thead(Tr(Th(labels["course"]), Th("Kategooria" if et else "Category"), Th("Pakkuja" if et else "Provider"), Th(""))), Tbody(*[
         Tr(Td(c["name"]), Td(c["category"]), Td(c["provider"]), Td(A("Deaktiveeri" if et else "Deactivate", href=f"/learning/courses/{c['id']}/deactivate", cls="btn sm") if c["active"] else ("Mitteaktiivne" if et else "Inactive"))) for c in course_rows] or [Tr(Td("Koolitusi pole." if et else "No courses yet.", colspan="4"))]), cls="tbl")
-    assign_form = Form(Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in employee_rows], name="employee_id"), Select(*[Option(c["name"], value=str(c["id"])) for c in active_courses], name="course_id"), Input(type="date", name="due_date"), Button(labels["assign"], type="submit", cls="btn primary"), method="post", action="/learning/plans", cls="inline-form")
+    assign_form = Form(Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in employee_rows], name="employee_id", aria_label="Töötaja"), Select(*[Option(c["name"], value=str(c["id"])) for c in active_courses], name="course_id", aria_label="Kursus"), Input(type="date", name="due_date", aria_label="Tähtaeg"), Button(labels["assign"], type="submit", cls="btn primary"), method="post", action="/learning/plans", cls="inline-form")
     progress_label = "Edenemine" if et else "Progress"
     due_label = "Tähtaeg" if et else "Due"
     plan_table = Table(Thead(Tr(Th("Töötaja" if et else "Employee"), Th(labels["course"]), Th("Staatus" if et else "Status"), Th(progress_label), Th(due_label))), Tbody(*[
@@ -183,7 +183,7 @@ def staff_page(lang: str = "et"):
            Td(p["due_date"] or "—")) for p in plan_rows] or [Tr(Td("Arengukavu pole." if et else "No learning plans yet.", colspan="5"))]), cls="tbl")
     cert_table = Table(Thead(Tr(Th("Töötaja" if et else "Employee"), Th(labels["certs"]), Th("Kehtiv kuni" if et else "Expires"), Th(""))), Tbody(*[
         Tr(Td(c["employee_name"]), Td(c["name"]), Td(Span(c["expires_on"] or "—", cls="pill pending" if c["id"] in expiring else "pill")), Td(A("Eemalda" if et else "Remove", href=f"/learning/certifications/{c['id']}/remove", cls="btn sm"))) for c in cert_rows] or [Tr(Td("Sertifikaate pole." if et else "No certifications yet.", colspan="4"))]), cls="tbl")
-    cert_form = Form(Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in employee_rows], name="employee_id"), Input(name="name", placeholder="Sertifikaat / Certification", required=True), Input(type="date", name="issued_on"), Input(type="date", name="expires_on"), Button(labels["save"], type="submit", cls="btn primary"), method="post", action="/learning/certifications", cls="inline-form")
+    cert_form = Form(Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"])) for e in employee_rows], name="employee_id", aria_label="Töötaja"), Input(name="name", placeholder="Sertifikaat / Certification", required=True), Input(type="date", name="issued_on", aria_label="Väljastatud"), Input(type="date", name="expires_on", aria_label="Kehtiv kuni"), Button(labels["save"], type="submit", cls="btn primary"), method="post", action="/learning/certifications", cls="inline-form")
     k = kpis()
     subtitle = (f"{k['courses_active']} aktiivset koolitust · {k['plans_in_progress']} pooleli · "
                 f"{k['certifications_expiring']} {labels['soon'].lower()}" if et else

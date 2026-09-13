@@ -109,11 +109,14 @@ def staff_page(lang: str = "et"):
                 f"{k['scenario_delta']} scenario headcount")
     department_options = [Option(d["name"], value=str(d["id"])) for d in departments]
     budget_form = Form(Input(name="name", placeholder="Nimi / Name", required=True),
-                       Select(Option("—", value=""), *department_options, name="department_id"),
+                       Select(Option("—", value=""), *department_options, name="department_id",
+                              aria_label="Osakond"),
                        Input(name="role_title", placeholder="Roll / Role title", required=True),
-                       Input(type="number", name="headcount_target", value="1", min="0"),
-                       Input(type="number", name="annual_salary_budget", value="0", min="0", step="0.01"),
-                       Input(type="date", name="effective_date"),
+                       Input(type="number", name="headcount_target", value="1", min="0",
+                             aria_label="Ametikohtade arv"),
+                       Input(type="number", name="annual_salary_budget", value="0", min="0", step="0.01",
+                             aria_label="Aastane palgaeelarve"),
+                       Input(type="date", name="effective_date", aria_label="Kehtiv alates"),
                        Button(labels["save"], type="submit", cls="btn primary"),
                        method="post", action="/workforce/budgets", cls="inline-form")
     def status_pill(status):
@@ -135,8 +138,10 @@ def staff_page(lang: str = "et"):
                          Tbody(*(budget_rows_html or [Tr(Td("Ametikohti pole." if et else "No positions yet.", colspan="8"))]),
                                cls="tbl"))
     scenario_form = Form(Input(name="name", placeholder="Nimi / Name", required=True),
-                         Input(name="headcount_delta", type="number", value="0"),
-                         Input(name="annual_cost_delta", type="number", value="0", step="0.01"),
+                         Input(name="headcount_delta", type="number", value="0",
+                               aria_label="Töötajate muutus"),
+                         Input(name="annual_cost_delta", type="number", value="0", step="0.01",
+                               aria_label="Kulu muutus"),
                          Input(name="description", placeholder="Märkused / Notes"),
                          Button(labels["save"], type="submit", cls="btn primary"), method="post",
                          action="/workforce/scenarios", cls="inline-form")

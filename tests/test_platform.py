@@ -715,6 +715,54 @@ def test_employee_detail_shows_empty_payslip_state(fresh_db):
     assert "Palgalehti pole." in str(views.employee_detail(eid))
 
 
+def test_form_controls_have_accessible_names(fresh_db):
+    from html.parser import HTMLParser
+
+    from web import ats, careers, views
+    from web import performance as performance_views
+    from web import selfservice
+    import learning
+    import workforce
+
+    class _Probe(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.stack = []
+            self.bad = []
+
+        def handle_starttag(self, tag, attrs):
+            data = dict(attrs)
+            self.stack.append(tag)
+            if tag in ("input", "select", "textarea") and data.get("type") not in ("hidden", "submit"):
+                in_label = "label" in self.stack[:-1]
+                if not (in_label or "aria-label" in data or "aria-labelledby" in data
+                        or "title" in data or "placeholder" in data or "id" in data):
+                    self.bad.append((tag, data.get("type"), data.get("name")))
+
+        def handle_endtag(self, tag):
+            if self.stack:
+                self.stack.pop()
+
+    pages = {
+        "leave": lambda: views.leave_main(),
+        "expenses": lambda: views.expenses_page(),
+        "shifts": lambda: views.shifts_roster(),
+        "learning": lambda: learning.staff_page(),
+        "performance": lambda: performance_views.reviews_page(),
+        "workforce": lambda: workforce.staff_page(),
+        "jobs-editor": lambda: careers.editor(),
+        "portal-login": lambda: selfservice.login_page(),
+        "cv-upload": lambda: ats.upload_card(),
+    }
+    failures = {}
+    for name, render in pages.items():
+        probe = _Probe()
+        probe.feed(str(render()))
+        if probe.bad:
+            failures[name] = probe.bad
+    assert not failures, f"controls without accessible names: {failures}"
+
+
 def test_lifecycle_pages_render_estonian_copy(fresh_db):
     from web import lifecycle
     from web import views

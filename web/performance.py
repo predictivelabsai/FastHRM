@@ -280,8 +280,8 @@ def reviews_page():
     form = Div(Div(H3("New review cycle"), cls="card-header"),
                Form(Input(name="name", placeholder="e.g. 2026 H2 review", cls="hr-inp",
                           required=True, style="flex:1;min-width:180px;"),
-                    Input(type="date", name="period_start", cls="hr-inp", required=True),
-                    Input(type="date", name="period_end", cls="hr-inp", required=True),
+                    Input(type="date", name="period_start", cls="hr-inp", required=True, aria_label="Perioodi algus"),
+                    Input(type="date", name="period_end", cls="hr-inp", required=True, aria_label="Perioodi lõpp"),
                     Button("Create", cls="btn primary", type="submit"),
                     method="post", action="/performance/reviews",
                     cls="inline-form", style="flex-wrap:wrap;gap:8px;"), cls="card")

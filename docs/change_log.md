@@ -2,6 +2,16 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — Accessible names for form controls
+
+### Fixed
+
+- Every date picker, bare text/number input, select, file upload and the portal login fields now expose an accessible name (Estonian `aria-label` on Estonian pages, matching visible labels elsewhere), so screen-reader users hear what each control is for.
+
+### Verification
+
+- Added `test_form_controls_have_accessible_names` in `tests/test_platform.py`, sweeping nine forms; suite passes.
+
 ## 2026-09-12 — Lifecycle module in Estonian
 
 ### Fixed

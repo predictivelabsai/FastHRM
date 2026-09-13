@@ -104,9 +104,9 @@ def operations_page(*, actor: str):
                  Button("Run", cls="btn"), method="post", action="/talent/bulk-actions", cls="inline-form"),
             Form(Input(name="candidate_ids", placeholder="Candidate IDs", required=True),
                  Input(name="interviewer_emails", placeholder="Interviewer emails", required=True),
-                 Input(type="datetime-local", name="window_start", required=True),
-                 Input(type="datetime-local", name="window_end", required=True),
-                 Input(name="timezone", value="UTC"),
+                 Input(type="datetime-local", name="window_start", required=True, aria_label="Window start"),
+                 Input(type="datetime-local", name="window_end", required=True, aria_label="Window end"),
+                 Input(name="timezone", value="UTC", aria_label="Timezone"),
                  Select(Option("FastHR video", value="fasthr"), Option("Teams", value="ms_graph"),
                         Option("Google Meet", value="google_calendar"), name="provider"),
                  Button("Invite to self-schedule", cls="btn"), method="post",
@@ -329,16 +329,16 @@ def scheduling_page(*, actor: str):
         Div(Div(H3("Interviewer availability"), cls="card-header"),
             *[P(Strong(a["account_email"]), f" · weekday {a['weekday']} · {a['start_time']}–{a['end_time']} {a['timezone']}") for a in availability],
             Form(Input(type="email", name="email", placeholder="interviewer@example.com", required=True),
-                 Select(*[Option(day, value=str(i)) for i, day in enumerate(("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))], name="weekday"),
-                 Input(type="time", name="start_time", value="09:00"), Input(type="time", name="end_time", value="17:00"),
-                 Input(name="timezone", value="UTC"), Button("Add availability", cls="btn"), method="post", action="/talent/availability", cls="inline-form"), cls="card"),
+                 Select(*[Option(day, value=str(i)) for i, day in enumerate(("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))], name="weekday", aria_label="Weekday"),
+                 Input(type="time", name="start_time", value="09:00", aria_label="Start time"), Input(type="time", name="end_time", value="17:00", aria_label="End time"),
+                 Input(name="timezone", value="UTC", aria_label="Timezone"), Button("Add availability", cls="btn"), method="post", action="/talent/availability", cls="inline-form"), cls="card"),
         Div(Div(H3("Self-scheduling links"), cls="card-header"),
             *[P(A(f"{l['first_name']} {l['last_name']} · {l['title']}", href=f"/schedule/{l['token']}", target="_blank"),
                 f" · {l['status']} · {l['window_start']}–{l['window_end']}") for l in links],
             Form(Input(type="number", name="application_id", placeholder="Application ID", required=True),
                  Input(name="interviewer_emails", placeholder="one@example.com,two@example.com", required=True),
-                 Input(type="datetime-local", name="window_start", required=True), Input(type="datetime-local", name="window_end", required=True),
-                 Input(name="timezone", value="UTC"), Select(Option("FastHR video", value="fasthr"), Option("Teams", value="ms_graph"), Option("Google Meet", value="google_calendar"), name="provider"),
+                 Input(type="datetime-local", name="window_start", required=True, aria_label="Window start"), Input(type="datetime-local", name="window_end", required=True, aria_label="Window end"),
+                 Input(name="timezone", value="UTC", aria_label="Timezone"), Select(Option("FastHR video", value="fasthr"), Option("Teams", value="ms_graph"), Option("Google Meet", value="google_calendar"), name="provider", aria_label="Meeting provider"),
                  Button("Create link", cls="btn primary"), method="post", action="/talent/scheduling-links", cls="inline-form"), cls="card"),
         Div(Div(H3("Bookings"), cls="card-header"),
             *[P(Strong(b["starts_at"]), f" · {b['timezone']} · ", A("Meeting", href=b["meeting_url"] or "#"), f" · {b['status']}") for b in bookings] or [P("No bookings.")], cls="card"),
@@ -377,7 +377,7 @@ def marketing_page(*, actor: str):
                  method="post", action="/talent/page-templates", cls="inline-form"),
             *[P(Strong(f"#{a['id']} {a['name']}"), f" · {a['asset_type']} · {a['alt_text'] or 'No alt text'}") for a in assets],
             Form(Input(name="name", placeholder="Asset name", required=True), Input(name="alt_text", placeholder="Accessible description"),
-                 Input(type="file", name="asset", accept=".png,.jpg,.jpeg,.webp,.svg", required=True),
+                 Input(type="file", name="asset", accept=".png,.jpg,.jpeg,.webp,.svg", required=True, aria_label="Asset file"),
                  Button("Upload asset", cls="btn"), method="post", action="/talent/marketing-assets",
                  enctype="multipart/form-data", cls="inline-form"), cls="card"),
         Div(Div(H3("Inclusive language review"), cls="card-header"),
@@ -609,13 +609,14 @@ def _candidate_request_form(item: dict, token: str):
         label = field.get("label") or key.replace("_", " ").title()
         if field.get("type") == "select":
             control = Select(*[Option(option, value=option) for option in field.get("options", [])],
-                             name=key, required=bool(field.get("required", True)))
+                             name=key, required=bool(field.get("required", True)), aria_label=label)
         else:
             control = Input(type=field.get("type") or "text", name=key,
-                            required=bool(field.get("required", True)))
+                            required=bool(field.get("required", True)), aria_label=label)
         controls.append(Div(Label(label), control, cls="field"))
     return Form(*controls, Textarea(name="response", placeholder="Additional context"),
-                Input(type="file", name="document", accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg"),
+                Input(type="file", name="document", accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg",
+                      aria_label="Supporting document"),
                 Button("Submit", cls="btn"), method="post",
                 action=f"/portal/{token}/requests/{item['id']}",
                 enctype="multipart/form-data")
