@@ -211,7 +211,7 @@ def attendance_view():
     for r in reg:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
     kpis = Div(*[kpi_card(s, counts.get(s, 0)) for s in db.ATTEND_STATUSES[:4]], cls="kpi-grid")
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Department"), Th("Status"), Th("Hours", cls="num"))),
+    tbl = Table(Thead(Tr(Th("Töötaja"), Th("Osakond"), Th("Staatus"), Th("Tunnid", cls="num"))),
                 Tbody(*[Tr(Td(f"{r['first_name']} {r['last_name']}"), Td(r["dept"] or "Puudub"),
                            Td(_pill(r["status"])), Td(f"{r['hours']:.1f}" if r["hours"] else "Puudub", cls="num"))
                         for r in reg] or [Tr(Td("Tänaseid kohalolekuid pole.", colspan="4"))]), cls="tbl")

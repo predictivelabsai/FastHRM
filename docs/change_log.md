@@ -2,6 +2,16 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — Lifecycle module in Estonian
+
+### Fixed
+
+- Localized the lifecycle module (onboarding, internal changes, separations, alumni, cases, org chart) and the attendance register headers to Estonian-first copy; canonical status vocabularies and stored severity/visibility values stay English. Form selects and date inputs gained accessible labels.
+
+### Verification
+
+- Added `test_lifecycle_pages_render_estonian_copy` in `tests/test_platform.py`; suite passes.
+
 ## 2026-09-12 — Travel page in Estonian
 
 ### Fixed

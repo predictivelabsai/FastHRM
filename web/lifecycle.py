@@ -16,12 +16,12 @@ from web.views import _pill, _title
 
 def _kpis():
     k = people.lifecycle_kpis()
-    return Div(kpi_card("Onboarding", k["onboarding"], f"{k['overdue_tasks']} overdue tasks",
+    return Div(kpi_card("Sisseelamine", k["onboarding"], f"{k['overdue_tasks']} hilinenud ülesannet",
                         tone="warn" if k["overdue_tasks"] else ""),
-               kpi_card("Pending changes", k["pending_changes"], "awaiting approval",
+               kpi_card("Ootel muudatused", k["pending_changes"], "ootab kinnitamist",
                         tone="danger" if k["pending_changes"] else ""),
-               kpi_card("Separations", k["separations"], "in progress"),
-               kpi_card("Open cases", k["open_cases"], f"{k['alumni']} alumni",
+               kpi_card("Lahkumised", k["separations"], "pooleli"),
+               kpi_card("Avatud juhtumid", k["open_cases"], f"{k['alumni']} vilistlast",
                         tone="warn" if k["open_cases"] else ""),
                cls="kpi-grid")
 
@@ -36,28 +36,28 @@ def onboarding_page():
         rows.append(Tr(
             Td(A(b["name"], href=f"/lifecycle/onboarding/{b['id']}"),
                Div(b["designation"] or "", style="font-size:11.5px;color:var(--text-mute);")),
-            Td(b["dept"] or "—"),
-            Td(b["date_of_joining"] or "—", style="white-space:nowrap;color:var(--text-mute);"),
+            Td(b["dept"] or "Puudub"),
+            Td(b["date_of_joining"] or "Puudub", style="white-space:nowrap;color:var(--text-mute);"),
             Td(f"{b['done']} / {b['total']}", cls="num"),
             Td(Div(NotStr(f'<i style="width:{max(2, pct)}%"></i>'),
                    cls="bar" + (" warn" if b["overdue"] else ""))),
             Td(Span(str(b["overdue"]), cls="pill rejected") if b["overdue"]
-               else Span("—", style="color:var(--text-mute);")),
+               else Span("Puudub", style="color:var(--text-mute);")),
             Td(_pill(b["status"]))))
-    tbl = Table(Thead(Tr(Th("New hire"), Th("Department"), Th("Start date"), Th("Tasks", cls="num"),
-                         Th("Progress"), Th("Overdue"), Th("Status"))),
-                Tbody(*rows or [Tr(Td("Nobody is onboarding right now.", colspan="7"))]), cls="tbl")
-    return (_title("Onboarding", "Checklists started automatically when an offer is accepted"),
-            _kpis(), Div(Div(H3("In progress"), cls="card-header"), tbl, cls="card"))
+    tbl = Table(Thead(Tr(Th("Uus töötaja"), Th("Osakond"), Th("Alustab"), Th("Ülesandeid", cls="num"),
+                         Th("Edenemine"), Th("Hilinenud"), Th("Staatus"))),
+                Tbody(*rows or [Tr(Td("Hetkel pole kedagi sisseelamisel.", colspan="7"))]), cls="tbl")
+    return (_title("Sisseelamine", "Kontrollnimekirjad algavad automaatselt pakkumise vastuvõtmisel"),
+            _kpis(), Div(Div(H3("Pooleli"), cls="card-header"), tbl, cls="card"))
 
 
 def onboarding_detail(employee_id: int):
     e = db.employee(employee_id)
     if not e:
-        return _title("Employee not found"), P("No such employee.")
-    return (_title(f"Onboarding — {e['first_name']} {e['last_name']}",
-                   f"{e['designation'] or ''} · started {e['date_of_joining'] or '—'}".strip(" ·"),
-                   A("← Onboarding", href="/lifecycle/onboarding", cls="btn")),
+        return _title("Töötajat ei leitud"), P("Sellist töötajat pole.")
+    return (_title(f"Sisseelamine — {e['first_name']} {e['last_name']}",
+                   f"{e['designation'] or ''} · alustas {e['date_of_joining'] or 'Puudub'}".strip(" ·"),
+                   A("← Sisseelamine", href="/lifecycle/onboarding", cls="btn")),
             Div(checklist(employee_id), id="onb-body"))
 
 
@@ -70,22 +70,22 @@ def checklist(employee_id: int):
         items.append(Div(
             Button("✓" if t["status"] == "Done" else "○",
                    cls="btn sm" + (" primary" if t["status"] == "Done" else ""),
-                   title="Toggle",
+                   title="Lülita",
                    **{"hx-post": f"/lifecycle/onboarding/task/{t['id']}"
                                  f"?status={'Open' if t['status'] == 'Done' else 'Done'}",
                       "hx-target": "#onb-body", "hx-swap": "innerHTML"}),
             Span(t["title"], cls="lbl"),
             _pill(t["owner_role"] or "HR"),
-            Span(("due " + (t["due_date"] or "—")) if t["status"] != "Done"
-                 else ("done " + (t["completed_on"] or "")),
+            Span(("tähtaeg " + (t["due_date"] or "Puudub")) if t["status"] != "Done"
+                 else ("tehtud " + (t["completed_on"] or "")),
                  cls="due" + (" late" if late else "")),
             cls="check" + (" done" if t["status"] == "Done" else "")))
     pct = round(100 * done / len(tasks)) if tasks else 0
-    return Div(Div(Div(H3(f"Checklist — {done} of {len(tasks)} complete"),
+    return Div(Div(Div(H3(f"Kontrollnimekiri — {done} / {len(tasks)} tehtud"),
                        Span(f"{pct}%", cls="pill ok" if pct == 100 else "pill"), cls="card-header"),
                    Div(NotStr(f'<i style="width:{max(2, pct)}%"></i>'), cls="bar",
                        style="margin-bottom:12px;"),
-                   *items or [P("No checklist for this employee.", style="color:var(--text-mute);")],
+                   *items or [P("Sellel töötajal pole kontrollnimekirja.", style="color:var(--text-mute);")],
                    cls="card"))
 
 
@@ -111,16 +111,16 @@ def changes_page(status="All"):
                               **{"hx-post": f"/lifecycle/changes/{c['id']}/reject",
                                  "hx-target": "#changes", "hx-swap": "innerHTML"}),
                        style="display:flex;gap:4px;")
-                   if c["status"] == "Pending" else Span("—", style="color:var(--text-mute);"))
+                   if c["status"] == "Pending" else Span("Puudub", style="color:var(--text-mute);"))
         rows.append(Tr(Td(A(c["employee"], href=f"/employees/{c['employee_id']}")),
-                       Td(c["dept"] or "—"), Td(_pill(c["change_type"])),
-                       Td(c["effective_date"] or "—", style="white-space:nowrap;"),
-                       Td(Small(delta or "—")), Td(_pill(c["status"])), Td(actions)))
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Dept"), Th("Change"), Th("Effective"),
-                         Th("From → to"), Th("Status"), Th("Action"))),
-                Tbody(*rows or [Tr(Td("No changes recorded.", colspan="7"))]), cls="tbl")
-    return (_title("Internal changes",
-                   "Promotions, transfers and role changes — approved, effective-dated and audited"),
+                       Td(c["dept"] or "Puudub"), Td(_pill(c["change_type"])),
+                       Td(c["effective_date"] or "Puudub", style="white-space:nowrap;"),
+                       Td(Small(delta or "Puudub")), Td(_pill(c["status"])), Td(actions)))
+    tbl = Table(Thead(Tr(Th("Töötaja"), Th("Osakond"), Th("Muudatus"), Th("Kehtib alates"),
+                         Th("Kust → kuhu"), Th("Staatus"), Th("Tegevus"))),
+                Tbody(*rows or [Tr(Td("Muudatusi pole registreeritud.", colspan="7"))]), cls="tbl")
+    return (_title("Sisemised muudatused",
+                   "Edutamised, üleviimised ja rollimuudatused — kinnitatud, kuupäevaga ja auditeeritud"),
             _kpis(), _change_form(), seg, Div(Div(tbl, cls="card"), id="changes"))
 
 
@@ -131,20 +131,21 @@ def changes_table(status="All"):
 def _change_form():
     emps = db.employees_min()
     depts = db.rows("SELECT id, name FROM departments ORDER BY name")
-    return Div(Div(H3("Propose a change"), cls="card-header"),
+    return Div(Div(H3("Tee ettepanek"), cls="card-header"),
                Form(Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"]))
-                             for e in emps], name="employee_id", cls="hr-inp"),
+                             for e in emps], name="employee_id", cls="hr-inp", aria_label="Töötaja"),
                     Select(*[Option(t, value=t) for t in people.CHANGE_TYPES],
-                           name="change_type", cls="hr-inp"),
-                    Input(type="date", name="effective_date", cls="hr-inp", required=True),
-                    Input(name="designation", placeholder="New job title", cls="hr-inp",
+                           name="change_type", cls="hr-inp", aria_label="Muudatuse liik"),
+                    Input(type="date", name="effective_date", cls="hr-inp", required=True,
+                          aria_label="Kehtiv alates"),
+                    Input(name="designation", placeholder="Uus ametinimetus", cls="hr-inp",
                           style="min-width:150px;"),
-                    Select(Option("— keep department —", value="0"),
+                    Select(Option("— jäta osakond —", value="0"),
                            *[Option(d["name"], value=str(d["id"])) for d in depts],
-                           name="dept_id", cls="hr-inp"),
+                           name="dept_id", cls="hr-inp", aria_label="Osakond"),
                     Input(name="base_salary", type="number", step="any",
-                          placeholder="New salary", cls="hr-inp", style="width:130px;"),
-                    Button("Propose", cls="btn primary", type="submit"),
+                          placeholder="Uus palk", cls="hr-inp", style="width:130px;"),
+                    Button("Tee ettepanek", cls="btn primary", type="submit"),
                     method="post", action="/lifecycle/changes",
                     cls="inline-form", style="flex-wrap:wrap;gap:8px;"), cls="card")
 
@@ -155,60 +156,62 @@ def separations_page(status="All"):
     seps = people.separations(status)
     seg = Div(*[A(s, href=f"/lifecycle/separations?status={s}", cls="active" if status == s else "")
                 for s in ["All", "Open", "In progress", "Complete"]], cls="seg")
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Dept"), Th("Type"), Th("Notice"), Th("Last day"),
-                         Th("Reason"), Th("Status"))),
+    tbl = Table(Thead(Tr(Th("Töötaja"), Th("Osakond"), Th("Liik"), Th("Teavitus"), Th("Viimane päev"),
+                         Th("Põhjus"), Th("Staatus"))),
                 Tbody(*[Tr(Td(A(s["employee"], href=f"/lifecycle/separations/{s['id']}")),
-                           Td(s["dept"] or "—"), Td(_pill(s["kind"])),
-                           Td(s["notice_date"] or "—", style="white-space:nowrap;"),
-                           Td(s["last_day"] or "—", style="white-space:nowrap;"),
-                           Td(Small(s["reason"] or "—")), Td(_pill(s["status"])))
-                        for s in seps] or [Tr(Td("No separations recorded.", colspan="7"))]),
+                           Td(s["dept"] or "Puudub"), Td(_pill(s["kind"])),
+                           Td(s["notice_date"] or "Puudub", style="white-space:nowrap;"),
+                           Td(s["last_day"] or "Puudub", style="white-space:nowrap;"),
+                           Td(Small(s["reason"] or "Puudub")), Td(_pill(s["status"])))
+                        for s in seps] or [Tr(Td("Lahkumisi pole registreeritud.", colspan="7"))]),
                 cls="tbl")
     emps = db.employees_min()
-    form = Div(Div(H3("Record a leaver"), cls="card-header"),
+    form = Div(Div(H3("Registreeri lahkuja"), cls="card-header"),
                Form(Select(*[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"]))
-                             for e in emps], name="employee_id", cls="hr-inp"),
+                             for e in emps], name="employee_id", cls="hr-inp", aria_label="Töötaja"),
                     Select(*[Option(k, value=k) for k in people.SEPARATION_KINDS],
-                           name="kind", cls="hr-inp"),
-                    Input(type="date", name="notice_date", cls="hr-inp", required=True),
-                    Input(type="date", name="last_day", cls="hr-inp", required=True),
-                    Input(name="reason", placeholder="Reason", cls="hr-inp", style="flex:1;"),
-                    Button("Start", cls="btn primary", type="submit"),
+                           name="kind", cls="hr-inp", aria_label="Lahkumisliik"),
+                    Input(type="date", name="notice_date", cls="hr-inp", required=True,
+                          aria_label="Teavituse kuupäev"),
+                    Input(type="date", name="last_day", cls="hr-inp", required=True,
+                          aria_label="Viimane tööpäev"),
+                    Input(name="reason", placeholder="Põhjus", cls="hr-inp", style="flex:1;"),
+                    Button("Alusta", cls="btn primary", type="submit"),
                     method="post", action="/lifecycle/separations",
                     cls="inline-form", style="flex-wrap:wrap;gap:8px;"), cls="card")
-    return (_title("Separations", "Notice, handover, exit interview and alumni status"),
+    return (_title("Lahkumised", "Etteteatamine, üleandmine, lahkumisintervjuu ja vilistlasstaatus"),
             _kpis(), form, seg, Div(tbl, cls="card"))
 
 
 def separation_detail(sep_id: int):
     s = people.separation(sep_id)
     if not s:
-        return _title("Separation not found"), P("No such record.")
-    info = Div(Div(H3("Leaver"), _pill(s["status"]), cls="card-header"),
-               Div(Span("Employee", cls="k"), Span(s["employee"]),
-                   Span("Role", cls="k"), Span(s["designation"] or "—"),
-                   Span("Department", cls="k"), Span(s["dept"] or "—"),
-                   Span("Type", cls="k"), _pill(s["kind"]),
-                   Span("Notice given", cls="k"), Span(s["notice_date"] or "—"),
-                   Span("Last day", cls="k"), Span(s["last_day"] or "—"),
-                   Span("Reason", cls="k"), Span(s["reason"] or "—"),
-                   Span("Alumni", cls="k"), Span(s["alumni_status"] or "—"),
+        return _title("Lahkumist ei leitud"), P("Sellist kirjet pole.")
+    info = Div(Div(H3("Lahkuja"), _pill(s["status"]), cls="card-header"),
+               Div(Span("Töötaja", cls="k"), Span(s["employee"]),
+                   Span("Roll", cls="k"), Span(s["designation"] or "Puudub"),
+                   Span("Osakond", cls="k"), Span(s["dept"] or "Puudub"),
+                   Span("Liik", cls="k"), _pill(s["kind"]),
+                   Span("Teavitatud", cls="k"), Span(s["notice_date"] or "Puudub"),
+                   Span("Viimane päev", cls="k"), Span(s["last_day"] or "Puudub"),
+                   Span("Põhjus", cls="k"), Span(s["reason"] or "Puudub"),
+                   Span("Vilistlane", cls="k"), Span(s["alumni_status"] or "Puudub"),
                    cls="kv"), cls="card")
-    exit_form = Div(Div(H3("Exit interview"), cls="card-header"),
+    exit_form = Div(Div(H3("Lahkumisintervjuu"), cls="card-header"),
                     Form(Textarea(s["exit_interview"] or "", name="notes", cls="prompt-box",
                                   style="min-height:150px;",
-                                  placeholder="What worked, what didn't, would they return?"),
-                         Div(Select(Option("— sentiment —", value=""),
+                                  placeholder="Mis toimis, mis mitte, kas tuleks tagasi?"),
+                         Div(Select(Option("— meelsus —", value=""),
                                     *[Option(x, value=x) for x in
                                       ("Positive", "Mixed", "Negative")],
-                                    name="sentiment", cls="hr-inp",
+                                    name="sentiment", cls="hr-inp", aria_label="Meelsus",
                                     selected=s["exit_sentiment"]),
-                             Button("Save", cls="btn primary", type="submit"),
+                             Button("Salvesta", cls="btn primary", type="submit"),
                              style="display:flex;gap:8px;margin-top:10px;"),
                          method="post", action=f"/lifecycle/separations/{sep_id}/exit"),
                     cls="card")
-    return (_title(f"Separation — {s['employee']}", f"{s['kind']} · last day {s['last_day'] or '—'}",
-                   A("← Separations", href="/lifecycle/separations", cls="btn")),
+    return (_title(f"Lahkumine — {s['employee']}", f"{s['kind']} · viimane päev {s['last_day'] or 'Puudub'}",
+                   A("← Lahkumised", href="/lifecycle/separations", cls="btn")),
             Div(Div(Div(exit_checklist(sep_id), id="sep-body"), exit_form), Div(info),
                 cls="detail-grid"))
 
@@ -221,7 +224,7 @@ def exit_checklist(sep_id: int):
         items = []
     done = sum(1 for i in items if i.get("done"))
     pct = round(100 * done / len(items)) if items else 0
-    return Div(Div(Div(H3(f"Offboarding — {done} of {len(items)}"),
+    return Div(Div(Div(H3(f"Lahkumine — {done} / {len(items)}"),
                        Span(f"{pct}%", cls="pill ok" if pct == 100 else "pill"), cls="card-header"),
                    Div(NotStr(f'<i style="width:{max(2, pct)}%"></i>'), cls="bar",
                        style="margin-bottom:12px;"),
@@ -232,23 +235,23 @@ def exit_checklist(sep_id: int):
                          Span(it.get("title", ""), cls="lbl"),
                          cls="check" + (" done" if it.get("done") else ""))
                      for idx, it in enumerate(items)]
-                   or [P("No checklist.", style="color:var(--text-mute);")],
+                   or [P("Nimekirja pole.", style="color:var(--text-mute);")],
                    cls="card"))
 
 
 def alumni_page():
     al = people.alumni()
-    tbl = Table(Thead(Tr(Th("Name"), Th("Last role"), Th("Department"), Th("Left"),
-                         Th("Reason"), Th("Rehire"))),
+    tbl = Table(Thead(Tr(Th("Nimi"), Th("Viimane roll"), Th("Osakond"), Th("Lahkus"),
+                         Th("Põhjus"), Th("Tagasivõtt"))),
                 Tbody(*[Tr(Td(A(f"{a['first_name']} {a['last_name']}", href=f"/employees/{a['id']}")),
-                           Td(a["designation"] or "—"), Td(a["dept"] or "—"),
-                           Td(a["last_day"] or a["termination_date"] or "—",
+                           Td(a["designation"] or "Puudub"), Td(a["dept"] or "Puudub"),
+                           Td(a["last_day"] or a["termination_date"] or "Puudub",
                               style="white-space:nowrap;"),
-                           Td(_pill(a["kind"] or "—")),
+                           Td(_pill(a["kind"] or "Puudub")),
                            Td(_pill(a["alumni_status"] or "Eligible")))
-                        for a in al] or [Tr(Td("No alumni yet.", colspan="6"))]), cls="tbl")
-    return (_title("Alumni", "Former colleagues — the cheapest source of a good hire"),
-            Div(Div(H3(f"{len(al)} alumni"), cls="card-header"), tbl, cls="card"))
+                        for a in al] or [Tr(Td("Vilistlasi pole veel.", colspan="6"))]), cls="tbl")
+    return (_title("Vilistlased", "Endised kolleegid — odavaim hea värbamise allikas"),
+            Div(Div(H3(f"{len(al)} vilistlast"), cls="card-header"), tbl, cls="card"))
 
 
 # ---------- cases -----------------------------------------------------------
@@ -264,38 +267,39 @@ def cases_page(status="All"):
                                   "hx-target": "#cases", "hx-swap": "innerHTML"})
                         for s in ("Investigating", "Resolved") if s != c["status"]],
                       style="display:flex;gap:4px;") if c["status"] in ("Open", "Investigating") \
-            else Span("—", style="color:var(--text-mute);")
-        rows.append(Tr(Td(A(c["employee"] or "— confidential —",
+            else Span("Puudub", style="color:var(--text-mute);")
+        rows.append(Tr(Td(A(c["employee"] or "— konfidentsiaalne —",
                             href=f"/employees/{c['employee_id']}") if c["employee_id"]
-                          else Span("— confidential —", style="color:var(--text-mute);")),
+                          else Span("— konfidentsiaalne —", style="color:var(--text-mute);")),
                        Td(_pill(c["kind"])),
                        Td(Span(c["severity"],
                                cls="pill " + {"Critical": "rejected", "High": "pending"}.get(
                                    c["severity"], ""))),
                        Td(Small(c["summary"])),
                        Td(_pill(c["visibility"])), Td(_pill(c["status"])), Td(actions)))
-    tbl = Table(Thead(Tr(Th("Employee"), Th("Type"), Th("Severity"), Th("Summary"),
-                         Th("Visibility"), Th("Status"), Th("Action"))),
-                Tbody(*rows or [Tr(Td("No cases open.", colspan="7"))]), cls="tbl")
+    tbl = Table(Thead(Tr(Th("Töötaja"), Th("Liik"), Th("Raskusaste"), Th("Kokkuvõte"),
+                         Th("Nähtavus"), Th("Staatus"), Th("Tegevus"))),
+                Tbody(*rows or [Tr(Td("Avatud juhtumeid pole.", colspan="7"))]), cls="tbl")
     emps = db.employees_min()
-    form = Div(Div(H3("Open a case"), cls="card-header"),
-               Form(Select(Option("— confidential / unnamed —", value="0"),
+    form = Div(Div(H3("Ava juhtum"), cls="card-header"),
+               Form(Select(Option("— konfidentsiaalne / nimeta —", value="0"),
                            *[Option(f"{e['first_name']} {e['last_name']}", value=str(e["id"]))
-                             for e in emps], name="employee_id", cls="hr-inp"),
+                             for e in emps], name="employee_id", cls="hr-inp", aria_label="Töötaja"),
                     Select(*[Option(k, value=k) for k in people.CASE_KINDS],
-                           name="kind", cls="hr-inp"),
+                           name="kind", cls="hr-inp", aria_label="Juhtumi liik"),
                     Select(*[Option(s, value=s, selected=(s == "Normal"))
-                             for s in people.CASE_SEVERITIES], name="severity", cls="hr-inp"),
+                             for s in people.CASE_SEVERITIES], name="severity", cls="hr-inp",
+                           aria_label="Raskusaste"),
                     Select(*[Option(v, value=v) for v in
                              ("HR only", "HR and manager", "Restricted")],
-                           name="visibility", cls="hr-inp"),
-                    Input(name="summary", placeholder="Summary", cls="hr-inp", required=True,
+                           name="visibility", cls="hr-inp", aria_label="Nähtavus"),
+                    Input(name="summary", placeholder="Kokkuvõte", cls="hr-inp", required=True,
                           style="flex:1;min-width:200px;"),
-                    Button("Open", cls="btn primary", type="submit"),
+                    Button("Ava", cls="btn primary", type="submit"),
                     method="post", action="/lifecycle/cases",
                     cls="inline-form", style="flex-wrap:wrap;gap:8px;"), cls="card")
-    return (_title("Employee relations",
-                   "Grievances, wellbeing and conduct — restricted visibility, full audit trail"),
+    return (_title("Töösuhted",
+                   "Kaebused, heaolu ja käitumine — piiratud nähtavus, täielik audit"),
             _kpis(), form, seg, Div(Div(tbl, cls="card"), id="cases"))
 
 
@@ -319,29 +323,29 @@ def org_page(dept_id: int = 0, delta: int = 0):
                     for n in nodes])
 
     scen_form = Form(
-        Select(Option("Whole company", value="0"),
+        Select(Option("Kogu ettevõte", value="0"),
                *[Option(d["name"], value=str(d["id"]), selected=(dept_id == d["id"]))
-                 for d in depts], name="dept_id", cls="hr-inp"),
+                 for d in depts], name="dept_id", cls="hr-inp", aria_label="Osakond"),
         Input(type="number", name="delta", value=str(delta), cls="hr-inp", style="width:110px;",
-              placeholder="+/- heads"),
-        Button("Model it", cls="btn primary", type="submit"),
+              placeholder="+/- töötajat", aria_label="Töötajate muutus"),
+        Button("Modelleeri", cls="btn primary", type="submit"),
         method="get", action="/lifecycle/org", cls="inline-form", style="gap:8px;")
 
-    scen = Div(Div(H3("Headcount scenario"), cls="card-header"), scen_form,
-               Div(Span("Scope", cls="k"), Span(scenario["scope"]),
-                   Span("Current headcount", cls="k"), Span(str(scenario["headcount"])),
-                   Span("Average salary", cls="k"), Span(money(scenario["avg_salary"])),
-                   Span("Change", cls="k"),
-                   Span(f"{scenario['delta']:+d} people" if scenario["delta"] else "no change"),
-                   Span("New headcount", cls="k"), Span(Strong(str(scenario["new_headcount"]))),
-                   Span("Annual cost change", cls="k"),
+    scen = Div(Div(H3("Töötajate stsenaarium"), cls="card-header"), scen_form,
+               Div(Span("Ulatus", cls="k"), Span(scenario["scope"]),
+                   Span("Hetke töötajate arv", cls="k"), Span(str(scenario["headcount"])),
+                   Span("Keskmine palk", cls="k"), Span(money(scenario["avg_salary"])),
+                   Span("Muutus", cls="k"),
+                   Span(f"{scenario['delta']:+d} inimest" if scenario["delta"] else "muutusteta"),
+                   Span("Uus töötajate arv", cls="k"), Span(Strong(str(scenario["new_headcount"]))),
+                   Span("Aastase kulu muutus", cls="k"),
                    Span(("+" if scenario["cost_change"] >= 0 else "− ")
                         + money(abs(scenario["cost_change"])),
                         style="color:var(--danger);" if scenario["cost_change"] > 0 else "color:var(--ok);"),
-                   Span("New annual cost", cls="k"), Span(Strong(money(scenario["new_cost"]))),
+                   Span("Uus aastakulu", cls="k"), Span(Strong(money(scenario["new_cost"]))),
                    cls="kv", style="margin-top:14px;"), cls="card")
 
-    return (_title("Org chart", "Reporting lines, team sizes and what-if headcount planning"),
-            Div(Div(Div(Div(H3("Reporting structure"), cls="card-header"),
+    return (_title("Org-struktuur", "Alluvussuhted, meeskondade suurused ja personalikulude stsenaariumid"),
+            Div(Div(Div(Div(H3("Alluvusstruktuur"), cls="card-header"),
                         Div(render(tree), cls="org"), cls="card")),
                 Div(scen), cls="detail-grid"))
