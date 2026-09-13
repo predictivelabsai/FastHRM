@@ -26,6 +26,16 @@ def test_expense_claim_lifecycle_and_limits(fresh_db):
     assert not ok and "Daily limit" in reason
 
 
+def test_travel_page_renders_estonian_copy(fresh_db):
+    from web import views
+
+    html = str(views.travel_page())
+    assert "Lähetused" in html and "Travel requests" not in html
+    assert "Esita taotlus" in html and "Submit request" not in html
+    assert "Lähetusi pole." in html
+    assert 'aria-label="Alguskuupäev"' in html and 'aria-label="Lõppkuupäev"' in html
+
+
 def test_travel_return_resubmit_and_advance_rules(fresh_db):
     employee, manager = _employee(fresh_db, "Traveller"), _employee(fresh_db, "Approver")
     travel = fresh_db.request_travel(employee, "Tartu", "Workshop", "2026-06-20", "2026-06-21", 200)

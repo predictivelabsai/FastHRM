@@ -2,6 +2,16 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-12 — Travel page in Estonian
+
+### Fixed
+
+- Localized the last fully English app page: travel request titles, table headers, decision buttons, form placeholders, empty state and back link are now Estonian-first; the employee picker and date inputs gained accessible labels.
+
+### Verification
+
+- Added `test_travel_page_renders_estonian_copy` in `tests/test_expenses.py`; suite passes.
+
 ## 2026-09-12 — App shell declares Estonian page language
 
 ### Fixed
