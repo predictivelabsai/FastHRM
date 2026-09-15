@@ -69,6 +69,7 @@ def onboarding_detail(employee_id: int):
 
 
 def checklist(employee_id: int):
+    c = _c
     tasks = people.onboarding_tasks(employee_id)
     done = sum(1 for t in tasks if t["status"] == "Done")
     items = []

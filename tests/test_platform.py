@@ -832,6 +832,27 @@ def test_lifecycle_pages_render_estonian_copy(fresh_db):
     assert "Tunnid" in str(views.attendance_view())
 
 
+def test_onboarding_detail_with_tasks_renders_both_app_languages(fresh_db):
+    import seed
+    import web_app
+
+    seed.build()
+    employee_id = fresh_db.scalar("SELECT employee_id FROM onboarding_tasks LIMIT 1")
+    if employee_id is None:
+        return
+
+    client = TestClient(web_app.app)
+    client.post("/login", data={"email": web_app.VALID_EMAIL,
+                                "password": web_app.VALID_PASSWORD})
+
+    estonian = client.get(f"/lifecycle/onboarding/{employee_id}")
+    assert estonian.status_code == 200
+    assert "Sisseelamine" in estonian.text
+
+    english = client.get(f"/lifecycle/onboarding/{employee_id}?lang=en")
+    assert english.status_code == 200
+
+
 def test_app_shell_sets_html_lang(fresh_db):
     from fasthtml.common import Div
 

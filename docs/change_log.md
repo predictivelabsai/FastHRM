@@ -2,6 +2,16 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-09-15 — Fix onboarding detail 500 error
+
+### Fixed
+
+- Fixed the onboarding checklist translation helper so `/lifecycle/onboarding/{employee_id}` renders employees with onboarding tasks instead of returning a 500 error.
+
+### Verification
+
+- Added regression coverage for seeded onboarding detail pages in Estonian and English.
+
 ## 2026-09-15 — Final app-shell localization
 
 ### Added
