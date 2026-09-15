@@ -390,8 +390,7 @@ def prompts_page(key: str = cv_extract.PROMPT_KEY, saved: str = ""):
                  name="content", cls="prompt-box", spellcheck="true"),
         Div(Button(_c("ats_save_new_version"), cls="btn primary", type="submit"),
             Button(_c("ats_restore_default"), cls="btn", type="submit",
-                   name="restore", value="1"),
-            style="display:flex;gap:8px;margin-top:10px;"),
+                   name="restore", value="1"), cls="prompt-actions"),
         method="post", action=f"/talent/prompts?key={key}")
 
     return (
@@ -408,7 +407,7 @@ def prompts_page(key: str = cv_extract.PROMPT_KEY, saved: str = ""):
                 Div(Div(H3(_c("ats_output_contract")), Small(_c("ats_code_readonly"),
                                                      style="color:var(--text-mute);"), cls="card-header"),
                     Div(cv_extract.OUTPUT_FORMAT, cls="contract-box"), cls="card")),
-            cls="detail-grid", style="--x:1;grid-template-columns:1fr 420px;"))
+            cls="prompt-layout"))
 
 
 # ---------- interviews ------------------------------------------------------

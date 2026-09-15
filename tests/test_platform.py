@@ -51,6 +51,20 @@ def test_web_app_remainder_is_bilingual(fresh_db):
         assert invalid_portal in error.text
 
 
+def test_public_login_modal_accepts_configured_demo_admin(fresh_db):
+    import web_app
+
+    client = TestClient(web_app.app)
+    response = client.post(
+        "/auth/local/login",
+        data={"email": web_app.VALID_EMAIL, "password": web_app.VALID_PASSWORD},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["redirect"] == "/"
+    assert client.get("/").status_code == 200
+
+
 def test_granular_rbac_defaults_and_admin_bypass(fresh_db):
     from web.rbac import can, permissions_for
 
@@ -924,8 +938,70 @@ def test_dashboard_and_people_pages_render_both_app_languages(fresh_db):
     english_dashboard = client.get("/?lang=en")
     assert "HR Dashboard" in english_dashboard.text
     assert "HEADCOUNT" in english_dashboard.text
+    assert 'href="/employees"' in english_dashboard.text
+    assert 'href="/attendance"' in english_dashboard.text
+    assert 'href="/leave"' in english_dashboard.text
     assert "Employees" in client.get("/employees?lang=en").text
     assert "Departments" in client.get("/departments?lang=en").text
+
+
+def test_ai_page_is_a_focused_conversation_workspace(fresh_db):
+    from starlette.testclient import TestClient
+
+    import web_app
+
+    client = TestClient(web_app.app)
+    client.post("/login", data={"email": web_app.VALID_EMAIL,
+                                "password": web_app.VALID_PASSWORD})
+
+    english = client.get("/ai?lang=en").text
+    estonian = client.get("/ai?lang=et").text
+
+    assert 'class="app ai-workspace"' in english
+    assert english.count('id="chat-body"') == 1
+    assert "Start with a question" in english
+    assert "What is the latest payroll total?" in english
+    assert "Alusta küsimusega" in estonian
+    assert "Mis on viimane palgakulu?" in estonian
+
+
+def test_operational_forms_use_the_shared_responsive_layout(fresh_db):
+    from starlette.testclient import TestClient
+
+    import web_app
+
+    client = TestClient(web_app.app)
+    client.post("/login", data={"email": web_app.VALID_EMAIL,
+                                "password": web_app.VALID_PASSWORD})
+
+    shifts = client.get("/shifts?lang=en").text
+    time_clocks = client.get("/timeclock?lang=en").text
+    benefits = client.get("/benefits?lang=en").text
+    expenses = client.get("/expenses?lang=en").text
+    travel = client.get("/travel?lang=en").text
+
+    assert "&lt;br&gt;" not in shifts
+    assert 'class="inline-form"' in shifts
+    assert 'class="timeclock-actions"' in time_clocks
+    assert 'class="inline-form"' in benefits
+    assert 'class="inline-form"' in expenses
+    assert 'class="inline-form"' in travel
+
+
+def test_ai_prompts_use_a_contained_workspace_and_preserve_sidebar_position(fresh_db):
+    from starlette.testclient import TestClient
+
+    import web_app
+
+    client = TestClient(web_app.app)
+    client.post("/login", data={"email": web_app.VALID_EMAIL,
+                                "password": web_app.VALID_PASSWORD})
+    page = client.get("/talent/prompts?lang=en").text
+
+    assert 'class="prompt-layout"' in page
+    assert 'class="prompt-actions"' in page
+    assert "fasthrm:left-pane-scroll" in page
+    assert "detail-grid\" style=\"--x:1;grid-template-columns:1fr 420px" not in page
 
 
 def test_time_section_pages_render_both_app_languages(fresh_db):
