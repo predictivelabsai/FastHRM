@@ -50,7 +50,7 @@ def dashboard():
                           WHERE a.att_date=? AND a.status='On Leave'""", (db.TODAY.isoformat(),))
     pending = db.rows("""SELECT lr.*, e.first_name,e.last_name FROM leave_requests lr
                          JOIN employees e ON e.id=lr.employee_id WHERE lr.status='Pending'
-                         ORDER BY lr.from_date LIMIT 8""")
+                         ORDER BY lr.from_date LIMIT 5""")
     pend_tbl = Table(Thead(Tr(Th(t_app(lang, "table_employee")), Th(t_app(lang, "table_type")),
                               Th(t_app(lang, "table_dates")), Th(t_app(lang, "table_days")),
                               Th(t_app(lang, "table_reason")))),
@@ -64,20 +64,33 @@ def dashboard():
                                for r in on_leave] or
                            [Tr(Td(t_app(lang, "empty_on_leave"), colspan="2"))]), cls="tbl")
 
+    pending_action = A(t_app(lang, "dashboard_review_pending").format(n=k["pending_leave"]),
+                       href="/leave", cls="btn primary") if k["pending_leave"] else None
+    title = _title(t_app(lang, "dashboard_title"), t_app(lang, "dashboard_subtitle"))
+    pending_header = Div(H3(t_app(lang, "pending_leave_requests")), cls="card-header")
+    if pending_action:
+        title = _title(t_app(lang, "dashboard_title"), t_app(lang, "dashboard_subtitle"), pending_action)
+        pending_header = Div(H3(t_app(lang, "pending_leave_requests")),
+                             A(t_app(lang, "dashboard_view_all_pending").format(n=k["pending_leave"]),
+                               href="/leave", cls="btn sm"), cls="card-header")
     return (
-        _title(t_app(lang, "dashboard_title"), t_app(lang, "dashboard_subtitle")),
+        title,
         Div(kpi_card(t_app(lang, "kpi_headcount"), k["headcount"],
-                     f"{k['depts']} {t_app(lang, 'kpi_departments')}"),
+                     f"{k['depts']} {t_app(lang, 'kpi_departments')}", href="/employees"),
             kpi_card(t_app(lang, "kpi_present_today"), k["present_today"],
-                     f"{k['on_leave_today']} {t_app(lang, 'kpi_on_leave')}"),
+                     f"{k['on_leave_today']} {t_app(lang, 'kpi_on_leave')}", href="/attendance"),
             kpi_card(t_app(lang, "kpi_attendance"), f"{k['attendance_rate']}%",
-                     tone="warn" if k["attendance_rate"] < 85 else ""),
+                     tone="warn" if k["attendance_rate"] < 85 else "", href="/attendance"),
             kpi_card(t_app(lang, "kpi_pending_leave"), k["pending_leave"],
-                     t_app(lang, "kpi_awaiting_approval"), tone="danger" if k["pending_leave"] else ""),
+                     t_app(lang, "kpi_awaiting_approval"), tone="danger" if k["pending_leave"] else "", href="/leave"),
             cls="kpi-grid"),
-        Div(Div(Div(H3(t_app(lang, "headcount_by_department")), cls="card-header"), *funnel, cls="card"),
-            Div(Div(H3(t_app(lang, "on_leave_today")), cls="card-header"), leave_tbl, cls="card"), cls="grid-2"),
-        Div(Div(H3(t_app(lang, "pending_leave_requests")), cls="card-header"), pend_tbl, cls="card"),
+        Div(Div(Div(H3(t_app(lang, "headcount_by_department")),
+                    A(t_app(lang, "dashboard_view_employees"), href="/employees", cls="btn sm"), cls="card-header"),
+                *funnel, cls="card"),
+            Div(Div(H3(t_app(lang, "on_leave_today")),
+                    A(t_app(lang, "dashboard_view_leave"), href="/leave", cls="btn sm"), cls="card-header"),
+                leave_tbl, cls="card"), cls="grid-2"),
+        Div(pending_header, pend_tbl, cls="card"),
     )
 
 
