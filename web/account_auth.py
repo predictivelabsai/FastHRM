@@ -373,7 +373,8 @@ def reset_page(token, error=""):
     )
 
 
-def register_fasthtml_routes(rt, *, app_name, session_key=None, success_path="/", on_login=None):
+def register_fasthtml_routes(rt, *, app_name, session_key=None, success_path="/", on_login=None,
+                              fallback_login=None):
     def establish_session(sess, account):
         if on_login:
             on_login(sess, account)
@@ -393,6 +394,8 @@ def register_fasthtml_routes(rt, *, app_name, session_key=None, success_path="/"
     async def local_login(request, sess):
         form = await request.form()
         account = accounts.login(form.get("email"), form.get("password"))
+        if not account and fallback_login:
+            account = fallback_login(form.get("email"), form.get("password"))
         lang = form.get("lang", "et")
         if not account:
             return JSONResponse({"error": t(lang)["auth_error_login"]}, status_code=401)

@@ -31,13 +31,35 @@ def test_authenticated_shell_shows_the_runtime_version(fresh_db, monkeypatch):
 
 
 def test_authenticated_sidebar_sections_are_collapsible(fresh_db):
-    from web.layout import NAV_ITEMS, left_pane
+    from web.layout import LAYOUT_JS, NAV_ITEMS, left_pane
     rendered = str(left_pane("payroll"))
+    english = str(left_pane("payroll", lang="en"))
     assert rendered.count('class="nav-section"') == len(NAV_ITEMS)
-    assert 'id="nav-collapse-all"' in rendered
-    assert 'id="nav-expand-all"' in rendered
-    assert 'aria-label="Ava või sulge Inimesed"' in rendered
+    assert '<details open data-section="palk"' in rendered
+    assert 'aria-label="Ava või sulge INIMESED"' in rendered
     assert 'href="/payroll"' in rendered
+    assert 'nav-section-arrow' in rendered
+    assert '<h4>PAY</h4><span aria-hidden="true" class="nav-section-arrow">' in english
+    assert 'Payroll' in english
+    assert 'Palgaarvestus' not in english
+    assert 'TULEMUSLIKKUS' not in english
+    assert 'nav-section-controls' not in rendered
+    assert '&lt;&lt;' not in rendered
+    assert '&gt;&gt;' not in rendered
+    assert 'if(active)section.open=true;' in LAYOUT_JS
+
+
+def test_ai_rail_is_localised_and_has_a_useful_empty_state(fresh_db):
+    from fasthtml.common import Div
+    from web.layout import page
+
+    english = str(page("dashboard", "", "admin@fasthr.example", None, Div("content"), lang="en"))
+    assert 'class="chat-empty-state"' in english
+    assert "How can I help?" in english
+    assert "Try asking" in english
+    assert "Who is on leave today?" in english
+    assert "Ask about HR or type /leave /help" in english
+    assert "Kuidas saan aidata?" not in english
 
 
 def test_env_stamp_wins_over_git(fresh_db, monkeypatch):

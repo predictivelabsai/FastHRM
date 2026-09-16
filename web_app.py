@@ -51,7 +51,7 @@ import recruitment_ecosystem
 import recruitment_enterprise
 import recruiting_ops
 import version
-from web.layout import page, LAYOUT_CSS, NAV_ITEMS
+from web.layout import page, LAYOUT_CSS, NAV_ITEMS, chat_empty_state, chat_workspace
 from web import views, ai, ats, careers, cv_extract, ranking, performance, lifecycle, recruiting_platform, settings, selfservice, statutory
 from web.landing import comparison_page, features_page, landing_page
 from web.i18n import current_lang, reset_request_context, resolve_lang, set_request_context, t_app
@@ -115,7 +115,17 @@ def legacy_products():
     return RedirectResponse("/features", status_code=308)
 
 
-account_auth.register_fasthtml_routes(rt, app_name="FastHR", session_key="user", success_path="/")
+def _configured_admin_login(email: str | None, password: str | None):
+    """Let the public sign-in modal use the configured local demo admin."""
+    if (email or "").strip().lower() == VALID_EMAIL.strip().lower() and password == VALID_PASSWORD:
+        return {"email": VALID_EMAIL.strip().lower()}
+    return None
+
+
+account_auth.register_fasthtml_routes(
+    rt, app_name="FastHR", session_key="user", success_path="/",
+    fallback_login=_configured_admin_login,
+)
 
 
 def _user(session):
@@ -138,7 +148,7 @@ def _thread(session):
     return session["thread"]
 
 
-def _guard(session, active, builder):
+def _guard(session, active, builder, **page_options):
     if not _user(session):
         destinations = {key: href for _, items in NAV_ITEMS for key, _, _, href in items}
         destination = destinations.get(active, "/")
@@ -150,7 +160,7 @@ def _guard(session, active, builder):
     content = builder() if callable(builder) else builder
     if not isinstance(content, tuple):
         content = (content,)
-    return page(active, ENV_LABEL, _user(session), _thread(session), *content)
+    return page(active, ENV_LABEL, _user(session), _thread(session), *content, **page_options)
 
 
 PUBLISHER_ROLES = {"admin", "hrbp", "recruiter"}
@@ -3055,15 +3065,12 @@ def get(session, pid: int):
 @rt("/ai")
 def get(session):
     lang = resolve_lang(session)
-    body = (views._title(t_app(lang, "wa_ai_title"), t_app(lang, "wa_ai_subtitle")),
-            Div(NotStr(
-                "<div class='card'><h3>What you can ask</h3><ul style='line-height:1.8;'>"
-                "<li>“Who's on leave today?”</li><li>“Which department is biggest?”</li>"
-                "<li>“How many leave requests are pending approval?”</li>"
-                "<li>“What's the latest payroll total?”</li></ul>"
-                "<p style='color:var(--text-mute)'>Slash-commands (no API key): "
-                "<code>/headcount</code> <code>/leave</code> <code>/today</code> <code>/payroll</code></p></div>")))
-    return _guard(session, "ai", body)
+    body = lambda: (
+        views._title(t_app(lang, "ai_workspace_title"), t_app(lang, "ai_workspace_subtitle"),
+                     Button(t_app(lang, "chat_new"), cls="btn", hx_get="/chat/new", hx_target="#chat-body", hx_swap="innerHTML")),
+        chat_workspace(_thread(session), lang),
+    )
+    return _guard(session, "ai", body, ai_workspace=True)
 
 
 @rt("/healthz")
@@ -3130,7 +3137,7 @@ def get(session):
 @rt("/chat/new")
 def get(session):
     session["thread"] = uuid.uuid4().hex
-    return P("Küsi töötajate arvu, puhkuste või kohaloleku kohta. Võid kasutada ka käske /headcount, /leave ja /help.", cls="chat-empty-hint")
+    return chat_empty_state(resolve_lang(session))
 
 
 @rt("/chat/stream")
