@@ -296,28 +296,31 @@ def shifts_roster(week=""):
         for day in days:
             shifts = by_day.get((emp["id"], day.isoformat()), [])
             cells.append(Td(*[Div(A(f"{s['shift_name']} {s['start_time']}–{s['end_time']}",
-                                  href=f"/shifts?week={start.isoformat()}",
-                                  style=f"border-left:3px solid {s['color'] or 'var(--accent)'};"),
+                                  href=f"/shifts?week={start.isoformat()}"),
                              _pill(s["status"]),
                              Form(Button(t_app(lang, "shifts_cancel"), type="submit", cls="btn sm"), method="post",
                                   action=f"/shifts/{s['id']}/cancel") if s["status"] in ("Scheduled", "Missed") else None,
                              cls="note") for s in shifts] or [Span(t_app(lang, "app_missing_value"), cls="sub")]))
         rows_.append(Tr(Td(Strong(_name(emp))), *cells))
-    table = Table(Thead(Tr(Th(t_app(lang, "table_employee")), *[Th(f"{d:%a}<br>{d:%d %b}", cls="num") for d in days])),
+    table = Table(Thead(Tr(Th(t_app(lang, "table_employee")),
+                          *[Th(Span(f"{d:%a}", style="display:block;"), Span(f"{d:%d %b}", style="display:block;"), cls="num")
+                            for d in days])),
                   Tbody(*rows_ or [Tr(Td(t_app(lang, "shifts_missing"), colspan="8"))]), cls="tbl")
     types = db.shift_types()
     emps = db.employees_min()
     form = Form(Select(*[Option(_name(e), value=str(e["id"])) for e in emps], name="employee_id", required=True, cls="hr-inp", aria_label=t_app(lang, "table_employee")),
                 Select(*[Option(t["name"], value=str(t["id"])) for t in types], name="shift_type_id", required=True, cls="hr-inp", aria_label=t_app(lang, "shifts_type")),
                 Input(type="date", name="shift_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp", aria_label=t_app(lang, "shifts_date")),
-                Input(name="location_label", placeholder=t_app(lang, "shifts_location_placeholder"), cls="hr-inp"),
-                Button(t_app(lang, "shifts_create"), type="submit", cls="btn primary"), method="post", action="/shifts/new")
+                Input(name="location_label", placeholder=t_app(lang, "shifts_location_placeholder"), cls="hr-inp",
+                      aria_label=t_app(lang, "shifts_location_placeholder")),
+                Button(t_app(lang, "shifts_create"), type="submit", cls="btn primary"), method="post", action="/shifts/new",
+                cls="inline-form")
     prev_week, next_week = (start - timedelta(days=7)).isoformat(), (start + timedelta(days=7)).isoformat()
     return (_title(t_app(lang, "shifts_title"), t_app(lang, "shifts_week").format(start=start.isoformat(), end=end.isoformat()),
                    A(t_app(lang, "shifts_previous"), href=f"/shifts?week={prev_week}", cls="btn"),
                    A(t_app(lang, "shifts_next"), href=f"/shifts?week={next_week}", cls="btn")),
             Div(Div(H3(t_app(lang, "shifts_week_schedule")), cls="card-header"), table, cls="card"),
-            Div(Div(H3(t_app(lang, "shifts_new_title")), P(t_app(lang, "shifts_new_subtitle"), cls="sub"), cls="card-header"), form, cls="card"))
+            Div(Div(H3(t_app(lang, "shifts_new_title")), P(t_app(lang, "shifts_new_subtitle"), cls="sub"), cls="card-heading"), form, cls="card"))
 
 
 def time_clocks():
@@ -343,11 +346,14 @@ def time_clocks():
                            Td(latest[e["id"]]["punched_at"] if e["id"] in latest else t_app(lang, "app_missing_value")),
                            Td(latest[e["id"]]["source"] if e["id"] in latest else t_app(lang, "app_missing_value"))) for e in employees]
                   or [Tr(Td(t_app(lang, "timeclock_no_employees"), colspan="4"))]), cls="tbl")
-    selector = Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp")
+    selector = Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True,
+                      cls="hr-inp", aria_label=t_app(lang, "table_employee"))
     widget = Div(Form(selector, Input(type="hidden", name="source", value="Web"), Button(t_app(lang, "timeclock_start"), type="submit", cls="btn primary"),
-                      method="post", action="/timeclock/in"),
-                 Form(Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True, cls="hr-inp"),
-                      Button(t_app(lang, "timeclock_end"), type="submit", cls="btn"), method="post", action="/timeclock/out"), cls="actions")
+                      method="post", action="/timeclock/in", cls="timeclock-action"),
+                 Form(Select(*[Option(_name(e), value=str(e["id"])) for e in employees], name="employee_id", required=True,
+                             cls="hr-inp", aria_label=t_app(lang, "table_employee")),
+                      Button(t_app(lang, "timeclock_end"), type="submit", cls="btn"), method="post", action="/timeclock/out",
+                      cls="timeclock-action"), cls="timeclock-actions")
     recent = Table(Thead(Tr(Th(t_app(lang, "table_employee")), Th(t_app(lang, "timeclock_type")),
                            Th(t_app(lang, "timeclock_time")), Th(t_app(lang, "timeclock_location")))),
                    Tbody(*[Tr(Td(_name(p)), Td(_pill(p["punch_type"])), Td(p["punched_at"]),
@@ -567,30 +573,32 @@ def expenses_page():
     claims = db.open_expenses()
     advances = db.open_advances()
     claim_rows = []
-    for c in claims:
+    for claim in claims:
         actions = []
-        if c["status"] == "Submitted":
-            actions = [Form(Button(c("expenses_approve"), type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/decide?decision=Approved") ,
+        if claim["status"] == "Submitted":
+            actions = [Form(Button(c("expenses_approve"), type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{claim['id']}/decide?decision=Approved") ,
                         Form(Button(c("expenses_reject"), type="submit", cls="btn sm"), method="post",
-                             action=f"/expenses/{c['id']}/decide?decision=Rejected")]
-        elif c["status"] == "Approved":
-            actions = [Form(Button(c("expenses_reimburse"), type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{c['id']}/reimburse")]
-        claim_rows.append(Tr(Td(f"{c['first_name']} {c['last_name']}"), Td(c["category"]),
-                             Td(c["claim_date"]), Td(c["description"]), Td(money(c["amount"]), cls="num"),
-                             Td(_pill(c["status"])), Td(*actions, cls="actions")))
+                             action=f"/expenses/{claim['id']}/decide?decision=Rejected")]
+        elif claim["status"] == "Approved":
+            actions = [Form(Button(c("expenses_reimburse"), type="submit", cls="btn sm primary"), method="post", action=f"/expenses/{claim['id']}/reimburse")]
+        claim_rows.append(Tr(Td(f"{claim['first_name']} {claim['last_name']}"), Td(claim["category"]),
+                             Td(claim["claim_date"]), Td(claim["description"]), Td(money(claim["amount"]), cls="num"),
+                             Td(_pill(claim["status"])), Td(*actions, cls="actions")))
     claim_form = Form(_employee_select(),
                       Select(*[Option(cat["name"], value=str(cat["id"])) for cat in cats], name="category_id", required=True, cls="hr-inp", aria_label=c("expenses_category")),
                       Input(type="date", name="claim_date", value=db.TODAY.isoformat(), required=True, cls="hr-inp", aria_label=c("expenses_date")),
                       Input(type="number", name="amount", min="0", step="0.01", placeholder=c("expenses_amount"), required=True, cls="hr-inp"),
                       Input(name="description", placeholder=c("expenses_description"), required=True, cls="hr-inp"),
                       Input(type="number", name="tax_rate", min="0", max="1", step="0.01", value="0.22", title=c("expenses_tax_rate"), cls="hr-inp"),
-                      Button(c("expenses_save_claim"), type="submit", cls="btn primary"), method="post", action="/expenses/new")
+                      Button(c("expenses_save_claim"), type="submit", cls="btn primary"), method="post", action="/expenses/new",
+                      cls="inline-form")
     adv_rows = [Tr(Td(f"{a['first_name']} {a['last_name']}"), Td(a["reason"]),
                    Td(money(a["requested_amount"])), Td(_pill(a["status"])),
                    Td(Form(Button(c("expenses_approve"), type="submit", cls="btn sm primary"), method="post", action=f"/expenses/advance/{a['id']}/decide?decision=Approved"))) for a in advances]
     advance_form = Form(_employee_select(), Input(type="number", name="requested_amount", min="0", step="0.01", placeholder=c("expenses_amount"), required=True, cls="hr-inp"),
                         Input(name="reason", placeholder=c("expenses_reason"), required=True, cls="hr-inp"),
-                        Button(c("expenses_request_advance"), type="submit", cls="btn primary"), method="post", action="/expenses/advance/new")
+                        Button(c("expenses_request_advance"), type="submit", cls="btn primary"), method="post", action="/expenses/advance/new",
+                        cls="inline-form")
     return (_title(c("expenses_title"), c("expenses_subtitle"), A(c("expenses_travel"), href="/travel", cls="btn")),
             Div(kpi_card(c("expenses_pending_total"), money(summary["pending_total"])),
                 kpi_card(c("expenses_approved_month"), money(summary["approved_this_month"])),
@@ -625,7 +633,8 @@ def travel_page():
                 Input(type="date", name="to_date", required=True, cls="hr-inp", aria_label=c("travel_end")),
                 Input(type="number", name="estimated_cost", min="0", step="0.01", placeholder=c("travel_estimated_cost"), required=True, cls="hr-inp"),
                 Input(type="number", name="advance_requested", min="0", step="0.01", value="0", placeholder=c("travel_advance"), cls="hr-inp"),
-                Button(c("travel_submit"), type="submit", cls="btn primary"), method="post", action="/travel/new")
+                Button(c("travel_submit"), type="submit", cls="btn primary"), method="post", action="/travel/new",
+                cls="inline-form")
     return (_title(c("travel_title"), c("travel_subtitle"), A(c("travel_back_expenses"), href="/expenses", cls="btn")),
             Div(Div(H3(c("travel_title")), cls="card-header"),
                 Table(Thead(Tr(Th(c("pay_employee")), Th(c("travel_destination")), Th(c("travel_dates")), Th(c("travel_purpose")), Th(c("travel_estimate")), Th(c("pay_status")), Th(""))),

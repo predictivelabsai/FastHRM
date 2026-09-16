@@ -74,13 +74,13 @@ def _shell(active: str, employee, *content):
 def login_page(error=""):
     lang = current_lang()
     return (Title(_copy("portal_title")), Style(PORTAL_CSS),
-            Div(Div(A("FastHR", href="/", cls="me-brand"), H1(t_app(lang, "portal_login_title")),
-                    P(t_app(lang, "portal_login_intro")),
-                    P(error, cls="me-error") if error else None,
-                    Form(Label(t_app(lang, "portal_work_email")), Input(type="email", name="email", required=True, autocomplete="email", aria_label=t_app(lang, "portal_work_email")),
-                         Label(t_app(lang, "portal_password")), Input(type="password", name="password", required=True, autocomplete="current-password", aria_label=t_app(lang, "portal_password")),
-                         Button(t_app(lang, "portal_sign_in"), type="submit", cls="me-btn lime"), method="post", action="/me/login", cls="me-form"),
-                    P(A(t_app(lang, "portal_admin_sign_in"), href="/login"), cls="me-muted"), cls="me-card me-login"), cls="me-shell"))
+            Main(Div(A("FastHR", href="/", cls="me-brand"), H1(t_app(lang, "portal_login_title")),
+                     P(t_app(lang, "portal_login_intro")),
+                     P(error, cls="me-error") if error else None,
+                     Form(Label(t_app(lang, "portal_work_email")), Input(type="email", name="email", required=True, autocomplete="email", aria_label=t_app(lang, "portal_work_email")),
+                          Label(t_app(lang, "portal_password")), Input(type="password", name="password", required=True, autocomplete="current-password", aria_label=t_app(lang, "portal_password")),
+                          Button(t_app(lang, "portal_sign_in"), type="submit", cls="me-btn lime"), method="post", action="/me/login", cls="me-form"),
+                     P(A(t_app(lang, "portal_admin_sign_in"), href="/login"), cls="me-muted"), cls="me-card me-login"), cls="me-shell"))
 
 
 def _card(title, body, cls="me-half"):

@@ -160,6 +160,6 @@ def staff_page():
                         Tbody(*(cells or [Tr(Td(copy("benefits_no_employees"),
                                                   colspan=str(len(plans) + 1))) ])), cls="tbl")
     return (Div(H1(copy("benefits_title")), P(copy("benefits_subtitle"), cls="sub"), cls="page-title"),
-            Div(Div(H3(copy("benefits_plan_title")), form, cls="card-header"), plan_table, cls="card"),
+            Div(Div(H3(copy("benefits_plan_title")), cls="card-header"), form, plan_table, cls="card"),
             Div(Div(H3(copy("benefits_enrolment")), cls="card-header"),
                 enrol_table, cls="card"))
