@@ -101,7 +101,7 @@ async def llms():
 - FastHR is open source under the MIT licence: https://github.com/predictivelabsai/FastHRM
 - Every available feature is Free; coming-soon labels describe availability, not paid tiers.
 - Public job pages are discoverable through {BASE_URL}/sitemap.xml.
-- API reads are public; supported writes require a configured bearer token.
+- API reads and supported writes require a configured bearer token.
 """
     return Response(body, media_type="text/plain")
 

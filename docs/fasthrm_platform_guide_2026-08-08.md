@@ -192,8 +192,8 @@ Product landscape · Free catalogue · 8 August 2026
 ## 15. A versioned API makes the platform extensible
 
 - **Twelve resources** — employees, departments, leave, attendance, jobs, candidates, applications, organisations, brands, career sites, teams and distributions.
-- **Public reads** — list and detail operations with typed schemas, pagination, search and filters.
-- **Controlled writes** — declared create/update/delete operations require `FASTSME_API_TOKEN`.
+- **Authenticated reads** — list and detail operations require `FASTSME_API_TOKEN` and provide typed schemas, pagination, search and filters.
+- **Controlled writes** — declared create/update/delete operations use the same bearer token.
 - **Developer tools** — Swagger UI, ReDoc, runtime OpenAPI and a committed compatibility schema.
 - **Stable errors** — clients receive structured code, message and details payloads.
 - **Regeneration** — `scripts/generate_api_docs.py` prevents the committed contract drifting from runtime.

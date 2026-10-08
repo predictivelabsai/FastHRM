@@ -940,17 +940,6 @@
             ],
             "title": "Manager Id"
           },
-          "password_hash": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Password Hash"
-          },
           "personal_code": {
             "anyOf": [
               {
@@ -2240,7 +2229,7 @@
     },
     "securitySchemes": {
       "FastSME API token": {
-        "description": "Selected writes require `Authorization: Bearer <token>`. Reads are public. Set FASTSME_API_TOKEN to enable writes.",
+        "description": "All reads and writes require Authorization: Bearer <token>. Deployments must set FASTSME_API_TOKEN to enable the API.",
         "scheme": "bearer",
         "type": "http"
       }
@@ -2251,7 +2240,7 @@
       "name": "FastSME",
       "url": "https://fastsme.com/"
     },
-    "description": "Open integration access to FastHR people, recruiting, and enterprise configuration data.\n\n**Access model:** reads are public. Selected writes are implemented but disabled unless the deployment configures `FASTSME_API_TOKEN`; write clients then send it as a bearer token.",
+    "description": "Open integration access to FastHR people, recruiting, and enterprise configuration data.\n\n**Access model:** all reads and writes require `Authorization: Bearer <token>`. Deployments must set `FASTSME_API_TOKEN` to enable the API.",
     "license": {
       "name": "MIT"
     },
@@ -2352,6 +2341,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List applications",
         "tags": [
           "Applications"
@@ -2469,6 +2463,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one applications record",
         "tags": [
           "Applications"
@@ -2544,6 +2543,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List attendance",
         "tags": [
           "Attendance"
@@ -2596,6 +2600,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one attendance record",
         "tags": [
           "Attendance"
@@ -2671,6 +2680,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List recruitment brands",
         "tags": [
           "Recruitment brands"
@@ -2788,6 +2802,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one recruitment brands record",
         "tags": [
           "Recruitment brands"
@@ -2863,6 +2882,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List candidates",
         "tags": [
           "Candidates"
@@ -2915,6 +2939,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one candidates record",
         "tags": [
           "Candidates"
@@ -2990,6 +3019,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List career sites",
         "tags": [
           "Career sites"
@@ -3107,6 +3141,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one career sites record",
         "tags": [
           "Career sites"
@@ -3182,6 +3221,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List departments",
         "tags": [
           "Departments"
@@ -3234,6 +3278,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one departments record",
         "tags": [
           "Departments"
@@ -3309,6 +3358,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List employees",
         "tags": [
           "Employees"
@@ -3361,6 +3415,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one employees record",
         "tags": [
           "Employees"
@@ -3457,6 +3516,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List job distributions",
         "tags": [
           "Job distributions"
@@ -3574,6 +3638,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one job distributions record",
         "tags": [
           "Job distributions"
@@ -3649,6 +3718,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List job openings",
         "tags": [
           "Job openings"
@@ -3701,6 +3775,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one job openings record",
         "tags": [
           "Job openings"
@@ -3776,6 +3855,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List leave requests",
         "tags": [
           "Leave requests"
@@ -3893,6 +3977,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one leave requests record",
         "tags": [
           "Leave requests"
@@ -3968,6 +4057,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List organization teams",
         "tags": [
           "Organization teams"
@@ -4085,6 +4179,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one organization teams record",
         "tags": [
           "Organization teams"
@@ -4160,6 +4259,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "List organizations",
         "tags": [
           "Organizations"
@@ -4277,6 +4381,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "FastSME API token": []
+          }
+        ],
         "summary": "Get one organizations record",
         "tags": [
           "Organizations"

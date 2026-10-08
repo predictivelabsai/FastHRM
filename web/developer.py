@@ -47,7 +47,7 @@ def developer_content() -> object:
     return Div(
         Div(
             H1("Build with the FastHR API.", lang="en"),
-            P("Read the live demo database through a typed, versioned API. Selected integration writes are implemented behind bearer-token authentication.", cls="dev-lede", lang="en"),
+            P("Integrate with the live demo database through a typed, versioned API protected by bearer-token authentication.", cls="dev-lede", lang="en"),
             Div(
                 fs_button("Open Swagger UI", href="/api/docs", variant="lime"),
                 fs_button("Open ReDoc", href="/api/redoc", variant="outline"),
@@ -55,8 +55,8 @@ def developer_content() -> object:
                 fs_button("View on GitHub", href=REPOSITORY, variant="outline", target="_blank", rel="noreferrer"),
                 cls="dev-actions", lang="en",
             ),
-            Div(Strong("Public preview access. ", lang="en"),
-                "GET endpoints require no authentication. Writes return 503 until FASTSME_API_TOKEN is configured; enabled clients send Authorization: Bearer <token>.",
+            Div(Strong("Bearer-token access. ", lang="en"),
+                "All API reads and writes require Authorization: Bearer <token>. The API returns 503 until FASTSME_API_TOKEN is configured.",
                 cls="dev-note", lang="en"),
             H3("API contract", lang="en"),
             Div(Table(
@@ -67,16 +67,21 @@ def developer_content() -> object:
                     Tr(Td("Pagination"), Td(Code("?limit=20&offset=0", cls="dev-code"), " · maximum limit 200")),
                     Tr(Td("Filtering"), Td(Code("?q=search&status=value", cls="dev-code"), " · available fields are documented per operation")),
                     Tr(Td("Errors"), Td(Code('{"error":{"code":"…","message":"…","details":{}}}', cls="dev-code"))),
-                    Tr(Td("Writes"), Td(Code("Authorization: Bearer <token>", cls="dev-code"), " · POST/PATCH/DELETE only where declared in OpenAPI")),
+                    Tr(Td("Authentication"), Td(Code("Authorization: Bearer <token>", cls="dev-code"), " · required for all declared read and write operations")),
                 ), cls="dev-table",
             ), cls="dev-table-wrap", lang="en"),
             H3("Resources", lang="en"), Div(*cards, cls="dev-grid", lang="en"),
             H3("Quick start", lang="en"),
-            Pre(Code(f'''curl "{BASE_URL}/api/v1/{RESOURCES[0].slug}?limit=20"
+            Pre(Code(f'''curl -H 'Authorization: Bearer <token>' \\
+  "{BASE_URL}/api/v1/{RESOURCES[0].slug}?limit=20"
 
 python - <<'PY'
 import requests
-rows = requests.get("{BASE_URL}/api/v1/{RESOURCES[0].slug}", timeout=20).json()
+rows = requests.get(
+    "{BASE_URL}/api/v1/{RESOURCES[0].slug}",
+    headers={{"Authorization": "Bearer <token>"}},
+    timeout=20,
+).json()
 print(rows["data"])
 PY'''), cls="dev-example", lang="en"),
             H3("Authenticated write example", lang="en"),

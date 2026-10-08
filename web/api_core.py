@@ -61,6 +61,8 @@ class Resource:
     write_fields: tuple[str, ...] = ()
     search_fields: tuple[str, ...] = ()
     primary_key: str | None = None
+    public_read: bool = False
+    redact_fields: tuple[str, ...] = ("password_hash",)
 
 
 class SQLiteBackend:
@@ -115,6 +117,11 @@ class SQLiteBackend:
     ) -> tuple[list[dict[str, Any]], int]:
         where = ""
         params: list[Any] = []
+        selected_columns = ", ".join(
+            f'"{column["name"]}"'
+            for column in self.columns(resource)
+            if column["name"] not in resource.redact_fields
+        )
         if query and resource.search_fields:
             clauses = [f'CAST("{field}" AS TEXT) LIKE ?' for field in resource.search_fields]
             where = " WHERE " + " OR ".join(clauses)
@@ -124,20 +131,26 @@ class SQLiteBackend:
                 f'SELECT COUNT(*) FROM "{resource.table}"{where}', params
             ).fetchone()[0]
             rows = connection.execute(
-                f'SELECT * FROM "{resource.table}"{where} '
+                f'SELECT {selected_columns} FROM "{resource.table}"{where} '
                 f'ORDER BY "{self.primary_key(resource)}" LIMIT ? OFFSET ?',
                 (*params, limit, offset),
             ).fetchall()
-        return [_serialise_row(row) for row in rows], total
+        return [_serialise_row(row, resource) for row in rows], total
 
     def get(self, resource: Resource, item_id: str) -> dict[str, Any] | None:
         primary_key = self.primary_key(resource)
+        selected_columns = ", ".join(
+            f'"{column["name"]}"'
+            for column in self.columns(resource)
+            if column["name"] not in resource.redact_fields
+        )
         with self.connection() as connection:
             row = connection.execute(
-                f'SELECT * FROM "{resource.table}" WHERE "{primary_key}"=?',
+                f'SELECT {selected_columns} FROM "{resource.table}" '
+                f'WHERE "{primary_key}"=?',
                 (item_id,),
             ).fetchone()
-        return _serialise_row(row) if row else None
+        return _serialise_row(row, resource) if row else None
 
     def create(self, resource: Resource, values: dict[str, Any]) -> dict[str, Any]:
         allowed = set(resource.write_fields)
@@ -172,12 +185,18 @@ class SQLiteBackend:
             connection.commit()
             item_id = cursor.lastrowid
         created = self.get(resource, str(item_id))
-        return created or clean
+        return created or {
+            key: value
+            for key, value in clean.items()
+            if key not in resource.redact_fields
+        }
 
 
-def _serialise_row(row: sqlite3.Row) -> dict[str, Any]:
+def _serialise_row(row: sqlite3.Row, resource: Resource) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key in row.keys():
+        if key in resource.redact_fields:
+            continue
         value = row[key]
         if isinstance(value, bytes):
             value = value.hex()
@@ -203,6 +222,8 @@ def _models_for(
     fields: dict[str, tuple[Any, Any]] = {}
     columns = backend.columns(resource)
     for column in columns:
+        if column["name"] in resource.redact_fields:
+            continue
         value_type = _python_type(column["type"])
         nullable = not column["notnull"] or bool(column["pk"])
         fields[column["name"]] = (
@@ -222,6 +243,8 @@ def _models_for(
     create_fields: dict[str, tuple[Any, Any]] = {}
     by_name = {column["name"]: column for column in columns}
     for field in resource.write_fields:
+        if field in resource.redact_fields:
+            continue
         column = by_name[field]
         value_type = _python_type(column["type"])
         required = bool(column["notnull"]) and column["dflt_value"] is None
@@ -242,10 +265,40 @@ bearer = HTTPBearer(
     auto_error=False,
     scheme_name="FastSME API token",
     description=(
-        "Selected writes require `Authorization: Bearer <token>`. "
-        "Reads are public. Set FASTSME_API_TOKEN to enable writes."
+        "All reads and writes require Authorization: Bearer <token>. "
+        "Deployments must set FASTSME_API_TOKEN to enable the API."
     ),
 )
+
+
+def require_read_token(
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer),  # noqa: B008
+) -> None:
+    """Require an explicitly configured bearer token for reads."""
+
+    configured = os.getenv("FASTSME_API_TOKEN", "")
+    if not configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "code": "api_access_disabled",
+                "message": (
+                    "API reads are disabled until FASTSME_API_TOKEN is configured."
+                ),
+                "details": {},
+            },
+        )
+    supplied = credentials.credentials if credentials else ""
+    if not secrets.compare_digest(configured, supplied):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "code": "invalid_token",
+                "message": "A valid bearer token is required for this operation.",
+                "details": {},
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def require_write_token(
@@ -292,9 +345,8 @@ def create_sqlite_api(
         version=version,
         description=(
             f"{description}\n\n"
-            "**Access model:** reads are public. Selected writes are implemented but "
-            "disabled unless the deployment configures `FASTSME_API_TOKEN`; write "
-            "clients then send it as a bearer token."
+            "**Access model:** all reads and writes require `Authorization: Bearer "
+            "<token>`. Deployments must set `FASTSME_API_TOKEN` to enable the API."
         ),
         docs_url="/docs",
         redoc_url="/redoc",
@@ -345,6 +397,9 @@ def create_sqlite_api(
 
     def register(resource: Resource) -> None:
         item_model, list_model, create_model_type = _models_for(backend, resource)
+        read_dependencies = (
+            [] if resource.public_read else [Depends(require_read_token)]
+        )
 
         @api.get(
             f"/v1/{resource.slug}",
@@ -353,6 +408,7 @@ def create_sqlite_api(
             summary=f"List {resource.title.lower()}",
             description=resource.description,
             operation_id=f"list_{resource.slug.replace('-', '_')}",
+            dependencies=read_dependencies,
         )
         def list_items(
             limit: int = Query(default=50, ge=1, le=200),
@@ -374,6 +430,7 @@ def create_sqlite_api(
             tags=[resource.title],
             summary=f"Get one {resource.title.lower()} record",
             operation_id=f"get_{resource.slug.replace('-', '_')}",
+            dependencies=read_dependencies,
         )
         def get_item(item_id: str) -> dict[str, Any]:
             row = backend.get(resource, item_id)

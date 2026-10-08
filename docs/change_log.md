@@ -2,6 +2,19 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-10-08 — Protect API reads and redact credentials
+
+### Fixed
+
+- Required the configured `FASTSME_API_TOKEN` bearer credential for API resource list and detail reads, matching the existing write-access model while leaving the health response unchanged.
+- Removed redacted fields from database selections, serialized records, created-record responses, and generated response schemas so employee `password_hash` values cannot be returned or advertised by OpenAPI.
+- Updated developer-facing access guidance and regenerated the committed OpenAPI contract.
+
+### Verification
+
+- Added API security regression coverage for disabled, invalid, and valid read credentials, write-auth compatibility, response redaction, and schema redaction.
+- Ran the full pytest suite and verified exact committed/runtime OpenAPI parity.
+
 ## 2026-09-15 — Fix onboarding detail 500 error
 
 ### Fixed
@@ -940,7 +953,7 @@ Product changes are listed newest first. This file must remain synchronized with
 
 ### Data and configuration
 
-- No migration or new runtime configuration is required. The API access model remains public reads plus optional `FASTSME_API_TOKEN`-gated writes.
+- No migration or new runtime variable is required. API reads and supported writes use the configured `FASTSME_API_TOKEN` bearer credential.
 - Regenerated `swagger.json` from the running FastAPI schema and added a reproducible generation command.
 
 ### Verification
