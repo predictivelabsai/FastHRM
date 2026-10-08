@@ -466,184 +466,26 @@ def test_declining_an_offer_rejects_the_application(fresh_db):
 
 # --- integrations: secrets must never be stored or shown in the clear ------
 
-def test_integrations_catalogue_includes_expanded_hr_providers():
+def test_integrations_catalogue_excludes_competing_hris_providers():
     import integrations
     from web import providers
 
-    previous = {
-        "personio", "hibob", "zoho_people", "employment_hero",
-        "workday", "hrmaster", "eideasy", "skribble",
+    removed_hris = {
+        "bamboohr", "personio", "hibob", "zoho_people", "employment_hero",
+        "workday", "hrmaster", "gusto", "rippling", "deel", "odoo_hr",
+        "persona_fujitsu", "wemply", "hours24", "yester", "hrm4baltics",
+        "merit_palk", "taavi_palk", "andevis", "eeva",
     }
-    new_hris = {
-        "gusto", "rippling", "deel", "odoo_hr", "persona_fujitsu", "wemply",
-        "hours24", "yester", "hrm4baltics", "merit_palk", "taavi_palk", "andevis", "eeva",
-    }
-    expected = previous | new_hris
-    assert expected <= {item[0] for item in integrations.PROVIDERS}
-    assert all(integrations.provider_meta(key)["category"] in integrations.CATEGORIES
-               for key in expected)
-    assert all(integrations.provider_meta(key)["category"] == "hris" for key in new_hris)
-    assert integrations.provider_meta("hrmaster")["blurb"] == (
-        "Connect Hungarian HRmaster enterprise HR workflows.")
-    assert providers.adapter("personio") is providers.base.personio_test
-    assert providers.adapter("deel") is providers.base.deel_test
-    assert all(providers.adapter(key) is None for key in expected - {"personio", "deel"})
-    assert providers.directory_adapter("bamboohr") is providers.base.bamboohr_directory
+    provider_keys = {item[0] for item in integrations.PROVIDERS}
 
-
-def test_entry_only_provider_without_credentials_returns_standard_note(fresh_db):
-    import integrations
-
-    result = integrations.test_connection("merit_palk", actor="tester")
-
-    assert result == {"ok": False, "note": "No api key stored for Merit Palk."}
-
-
-def test_deel_without_credentials_returns_standard_note_without_network(fresh_db, monkeypatch):
-    import integrations
-
-    def unexpected_request(*args, **kwargs):
-        raise AssertionError("Deel probe must not run without stored credentials")
-
-    monkeypatch.setattr("httpx.get", unexpected_request)
-    result = integrations.test_connection("deel", actor="tester")
-
-    assert result == {"ok": False, "note": "No api token stored for Deel."}
-
-
-def test_deel_probe_reads_organizations_with_bearer_token(monkeypatch):
-    from web.providers import base
-
-    calls = []
-
-    class Response:
-        status_code = 200
-
-    def fake_get(url, **kwargs):
-        calls.append((url, kwargs))
-        return Response()
-
-    monkeypatch.setattr("httpx.get", fake_get)
-    token = "deel-api-token-1234567890"
-    ok, note = base.deel_test({"label": "Deel"}, token, "", "")
-
-    assert ok is True
-    assert note == ("GET https://api.letsdeel.com/rest/v2/organizations returned HTTP 200; "
-                    "authenticated read succeeded.")
-    assert calls == [("https://api.letsdeel.com/rest/v2/organizations", {
-        "headers": {"Authorization": f"Bearer {token}"}, "timeout": 10.0,
-    })]
-
-
-def test_deel_probe_reports_rejected_credentials(monkeypatch):
-    from web.providers import base
-
-    class Response:
-        status_code = 401
-
-    monkeypatch.setattr("httpx.get", lambda *args, **kwargs: Response())
-    ok, note = base.deel_test(
-        {"label": "Deel"}, "deel-api-token-1234567890", "", "")
-
-    assert ok is False
-    assert note == ("GET https://api.letsdeel.com/rest/v2/organizations returned HTTP 401; "
-                    "credentials were rejected.")
-
-
-def test_deel_probe_reports_timeout(monkeypatch):
-    import httpx
-    from web.providers import base
-
-    def timeout(*args, **kwargs):
-        raise httpx.ReadTimeout("timed out")
-
-    monkeypatch.setattr("httpx.get", timeout)
-    ok, note = base.deel_test(
-        {"label": "Deel"}, "deel-api-token-1234567890", "", "")
-
-    assert ok is False
-    assert note == ("GET https://api.letsdeel.com/rest/v2/organizations timed out after "
-                    "10 seconds.")
-
-
-def test_deel_probe_rejects_short_tokens_without_network(monkeypatch):
-    from web.providers import base
-
-    def unexpected_request(*args, **kwargs):
-        raise AssertionError("Deel probe must not run for a short token")
-
-    monkeypatch.setattr("httpx.get", unexpected_request)
-    ok, note = base.deel_test({"label": "Deel"}, "too-short", "", "")
-
-    assert ok is False
-    assert note == ("GET https://api.letsdeel.com/rest/v2/organizations was not called: "
-                    "Deel API tokens must be at least 20 characters.")
-
-
-def test_personio_probe_exchanges_credentials_and_reads_company(monkeypatch):
-    from web.providers import base
-
-    calls = []
-
-    class Response:
-        def __init__(self, status_code, payload=None):
-            self.status_code = status_code
-            self.payload = payload
-
-        def json(self):
-            return self.payload
-
-    def fake_post(url, **kwargs):
-        calls.append(("POST", url, kwargs))
-        return Response(200, {"success": True, "data": {"token": "personio-test-token"}})
-
-    def fake_get(url, **kwargs):
-        calls.append(("GET", url, kwargs))
-        return Response(200, {"success": True})
-
-    monkeypatch.setattr("httpx.post", fake_post)
-    monkeypatch.setattr("httpx.get", fake_get)
-    ok, note = base.personio_test(
-        {"label": "Personio"}, "client-id-123", "client-secret-456", "")
-
-    assert ok is True
-    assert note == ("GET https://api.personio.de/v1/companyinfos returned HTTP 200; "
-                    "authenticated read succeeded.")
-    assert calls[0][2]["json"] == {
-        "client_id": "client-id-123", "client_secret": "client-secret-456"}
-    assert calls[0][2]["timeout"] == 10.0
-    assert calls[1][2]["headers"] == {"Authorization": "Bearer personio-test-token"}
-    assert calls[1][2]["timeout"] == 10.0
-
-
-def test_personio_probe_reports_rejected_credentials(monkeypatch):
-    from web.providers import base
-
-    class Response:
-        status_code = 401
-
-    monkeypatch.setattr("httpx.post", lambda *args, **kwargs: Response())
-    ok, note = base.personio_test(
-        {"label": "Personio"}, "client-id-123", "client-secret-456", "")
-
-    assert ok is False
-    assert note == ("POST https://api.personio.de/v1/auth returned HTTP 401; "
-                    "credentials were rejected.")
-
-
-def test_personio_probe_reports_timeout(monkeypatch):
-    import httpx
-    from web.providers import base
-
-    def timeout(*args, **kwargs):
-        raise httpx.ReadTimeout("timed out")
-
-    monkeypatch.setattr("httpx.post", timeout)
-    ok, note = base.personio_test(
-        {"label": "Personio"}, "client-id-123", "client-secret-456", "")
-
-    assert ok is False
-    assert note == "POST https://api.personio.de/v1/auth timed out after 10 seconds."
+    assert "hris" not in integrations.CATEGORIES
+    assert removed_hris.isdisjoint(provider_keys)
+    assert {"eideasy", "skribble"} <= provider_keys
+    assert integrations.provider_meta("eideasy")["category"] == "esign"
+    assert integrations.provider_meta("skribble")["category"] == "esign"
+    assert removed_hris.isdisjoint(providers.ADAPTERS)
+    assert providers.DIRECTORY_ADAPTERS == {}
+    assert providers.directory_adapter("future_export") is None
 
 
 def test_api_key_is_encrypted_at_rest(fresh_db, monkeypatch):
@@ -743,25 +585,6 @@ def test_live_adapter_dispatch_requires_real_success(fresh_db, monkeypatch):
     result = integrations.test_connection("github", actor="t")
     assert result["ok"] is True and calls[0][0] == "github"
     assert integrations.integration("github")["status"] == "Connected"
-
-
-def test_bamboohr_sync_records_count_and_snapshot(fresh_db, monkeypatch, tmp_path):
-    monkeypatch.setenv("FASTHR_SECRET", "test-secret-value")
-    monkeypatch.setenv("FASTHR_DATA_DIR", str(tmp_path / "data"))
-    import importlib
-    import integrations
-    importlib.reload(integrations)
-    integrations.save("bamboohr", api_key="bamboohr_key_123", account_ref="acme", actor="t")
-    integrations.set_status("bamboohr", "Connected", actor="t")
-    payload = {"employees": [{"id": "1"}, {"id": "2"}]}
-    monkeypatch.setattr("web.providers.base.bamboohr_directory",
-                        lambda key, account: (True, "GET directory returned HTTP 200; fetched 2 employees.",
-                                              payload, 2))
-    result = integrations.sync("bamboohr", actor="t")
-    event = fresh_db.one("SELECT * FROM integration_events WHERE kind='sync' ORDER BY id DESC")
-    assert result["ok"] is True and result["records"] == 2
-    assert event["records"] == 2
-    assert (tmp_path / "data/integrations/bamboohr/directory-latest.json").exists()
 
 
 def test_teams_sync_posts_plain_test_message(fresh_db, monkeypatch):

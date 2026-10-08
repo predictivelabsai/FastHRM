@@ -2,6 +2,18 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-10-09 — Remove competing HRIS integrations
+
+### Removed
+
+- Removed competing HRIS and payroll products from the integrations catalogue so it now contains only complementary job-board, social-sourcing, calendar, messaging, e-signature, and background-screening categories.
+- Removed the Personio and Deel connection checks and the BambooHR connection and directory-export adapters, which only served the removed catalogue entries; no other live integration code path was removed.
+
+### Verification
+
+- Added regression coverage that excludes the HRIS category and all 20 removed provider keys while retaining the complementary eID Easy and Skribble e-signature providers.
+- No database migration or configuration change is required.
+
 ## 2026-10-08 — Expand the HR integrations catalogue
 
 ### Added

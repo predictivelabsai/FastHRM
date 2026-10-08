@@ -7,16 +7,11 @@ ADAPTERS = {
     "slack": base.slack_test,
     "github": base.github_test,
     "greenhouse": base.greenhouse_test,
-    "bamboohr": base.bamboohr_test,
-    "personio": base.personio_test,
     "checkr": base.checkr_test,
-    "deel": base.deel_test,
     "teams": base.teams_test,
 }
 
-DIRECTORY_ADAPTERS = {
-    "bamboohr": "bamboohr_directory",
-}
+DIRECTORY_ADAPTERS = {}
 
 
 def adapter(provider: str):
