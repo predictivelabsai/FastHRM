@@ -2,6 +2,26 @@
 
 Product changes are listed newest first. This file must remain synchronized with `docs/product_roadmap.md` under the rule documented there and in `AGENTS.md`.
 
+## 2026-10-08 — Expand the HR integrations catalogue
+
+### Added
+
+- Added Personio, Bob (HiBob), Zoho People, Employment Hero, Workday, HR Master, eID Easy, and Skribble to the integrations catalogue.
+- Added Gusto, Rippling, Deel, Odoo HR, Fujitsu Persona, Wemply, hours24, Yester, HRM4Baltics, Merit Palk, Taavi Palk, Andevis, and Eeva to the HRIS integrations catalogue.
+- Added a live Personio connection check that exchanges the stored client credentials for a short-lived bearer token and performs an authenticated company-information read.
+- Added a live Deel connection check that validates a stored API token with an authenticated organisation read.
+- Routed the existing BambooHR directory snapshot through the provider adapter registry so export support can be extended without adding provider branches to the sync service.
+- Kept OAuth-, user-flow-, and partner-dependent providers on the existing credential-validation fallback rather than reporting an unverified live connection.
+
+### Fixed
+
+- Corrected HRmaster's catalogue description to identify it as Hungarian HR software rather than Estonia-focused software.
+
+### Verification
+
+- Added catalogue and missing-credential coverage plus mocked Personio and Deel success, rejected-credential, and timeout tests; no test makes a live vendor request.
+- No database migration or configuration change is required.
+
 ## 2026-10-08 — Protect API reads and redact credentials
 
 ### Fixed

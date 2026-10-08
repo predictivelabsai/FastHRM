@@ -51,6 +51,57 @@ PROVIDERS = [
      "Run right-to-work and background checks on accepted offers."),
     ("bamboohr",      "BambooHR",            "hris",       "Subdomain",      "API key",
      "Export employee records to an existing HRIS of record."),
+    ("personio",      "Personio",            "hris",       "Client ID",      "Client secret",
+     "Import employee records from Personio."),
+    ("hibob",         "Bob (HiBob)",         "hris",       "Client ID",      "Client secret",
+     "Export employee directory to Bob."),
+    ("zoho_people",   "Zoho People",         "hris",       "Client ID",      "Client secret",
+     "Connect employee records with Zoho People."),
+    ("employment_hero", "Employment Hero",   "hris",       "API key",        "",
+     "Connect employee records with Employment Hero Payroll."),
+    ("workday",       "Workday",             "hris",       "Tenant name",    "Client secret",
+     "Connect employee records with a Workday tenant."),
+    ("hrmaster",      "HR Master",           "hris",       "API key",        "",
+     "Connect Hungarian HRmaster enterprise HR workflows."),
+    ("eideasy",       "eID Easy",            "esign",      "Client ID",      "Client secret",
+     "Sign documents with Estonian ID-card, Mobile-ID, and Smart-ID."),
+    ("skribble",      "Skribble",            "esign",      "API username",   "API key",
+     "Send HR documents for electronic signature with Skribble."),
+    ("gusto",         "Gusto",               "hris",       "Client ID",      "Client secret",
+     "Connect US payroll and benefits through Gusto's OAuth 2 partner API."),
+    ("rippling",      "Rippling",            "hris",       "Client ID",      "Client secret",
+     "Connect Rippling's all-in-one US and global HCM for HR, IT, and payroll via OAuth 2."),
+    ("deel",          "Deel",                "hris",       "API token",      "",
+     "Connect Deel global payroll and employer-of-record workflows using personal Bearer API tokens."),
+    ("odoo_hr",       "Odoo HR",             "hris",       "Odoo URL",       "API key",
+     "Connect open-source Odoo HR per tenant using its URL, database reference, and XML-RPC or JSON-RPC APIs."),
+    ("persona_fujitsu", "Fujitsu Persona",   "hris",       "API key",        "",
+     "Connect Estonia's oldest personnel and payroll software, covering personnel records, "
+     "payroll, working time, and self-service for 300+ clients and about 56,700 employees since 1995."),
+    ("wemply",        "Wemply",              "hris",       "API key",        "",
+     "Connect modular Estonian staffing, working-time, payroll, TSD, and TÖR workflows "
+     "used by 1,000+ companies including ABB and DHL; Aasta HR lahendus 2025."),
+    ("hours24",       "hours24",             "hris",       "API key",        "",
+     "Connect AI-assisted scheduling, working-time, and HR workflows used by 500+ companies "
+     "in Estonia and Finland, with a free tier for up to five employees."),
+    ("yester",        "Yester",              "hris",       "API key",        "",
+     "Connect the Estonian process platform operating since 2000 for onboarding, expenses, "
+     "travel, and driving logs, with tight Merit Tarkvara integration."),
+    ("hrm4baltics",   "HRM4Baltics",         "hris",       "API key",        "",
+     "Connect Digmatix's Dynamics 365 Business Central HRM for Estonian, Latvian, and "
+     "Lithuanian payroll with X-tee integration."),
+    ("merit_palk",    "Merit Palk",          "hris",       "API key",        "",
+     "Connect payroll from Estonia's number-one business software, used by 25,000+ firms for "
+     "133,000+ employees, with a free tier for up to two employees."),
+    ("taavi_palk",    "Taavi Palk",          "hris",       "API key",        "",
+     "Connect payroll used by 1,500+ companies, including TSD, statistics and register "
+     "reports, and payslip exports to most Estonian bookkeeping programs."),
+    ("andevis",       "Andevis",             "hris",       "API key",        "",
+     "Connect customisable Estonian personnel, working-time, and payroll software with "
+     "self-service and training modules."),
+    ("eeva",          "Eeva",                "hris",       "API key",        "",
+     "Connect Eetasoft's personnel module for employment contracts, orders, leave records, "
+     "and the ISCO classifier linked to Eeva payroll."),
 ]
 
 PROVIDER_BY_KEY = {p[0]: p for p in PROVIDERS}
@@ -281,13 +332,13 @@ def sync(provider: str, *, actor: str = "") -> dict:
     meta = provider_meta(provider)
     if not row or row["status"] != "Connected":
         return {"ok": False, "note": f"{meta['label']} is not connected."}
-    if provider == "bamboohr":
-        from web.providers.base import bamboohr_directory
+    export_adapter = providers.directory_adapter(provider)
+    if export_adapter:
         key = decrypt(row["api_key_enc"])
-        ok, note, payload, records = bamboohr_directory(key, row["account_ref"] or "")
+        ok, note, payload, records = export_adapter(key, row["account_ref"] or "")
         if ok:
             data_root = Path(os.getenv("FASTHR_DATA_DIR") or Path(__file__).parent / "data")
-            snapshot_dir = data_root / "integrations" / "bamboohr"
+            snapshot_dir = data_root / "integrations" / provider
             snapshot_dir.mkdir(parents=True, exist_ok=True)
             snapshot_path = snapshot_dir / "directory-latest.json"
             snapshot_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")

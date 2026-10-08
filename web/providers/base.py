@@ -109,10 +109,49 @@ def bamboohr_directory(key: str, account_ref: str):
     return True, f"GET {url} returned HTTP {response.status_code}; fetched {count} employees.", payload, count
 
 
+def personio_test(meta, key, secret, account_ref):
+    auth_url = "https://api.personio.de/v1/auth"
+    probe_url = "https://api.personio.de/v1/companyinfos"
+    try:
+        response = httpx.post(auth_url, json={"client_id": key, "client_secret": secret},
+                              timeout=TIMEOUT)
+    except Exception as exc:
+        return _failure("POST", auth_url, exc)
+    ok, note = _status("POST", auth_url, response)
+    if not ok:
+        return ok, note
+    try:
+        body = response.json()
+    except ValueError:
+        return False, f"POST {auth_url} returned HTTP {response.status_code}; Personio returned invalid JSON."
+    data = body.get("data") if isinstance(body, dict) else None
+    token = data.get("token") if isinstance(data, dict) else None
+    if not token:
+        return False, f"POST {auth_url} returned HTTP {response.status_code}; Personio did not return an access token."
+    try:
+        response = httpx.get(probe_url, headers={"Authorization": f"Bearer {token}"},
+                             timeout=TIMEOUT)
+    except Exception as exc:
+        return _failure("GET", probe_url, exc)
+    return _status("GET", probe_url, response)
+
+
 def checkr_test(meta, key, secret, account_ref):
     url = "https://api.checkr.com/v1/candidates?limit=1"
     try:
         response = httpx.get(url, auth=(key, ""), timeout=TIMEOUT)
+    except Exception as exc:
+        return _failure("GET", url, exc)
+    return _status("GET", url, response)
+
+
+def deel_test(meta, key, secret, account_ref):
+    url = "https://api.letsdeel.com/rest/v2/organizations"
+    if len(key.strip()) < 20:
+        return False, f"GET {url} was not called: Deel API tokens must be at least 20 characters."
+    try:
+        response = httpx.get(url, headers={"Authorization": f"Bearer {key}"},
+                             timeout=TIMEOUT)
     except Exception as exc:
         return _failure("GET", url, exc)
     return _status("GET", url, response)
@@ -130,5 +169,5 @@ def teams_test(meta, key, secret, account_ref):
     return _status("POST", url, response)
 
 
-__all__ = ["bamboohr_directory", "bamboohr_test", "checkr_test", "github_test",
-           "greenhouse_test", "slack_test", "teams_test"]
+__all__ = ["bamboohr_directory", "bamboohr_test", "checkr_test", "deel_test",
+           "github_test", "greenhouse_test", "personio_test", "slack_test", "teams_test"]
