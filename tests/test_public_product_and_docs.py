@@ -138,6 +138,50 @@ def test_comparison_tables_use_glyph_rows_and_leave_competitor_prices_empty(
     assert "Ametlik allikas" not in rendered
     assert 'class="pg-name" href=' not in rendered
     assert "persona.ee" not in rendered
+    assert 'class="pg-mc-count"' not in rendered
+    assert "16/16" not in rendered
+    assert "15/15" not in rendered
+
+
+@pytest.mark.parametrize(
+    ("lang", "demo_copy", "example_label"),
+    [
+        ("et", "Lühike FastHR-i salvestus sünteetiliste töötajaandmetega.",
+         "Näidisvastus"),
+        ("en", "A short recording of FastHR using synthetic employee data.",
+         "Example response"),
+    ],
+)
+def test_landing_labels_demo_media_and_assistant_example_honestly(
+    tmp_path, monkeypatch, lang, demo_copy, example_label,
+):
+    landing, _ = _public_modules(tmp_path, monkeypatch)
+    rendered = str(landing.landing_page(lang=lang))
+    assert demo_copy in rendered
+    assert example_label in rendered
+    assert 'class="lh-ai-question"' in rendered
+    assert 'class="lh-ai-response"' in rendered
+    assert 'class="lh-chat"' not in rendered
+    assert 'class="lh-chip"' not in rendered
+
+
+@pytest.mark.parametrize(
+    ("lang", "repository_label"),
+    [
+        ("et", "Lähtekoodihoidla: FastHRM"),
+        ("en", "Source repository: FastHRM"),
+    ],
+)
+def test_public_naming_keeps_fasthrm_only_as_the_source_repository(
+    tmp_path, monkeypatch, lang, repository_label,
+):
+    landing, _ = _public_modules(tmp_path, monkeypatch)
+    rendered = str(landing.landing_page(lang=lang))
+    assert repository_label in rendered
+    repository_url = "https://github.com/predictivelabsai/FastHRM"
+    public_copy = rendered.replace(repository_url, "")
+    assert public_copy.count(repository_label) == 2
+    assert "FastHRM" not in public_copy.replace(repository_label, "")
 
 
 @pytest.mark.parametrize("lang", ["et", "en"])
@@ -213,7 +257,7 @@ def test_public_typography_roles_are_consolidated(tmp_path, monkeypatch):
     assert ".ct .ct-feat{" in landing.COMPARISON_TABLE_CSS
     assert "font-family:var(--font-body);font-weight:600;font-size:14px" in landing.COMPARISON_TABLE_CSS
     assert ".ct th.ct-feat{font-size:16px}" in landing.COMPARISON_TABLE_CSS
-    assert "font-family:var(--font-body);font-size:8px" in landing.LANDING_CSS
+    assert ".lh-ai-response{color:var(--muted);font-size:9px" in landing.LANDING_CSS
     assert "font-weight:600;color:var(--ink)" in AUTH_CSS
 
 
