@@ -101,16 +101,18 @@ img{max-width:100%;display:block}
 
 /* ---------- nav ---------- */
 .fs-nav{position:sticky;top:0;z-index:50}
-.fs-nav-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;height:70px}
+.fs-nav-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+  grid-template-areas:"brand links actions";align-items:center;gap:20px;height:70px}
 .fs-brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;
-  font-size:20px;letter-spacing:-.02em;color:inherit;text-decoration:none}
+  font-size:20px;letter-spacing:-.02em;color:inherit;text-decoration:none;grid-area:brand}
 .fs-mark{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;overflow:hidden;
   background:var(--accent);color:var(--ink);font-weight:800;font-family:var(--font-display)}
 .fs-mark svg{display:block;width:100%;height:100%}
-.fs-nav-links{display:flex;align-items:center;gap:26px}
+.fs-nav-menu{display:contents}
+.fs-nav-links{display:flex;align-items:center;justify-content:center;gap:26px;grid-area:links}
 .fs-nav-link{font-weight:500;font-size:15px;text-decoration:none;opacity:.82;transition:opacity var(--step-fast)}
 .fs-nav-link:hover{opacity:1}
-.fs-nav-right{display:flex;align-items:center;gap:14px}
+.fs-nav-right{display:flex;align-items:center;gap:14px;grid-area:actions}
 .fs-lang{display:inline-flex;border:1.5px solid var(--ink-line);border-radius:var(--radius-pill);overflow:hidden}
 .fs-lang a{padding:6px 11px;font-size:12px;font-weight:700;letter-spacing:.03em;text-decoration:none;color:#d9e8de;opacity:1}
 .fs-lang a.active{background:var(--accent);color:var(--ink);opacity:1}
@@ -118,8 +120,7 @@ img{max-width:100%;display:block}
 .fs-nav.on-ink,.fs-nav.on-ink a{color:var(--on-ink)}
 .fs-nav.on-ink .fs-lang{border-color:var(--ink-line)}
 .fs-nav.on-ink .fs-lang a.active{background:var(--accent);color:var(--ink)}
-.fs-menu-toggle{display:none}
-.fs-nav-actions-mobile{display:none}
+.fs-menu-toggle{display:none;grid-area:toggle}
 
 /* ---------- footer ---------- */
 .fs-footer{background:var(--ink);color:var(--on-ink)}
@@ -144,7 +145,8 @@ img{max-width:100%;display:block}
   .fs-footer-top{grid-template-columns:1fr 1fr;gap:28px}
 }
 @media(max-width:760px){
-  .fs-nav-inner{position:relative;gap:8px}
+  .fs-nav-inner{position:relative;grid-template-columns:minmax(0,1fr) 44px;
+    grid-template-areas:"brand toggle" "menu menu";gap:8px;height:auto;min-height:70px}
   .fs-brand{min-width:0;flex:0 0 auto;gap:7px;font-size:18px;white-space:nowrap}
   .fs-mark{width:28px;height:28px}
   .fs-menu-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;
@@ -156,17 +158,17 @@ img{max-width:100%;display:block}
   .fs-menu-toggle[aria-expanded="true"]::before{transform:translateY(6px) rotate(45deg)}
   .fs-menu-toggle[aria-expanded="true"] span{opacity:0}
   .fs-menu-toggle[aria-expanded="true"]::after{transform:translateY(-6px) rotate(-45deg)}
-  .fs-nav-links{position:absolute;top:100%;left:0;right:0;display:none;flex-direction:column;align-items:stretch;
-    gap:0;padding:8px 18px 12px;background:var(--ink);color:var(--paper);
+  .fs-nav-menu{display:none;grid-area:menu;flex-direction:column;align-items:stretch;
+    margin-inline:calc(-1 * clamp(18px,4vw,40px));padding:8px clamp(18px,4vw,40px) 12px;
+    background:color-mix(in srgb,var(--accent) 6%,var(--ink));color:var(--paper);
     border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 14px 28px rgba(11,29,23,.18)}
-  .fs-nav-links.is-open{display:flex;background:color-mix(in srgb,var(--accent) 6%,var(--ink))}
+  .fs-nav-menu.is-open{display:flex}
+  .fs-nav-links{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0}
   .fs-nav-link{display:flex;align-items:center;min-height:44px;padding:10px 0;font-size:16px}
   /* keep the top bar a single compact row: brand + hamburger only */
-  .fs-nav-right{display:none}
-  /* language + sign-in move into the dropdown menu */
-  .fs-nav-actions-mobile{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  .fs-nav-right{display:flex;align-items:center;justify-content:space-between;gap:12px;
     flex-wrap:wrap;margin-top:6px;padding-top:14px;border-top:1px solid var(--ink-line)}
-  .fs-nav-actions-mobile .fs-btn{min-height:44px;padding-inline:16px;white-space:nowrap}
+  .fs-nav-right .fs-btn{min-height:44px;padding-inline:16px;white-space:nowrap}
   .fs-lang{flex:0 0 auto;overflow:visible}
   .fs-lang a{display:inline-flex;align-items:center;min-height:40px;padding-inline:18px}
   .fs-footer-top{grid-template-columns:1fr}
@@ -176,7 +178,7 @@ img{max-width:100%;display:block}
 }
 @media(pointer:coarse){
   .fs-brand{min-height:44px;padding-inline:6px}
-  .fs-nav-links:not(.is-open) .fs-nav-link{display:inline-flex;align-items:center;min-height:44px;padding-inline:6px}
+  .fs-nav-link{display:inline-flex;align-items:center;min-height:44px;padding-inline:6px}
   .fs-lang a{display:inline-flex;align-items:center;min-height:44px;padding-inline:18px}
   .fs-foot-col a{min-height:44px;padding-inline:4px}
   .fs-btn{min-height:44px;padding-inline:14px}
@@ -210,15 +212,15 @@ def fs_nav(product: Product, links, right, *, on_ink=True, home="/", menu_label=
     right = list(right)
     return Nav(
         Div(
-            A(Span(NotStr(FS_MARK), cls="fs-mark"), Span(product.name), href=home, cls="fs-brand"),
-            Div(*[A(label, href=href, cls="fs-nav-link") for label, href in links],
-                # On mobile the language switch + sign-in live inside the menu so the
-                # top bar stays a single compact row (brand + hamburger).
-                Div(*right, cls="fs-nav-actions-mobile"),
-                id="fs-mobile-nav", cls="fs-nav-links"),
+            A(Span(NotStr(FS_MARK), cls="fs-mark"), Span(product.name), href=home,
+              cls="fs-brand", data_nav_brand="true"),
+            Div(
+                Div(*[A(label, href=href, cls="fs-nav-link") for label, href in links],
+                    cls="fs-nav-links"),
+                Div(*right, cls="fs-nav-right"),
+                id="fs-mobile-nav", cls="fs-nav-menu"),
             Button(Span(), type="button", aria_expanded="false",
                    aria_controls="fs-mobile-nav", aria_label=menu_label, cls="fs-menu-toggle"),
-            Div(*right, cls="fs-nav-right"),
             cls="fs-nav-inner fs-wrap",
         ),
         cls="fs-nav on-ink" if on_ink else "fs-nav",
@@ -229,7 +231,7 @@ MOBILE_NAV_JS = """
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.fs-nav').forEach(function (nav) {
     var toggle = nav.querySelector('.fs-menu-toggle');
-    var panel = nav.querySelector('.fs-nav-links');
+    var panel = nav.querySelector('.fs-nav-menu');
     if (!toggle || !panel) return;
     var lockedScrollY = 0;
     function setBodyLock(locked) {
@@ -266,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
     panel.addEventListener('click', function (event) {
-      if (event.target.closest('a')) closeMenu();
+      if (event.target.closest('a, button')) closeMenu();
     });
     nav.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {

@@ -88,7 +88,6 @@ COMPARISON_TABLE_CSS = """
   .pg-mobile-summary::-webkit-details-marker{display:none}
   .pg-mc-name{flex:1;font-family:var(--font-display);font-weight:700;font-size:17px}
   .pg-mobile-card.is-fasthr .pg-mc-name{color:var(--accent-strong)}
-  .pg-mc-count{font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
   .pg-mobile-summary::after{content:"";flex:none;width:9px;height:9px;margin-left:2px;
     border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
     transform:rotate(45deg);transition:transform var(--step-fast)}
@@ -164,9 +163,10 @@ LANDING_CSS = """
 .lh-tag{margin-left:auto;flex:none;font-size:7px;font-weight:800;padding:3px 5px;border-radius:999px;background:#eaf7ef;color:#28784e}
 .lh-tag.sick{background:#fff0ef;color:#ba5b58}
 .lh-ai{border-left:1px solid var(--line);padding:17px 14px;background:var(--paper-2);display:flex;flex-direction:column;min-width:0}
-.lh-ai-title{font-family:var(--font-display);font-size:14px;font-weight:700;line-height:1.04;margin:0 0 4px}.lh-ai p{color:var(--muted);font-size:9px;line-height:1.4;margin:0 0 13px}
-.lh-chips{display:flex;flex-wrap:wrap;gap:5px}.lh-chip{border:1px solid #cfe5d6;border-radius:999px;padding:5px 7px;color:#347555;background:#f6fcf8;font-size:8px}
-.lh-chat{display:flex;gap:5px;margin-top:auto}.lh-chat input{min-width:0;width:100%;border:1px solid var(--line);padding:6px 7px;font:inherit;font-size:8px;background:#fff}.lh-chat button{border:0;background:#3da46c;color:#fff;padding:0 8px;font-family:var(--font-body);font-size:8px;font-weight:800}
+.lh-ai-title{font-family:var(--font-display);font-size:14px;font-weight:700;line-height:1.04;margin:0 0 10px}
+.lh-ai-label{color:var(--accent-strong);font-size:7px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.lh-ai-question{color:var(--text);font-size:9px;font-weight:700;line-height:1.35;margin:6px 0 5px}
+.lh-ai-response{color:var(--muted);font-size:9px;line-height:1.4;margin:0}
 
 /* ---------- light sections ---------- */
 .lh-sec{padding:clamp(70px,9vw,120px) 0}
@@ -323,6 +323,7 @@ def _lang_switch(lang: str, path: str = "/"):
         A("ET", href=f"{path}?lang=et", cls="active" if lang == "et" else ""),
         A("EN", href=f"{path}?lang=en", cls="active" if lang == "en" else ""),
         cls="fs-lang",
+        data_language_control="true",
     )
 
 
@@ -359,7 +360,6 @@ GLOBAL_ROW_STATES = {
     "time": ("yes", "yes", "yes", "yes", "yes", "yes", "yes"),
     "payroll": ("yes", "yes", "yes", "yes", "yes", "no", "yes"),
     "expenses": ("yes", "no", "no", "yes", "yes", "no", "yes"),
-    "benefits": ("yes", "yes", "yes", "yes", "yes", "no", "no"),
     "benefits": ("yes", "yes", "yes", "yes", "yes", "no", "no"),
     "selfservice": ("yes", "yes", "yes", "yes", "yes", "yes", "yes"),
     "ats": ("yes", "no", "yes", "no", "no", "no", "yes"),
@@ -429,16 +429,13 @@ def _glyph_compare_table(c, rows, products, labels, prices, legend,
     # Mobile: one collapsible card per product with a ✓/◐/✕ row per feature.
     # The wide scrolling table is unreadable on a phone (hidden below 640px),
     # and a flat card per product is very long — so each product is a <details>
-    # collapsed to a name + feature count, with FastHR expanded by default.
+    # collapsed to its name, with FastHR expanded by default.
     price_label = c["cmp2_price_label"]
-    total = len(rows)
     mobile_cards = []
     for i, product in enumerate(prods):
-        rows_out, yes = [], 0
+        rows_out = []
         for key, states in rows:
             s = states[i]
-            if s == "yes":
-                yes += 1
             rows_out.append(Div(
                 B(labels[key]),
                 Span(Span(CMP_GLYPH[s], cls=f"ct-mark ct-{s}"), " ", legend[s]),
@@ -446,9 +443,7 @@ def _glyph_compare_table(c, rows, products, labels, prices, legend,
         price_val = prices[i] if i < len(prices) else ""
         if price_val:
             rows_out.append(Div(B(price_label), Span(price_val), cls="pg-mobile-row is-price"))
-        summary = Summary(Span(product, cls="pg-mc-name"),
-                          Span(f"{yes}/{total}", cls="pg-mc-count"),
-                          cls="pg-mobile-summary")
+        summary = Summary(Span(product, cls="pg-mc-name"), cls="pg-mobile-summary")
         mobile_cards.append(Details(summary, *rows_out, open=(i == 0),
                                     cls="pg-mobile-card is-fasthr" if i == 0 else "pg-mobile-card"))
 
@@ -529,10 +524,10 @@ def _dashboard_mock(c):
                           for name, kind, date, tone, tag in leave], cls="lh-panel"),
                     cls="lh-panels"),
                 cls="lh-main"),
-                Div(Div(mock["ai"], cls="lh-ai-title"), P(mock["ai_prompt"]),
-                Div(Span(mock["chip_leave"], cls="lh-chip"),
-                    Span(mock["chip_team"], cls="lh-chip"), cls="lh-chips"),
-                Form(Input(placeholder=mock["ask"]), Button(mock["send"], type="submit"), cls="lh-chat"),
+                Div(Div(mock["ai"], cls="lh-ai-title"),
+                Span(mock["ai_example_label"], cls="lh-ai-label"),
+                P(mock["ai_example_question"], cls="lh-ai-question"),
+                P(mock["ai_example_answer"], cls="lh-ai-response"),
                 cls="lh-ai"),
             cls="lh-mock-body"),
         cls="lh-mock", inert=True, aria_hidden="true"), cls="lh-mock-wrap")
@@ -558,7 +553,8 @@ def landing_page(open_auth=False, lang="et"):
         product,
         c["nav"],
         [_lang_switch(lang),
-         Button(c["signin"], type="button", onclick="authOpen('login')", cls="fs-btn fs-btn-ghost")],
+         Button(c["signin"], type="button", onclick="authOpen('login')",
+                cls="fs-btn fs-btn-ghost", data_sign_in_action="true")],
         menu_label=c["menu"],
     )
 
@@ -787,7 +783,7 @@ def public_nav(c: dict, path: str):
             FASTHRM, c["nav"],
             [_lang_switch(c["html_lang"], path),
              fs_button(c["signin"], href=f"/login?lang={c['html_lang']}",
-                       variant="ghost")],
+                       variant="ghost", data_sign_in_action="true")],
             menu_label=c["menu"],
         ),
         Script(MOBILE_NAV_JS),
