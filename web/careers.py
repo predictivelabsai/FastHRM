@@ -26,9 +26,9 @@ CAREERS_CSS = """
 .c-hero-in{max-width:1120px;margin:auto;padding:82px 24px 72px}.c-kicker{font-size:12px;color:var(--accent);font-weight:750;letter-spacing:.15em;text-transform:uppercase}.c-hero h1{font-size:clamp(38px,6vw,66px);line-height:1.04;letter-spacing:-.045em;margin:18px 0;max-width:850px}.c-lede{font-size:19px;color:var(--muted);line-height:1.65;max-width:720px}
 .c-main{max-width:1120px;margin:auto;padding:54px 24px 88px}.c-main h2{font-size:30px;letter-spacing:-.025em}.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}.job-card{border:1px solid var(--line);border-radius:18px;padding:24px;text-decoration:none;color:var(--ink);transition:.15s;background:white}.job-card:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 12px 30px rgba(15,23,42,.08)}.job-card h3{font-size:21px;margin:0 0 10px}.meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:13px}.chip{background:var(--wash);border-radius:999px;padding:5px 9px}.summary{color:var(--muted);line-height:1.55;margin:16px 0 0}.empty{padding:40px;border:1px dashed var(--line);border-radius:18px;color:var(--muted);text-align:center}
 .job-head{max-width:900px;margin:auto;padding:64px 24px 28px}.back{display:inline-block;margin-bottom:24px}.job-head h1{font-size:clamp(36px,6vw,60px);letter-spacing:-.045em;line-height:1.05;margin:10px 0 20px}.job-layout{max-width:900px;margin:auto;padding:12px 24px 90px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:34px}.copy h2{font-size:23px;margin:34px 0 10px}.copy p{white-space:pre-line;color:#374151;line-height:1.75}.apply{border:1px solid var(--line);border-radius:18px;padding:22px;align-self:start;position:sticky;top:20px;background:white;box-shadow:0 12px 30px rgba(15,23,42,.06)}.apply h2{margin:0 0 6px}.field{display:grid;gap:6px;margin:13px 0}.field label{font-size:12px;font-weight:700}.field input,.field textarea{width:100%;border:1px solid #cfd5dd;border-radius:10px;padding:10px 11px;font:inherit}.field textarea{min-height:100px;resize:vertical}.check{display:flex;gap:9px;align-items:flex-start;color:var(--muted);font-size:12px;line-height:1.45}.check input{margin-top:3px}.apply button{width:100%;border:0;border-radius:10px;padding:12px;background:var(--brand);color:white;font-weight:750;cursor:pointer}.error{padding:10px;border-radius:9px;background:#fff1f2;color:#9f1239;font-size:13px}.fine{font-size:11px;color:var(--muted);line-height:1.45}.success{max-width:680px;margin:90px auto;padding:40px 24px;text-align:center}.success h1{font-size:42px}.success p{color:var(--muted);line-height:1.65}.c-footer{border-top:1px solid var(--line);padding:30px 24px;text-align:center;color:var(--muted);font-size:12px}
-.c-right{display:flex;align-items:center;gap:14px}.c-lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.c-lang a{padding:6px 11px;font-size:12px;font-weight:750;text-decoration:none;color:var(--ink)}.c-lang a.c-lang-on{background:var(--brand);color:#fff}.c-powered{display:inline-block;margin-top:8px;color:var(--muted);font-size:12px;text-decoration:none}.c-powered:hover{color:var(--accent)}
+.c-right{display:flex;align-items:center;gap:14px}.c-lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.c-lang a{padding:6px 11px;font-size:12px;font-weight:750;text-decoration:none;color:var(--ink)}.c-lang a.c-lang-on{background:var(--brand);color:#fff}.c-powered{display:inline-block;margin-top:8px;color:var(--muted);font-size:12px;text-decoration:none}.c-powered:hover{color:var(--accent)}.c-footer-auth{display:inline-block;margin:8px 14px 0;color:var(--muted);font-size:12px;text-decoration:none}.c-footer-auth:hover{color:var(--accent)}.c-login{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border-radius:10px;background:var(--brand);color:#fff;font-weight:750;text-decoration:none;white-space:nowrap}.c-login:hover{background:var(--accent);color:#fff}.c-logout{color:var(--muted);text-decoration:none;font-weight:650;display:inline-flex;align-items:center;min-height:44px;font-size:13px}.c-logout:hover{color:var(--ink)}.c-auth{display:inline-flex;align-items:center;gap:12px}
 .preview{background:#fff7ed;color:#9a3412;text-align:center;padding:8px;font-size:12px;font-weight:700}
-@media(max-width:760px){.jobs{grid-template-columns:1fr}.job-layout{grid-template-columns:1fr}.apply{position:static}.c-hero-in{padding-top:58px}.c-nav{height:62px}}
+@media(max-width:760px){.jobs{grid-template-columns:1fr}.job-layout{grid-template-columns:1fr}.apply{position:static}.c-hero-in{padding-top:58px}.c-nav{height:auto;min-height:62px;padding:8px 16px;gap:8px}.c-right{flex-wrap:wrap;justify-content:flex-end}}
 @media(pointer:coarse){.c-brand{min-height:44px}}
 """
 
@@ -58,6 +58,7 @@ CAREERS_TEXT = {
         "received_h1": "Application received.",
         "received_body": "Thank you for applying for {title}. The hiring team now has your application and CV.",
         "other_roles": "View other open roles", "deadline": "Apply by {date}",
+        "login": "Log in", "workspace": "HR workspace", "logout": "Log out",
     },
     "et": {
         "skip": "Liigu sisu juurde", "join": "Liitu meeskonnaga", "headline": "Tee tööd, millel on mõju.",
@@ -76,12 +77,42 @@ CAREERS_TEXT = {
         "received_h1": "Avaldus on kätte saadud.",
         "received_body": "Aitäh, et kandideerisid ametikohale {title}. Värbamismeeskond on sinu avalduse ja CV kätte saanud.",
         "other_roles": "Vaata teisi ametikohti", "deadline": "Kandideeri hiljemalt {date}",
+        "login": "Logi sisse", "workspace": "HR töölaud", "logout": "Logi välja",
     },
 }
 
 
 def _tx(locale: str | None):
     return CAREERS_TEXT.get((locale or "en").split("-")[0].lower(), CAREERS_TEXT["en"])
+
+
+def show_careers_login() -> bool:
+    """Show Login / workspace chrome on branded careers instances only.
+
+    Enabled when FASTHR_CAREERS_SHOW_LOGIN=1, or automatically when
+    FASTHR_BOOTSTRAP is set (the Predictive Labs hr.* instance). The FastHR
+    product landing already has its own sign-in control and is unchanged.
+    """
+    raw = os.getenv("FASTHR_CAREERS_SHOW_LOGIN", "").strip().lower()
+    if raw in {"1", "true", "yes"}:
+        return True
+    if raw in {"0", "false", "no"}:
+        return False
+    return bool(os.getenv("FASTHR_BOOTSTRAP", "").strip())
+
+
+def _auth_controls(tx: dict, *, viewer: dict | None = None, login_next: str = ""):
+    if not show_careers_login():
+        return None
+    if viewer and viewer.get("is_admin"):
+        href = viewer.get("workspace_href") or "/talent/candidates"
+        return Div(A(tx["workspace"], href=href, cls="c-login"),
+                   A(tx["logout"], href="/logout", cls="c-logout"), cls="c-auth")
+    href = "/login"
+    if login_next.startswith("/") and not login_next.startswith("//"):
+        from urllib.parse import quote
+        href = "/login?next=" + quote(login_next, safe="/")
+    return A(tx["login"], href=href, cls="c-login")
 
 
 def _lang_switch(alternates: dict | None, current: str):
@@ -126,14 +157,22 @@ def _brand(site: dict, href: str = "/careers"):
     return A(visual, Span(site["name"]), href=href, cls="c-brand")
 
 
-def _footer(site: dict, tx: dict):
+def _footer(site: dict, tx: dict, viewer: dict | None = None):
+    auth = None
+    if show_careers_login():
+        if viewer and viewer.get("is_admin"):
+            auth = A(tx["workspace"], href=viewer.get("workspace_href") or "/talent/candidates",
+                     cls="c-footer-auth")
+        else:
+            auth = A(tx["login"], href="/login", cls="c-footer-auth")
     return Footer(tx["managed"].format(name=site["name"]),
                   P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
-                  _powered_by(site), cls="c-footer")
+                  auth, _powered_by(site), cls="c-footer")
 
 
 def careers_page(site: dict, jobs: list[dict], *, careers_path: str = "/careers",
-                 job_prefix: str = "/jobs", locale: str = "en", alternates: dict | None = None):
+                 job_prefix: str = "/jobs", locale: str = "en", alternates: dict | None = None,
+                 viewer: dict | None = None):
     tx = _tx(locale)
     site = {**site, "name": (site.get("name") or "").replace("FastHRM", "FastHR")}
     title = f"{'Careers' if tx is CAREERS_TEXT['en'] else tx['careers']} · {site['name']}"
@@ -151,7 +190,9 @@ def careers_page(site: dict, jobs: list[dict], *, careers_path: str = "/careers"
     structured = {"@context": "https://schema.org", "@type": "CollectionPage",
                   "name": title, "url": BASE_URL + careers_path, "description": description}
     switch = _lang_switch(alternates, locale)
-    right = Div(switch, A("FastHR", href="/", cls="c-link"), cls="c-right") if switch else A("FastHR", href="/", cls="c-link")
+    auth = _auth_controls(tx, viewer=viewer)
+    fasthr = A("FastHR", href="/", cls="c-link")
+    right = Div(*[part for part in (switch, auth, fasthr) if part], cls="c-right")
     return Html(
         _site_head(site, title, description, path=careers_path, structured=structured,
                    alternates=alternates),
@@ -163,7 +204,7 @@ def careers_page(site: dict, jobs: list[dict], *, careers_path: str = "/careers"
                   Section(H2(tx["open_roles"]), Div(*cards, cls="jobs") if cards else
                           Div(tx["none"], cls="empty"),
                           cls="c-main"), id="main-content"),
-             _footer(site, tx)),
+             _footer(site, tx, viewer)),
         lang=(locale or "en"),
     )
 
@@ -171,7 +212,7 @@ def careers_page(site: dict, jobs: list[dict], *, careers_path: str = "/careers"
 def job_page(job: dict, *, error: str = "", values: dict | None = None, preview: bool = False,
              careers_path: str = "/careers", job_path: str | None = None,
              apply_path: str | None = None, locale: str | None = None,
-             alternates: dict | None = None):
+             alternates: dict | None = None, viewer: dict | None = None):
     values = values or {}
     locale = locale or job.get("locale") or "en"
     tx = _tx(locale)
@@ -221,9 +262,9 @@ def job_page(job: dict, *, error: str = "", values: dict | None = None, preview:
 document.querySelectorAll('.custom-field[data-condition-field]').forEach(w=>{let key=w.dataset.conditionField;if(!key)return;let source=document.querySelector(`[name="${key}"]`);let control=w.querySelector('input,select,textarea');let required=control&&control.required;let sync=()=>{let show=source&&source.value===w.dataset.conditionValue;w.hidden=!show;if(control)control.required=show&&required;};source&&source.addEventListener('change',sync);sync();});
 """)) if custom_fields else None
     switch = _lang_switch(alternates, locale)
-    nav_right = A(tx["all_roles"], href=careers_path, cls="c-link")
-    if switch:
-        nav_right = Div(switch, nav_right, cls="c-right")
+    auth = _auth_controls(tx, viewer=viewer, login_next=job_path or careers_path)
+    nav_right = Div(*[part for part in (switch, auth, A(tx["all_roles"], href=careers_path, cls="c-link")) if part],
+                    cls="c-right")
     return Html(
         _site_head(site, title, description, path=job_path, structured=structured, alternates=alternates),
         Body(Div(tx["preview"], cls="preview") if preview else None,
@@ -259,12 +300,13 @@ document.querySelectorAll('.custom-field[data-condition-field]').forEach(w=>{let
                                    Button(tx["submit"], type="submit"),
                                    method="post", action=apply_path, enctype="multipart/form-data"),
                               cls="apply"), cls="job-layout")),
-             _footer(site, tx), conditional_script),
+             _footer(site, tx, viewer), conditional_script),
         lang=locale,
     )
 
 
-def application_success(job: dict, *, careers_path: str = "/careers", locale: str | None = None):
+def application_success(job: dict, *, careers_path: str = "/careers", locale: str | None = None,
+                        viewer: dict | None = None):
     locale = locale or job.get("locale") or "en"
     tx = _tx(locale)
     site = {"name": job.get("career_site_name") or "FastHR Careers",
@@ -272,12 +314,15 @@ def application_success(job: dict, *, careers_path: str = "/careers", locale: st
             "accent_color": job.get("accent_color") or "#0e7490",
             "logo_url": job.get("logo_url") or "",
             "favicon_url": job.get("favicon_url") or ""}
+    auth = _auth_controls(tx, viewer=viewer, login_next=careers_path)
+    nav_right = Div(*[part for part in (auth, A(tx["all_roles"], href=careers_path, cls="c-link")) if part],
+                    cls="c-right") if auth else A(tx["all_roles"], href=careers_path, cls="c-link")
     return Html(_site_head(site, tx["received_title"], "Thank you for applying.", path=f"/jobs/{job['slug']}/thanks"),
-                Body(Nav(_brand(site, careers_path), A(tx["all_roles"], href=careers_path, cls="c-link"), cls="c-nav"),
+                Body(Nav(_brand(site, careers_path), nav_right, cls="c-nav"),
                      Main(Section(H1(tx["received_h1"]),
                                   P(tx["received_body"].format(title=job['public_title'])),
                                   A(tx["other_roles"], href=careers_path, cls="c-link"), cls="success")),
-                     _footer(site, tx)),
+                     _footer(site, tx, viewer)),
                 lang=locale)
 
 

@@ -23,6 +23,8 @@ for (const base of BASES) {
       await expect(page.locator('.c-brand img')).toHaveAttribute('src', /predictivelabs\.svg/);
       await expect(page.locator('footer')).toContainText('Predictive Labs OÜ');
       await expect(page.locator('a.c-powered')).toHaveText('Powered by FastHR');
+      await expect(page.locator('nav.c-nav a.c-login')).toHaveText('Logi sisse');
+      await expect(page.locator('nav.c-nav a.c-login')).toHaveAttribute('href', /\/login/);
       const brand = await page.evaluate(() =>
         getComputedStyle(document.documentElement).getPropertyValue('--brand').trim().toLowerCase());
       expect(brand).toBe('#0d2a70');

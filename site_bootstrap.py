@@ -36,23 +36,28 @@ def configured_admin_emails() -> list[str]:
     return emails
 
 
+def ensure_admin_role_for(email: str) -> bool:
+    """Grant admin to one allowlisted email. Idempotent; returns True if inserted."""
+    email = (email or "").strip().lower()
+    if not email or "@" not in email or email not in set(configured_admin_emails()):
+        return False
+    existing = db.one(
+        "SELECT id FROM account_roles WHERE lower(account_email)=? AND role='admin'",
+        (email,))
+    if existing:
+        return False
+    with db.cursor() as conn:
+        conn.execute(
+            """INSERT INTO account_roles(account_email,role,scope,employee_id,created)
+               VALUES (?,'admin','all',NULL,datetime('now'))""",
+            (email,))
+    logger.info("Granted admin role to %s", email)
+    return True
+
+
 def ensure_admin_roles() -> list[str]:
     """Grant the admin role to configured emails. Idempotent; never deletes roles."""
-    granted = []
-    for email in configured_admin_emails():
-        existing = db.one(
-            "SELECT id FROM account_roles WHERE lower(account_email)=? AND role='admin'",
-            (email,))
-        if existing:
-            continue
-        with db.cursor() as conn:
-            conn.execute(
-                """INSERT INTO account_roles(account_email,role,scope,employee_id,created)
-                   VALUES (?,'admin','all',NULL,datetime('now'))""",
-                (email,))
-        granted.append(email)
-        logger.info("Granted admin role to %s", email)
-    return granted
+    return [email for email in configured_admin_emails() if ensure_admin_role_for(email)]
 
 
 JOB_FIELDS = ("public_title", "summary", "description", "requirements", "benefits",

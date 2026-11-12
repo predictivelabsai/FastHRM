@@ -374,7 +374,7 @@ def reset_page(token, error=""):
 
 
 def register_fasthtml_routes(rt, *, app_name, session_key=None, success_path="/", on_login=None,
-                              fallback_login=None):
+                              fallback_login=None, redirect=None):
     def establish_session(sess, account):
         if on_login:
             on_login(sess, account)
@@ -400,7 +400,8 @@ def register_fasthtml_routes(rt, *, app_name, session_key=None, success_path="/"
         if not account:
             return JSONResponse({"error": t(lang)["auth_error_login"]}, status_code=401)
         establish_session(sess, account)
-        return JSONResponse({"message": t(lang)["auth_success_signed_in"], "redirect": _safe_next(form.get("next"), success_path)})
+        dest = redirect(sess, form.get("next")) if redirect else _safe_next(form.get("next"), success_path)
+        return JSONResponse({"message": t(lang)["auth_success_signed_in"], "redirect": dest})
 
     @rt("/auth/local/forgot", methods=["POST"])
     async def local_forgot(request):

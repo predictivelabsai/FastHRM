@@ -122,9 +122,17 @@ def _configured_admin_login(email: str | None, password: str | None):
     return None
 
 
+def _on_account_login(sess, account):
+    email = (account.get("email") or "").strip().lower()
+    sess["user"] = email
+    import site_bootstrap
+    site_bootstrap.ensure_admin_role_for(email)
+
+
 account_auth.register_fasthtml_routes(
     rt, app_name="FastHR", session_key="user", success_path="/",
-    fallback_login=_configured_admin_login,
+    fallback_login=_configured_admin_login, on_login=_on_account_login,
+    redirect=lambda sess, nxt: _after_login_path(sess, nxt),
 )
 
 
@@ -186,7 +194,41 @@ def _roles_for(session) -> set[str]:
         "SELECT role FROM account_roles WHERE lower(account_email)=?", (email,))}
     if email == VALID_EMAIL.strip().lower():
         roles.add("admin")
+    else:
+        import site_bootstrap
+        if email in set(site_bootstrap.configured_admin_emails()):
+            roles.add("admin")
     return roles
+
+
+def _is_staff(session) -> bool:
+    return bool(_roles_for(session) & ({"admin"} | PUBLISHER_ROLES))
+
+
+def _default_staff_home() -> str:
+    """On the branded careers instance, the site root is public; send staff to the ATS."""
+    from web.careers import show_careers_login
+    return "/talent/candidates" if show_careers_login() else "/"
+
+
+def _after_login_path(session, next_value: str = "") -> str:
+    destination = _safe_auth_destination(next_value)
+    if _is_staff(session) and destination in ("", "/"):
+        return _default_staff_home()
+    return destination or "/"
+
+
+def _careers_viewer(session, workspace_href: str = "/talent/candidates"):
+    from web.careers import show_careers_login
+    if not show_careers_login() or not session:
+        return None
+    email = (_user(session) or "").strip().lower()
+    if email:
+        import site_bootstrap
+        site_bootstrap.ensure_admin_role_for(email)
+    if _is_staff(session):
+        return {"is_admin": True, "workspace_href": workspace_href}
+    return {}
 
 
 def _publisher_guard(session):
@@ -369,15 +411,18 @@ def _login_card(error="", email=""):
 @rt("/login")
 def get(session, request):
     if _user(session):
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse(_after_login_path(session, request.query_params.get("next", "")),
+                                status_code=303)
     return landing_page(open_auth=True, lang=resolve_lang(session, request))
 
 
 @rt("/login")
-def post(session, email: str = "", password: str = ""):
+def post(session, email: str = "", password: str = "", next: str = ""):
     if email.strip().lower() == VALID_EMAIL.lower() and password == VALID_PASSWORD:
         session["user"] = email.strip().lower()
-        return RedirectResponse("/", status_code=303)
+        import site_bootstrap
+        site_bootstrap.ensure_admin_role_for(session["user"])
+        return RedirectResponse(_after_login_path(session, next), status_code=303)
     session["lang"] = resolve_lang(session)
     return _login_card(t_app(resolve_lang(session), "wa_login_error"), email)
 
@@ -408,7 +453,9 @@ def google_callback(session, request, code: str = "", state: str = "", error: st
         return RedirectResponse("/login?error=Google+account+is+not+authorised", status_code=303)
     account_auth.accounts.link_google(identity["email"], identity["name"])
     session["user"] = identity["email"]
-    return RedirectResponse(destination, status_code=303)
+    import site_bootstrap
+    site_bootstrap.ensure_admin_role_for(identity["email"])
+    return RedirectResponse(_after_login_path(session, destination), status_code=303)
 
 
 @rt("/logout")
@@ -549,7 +596,7 @@ def get(session, request):
     branded = recruitment_enterprise.resolve_brand(host=request.headers.get("host", ""))
     if branded and branded.get("site_slug"):
         locale = branded.get("default_locale") or "en"
-        response = _career_site_response(branded["site_slug"], locale)
+        response = _career_site_response(branded["site_slug"], locale, session=session)
         if response is not None:
             return response
         return landing_page(lang=lang) if not _user(session) else _guard(session, "dashboard", views.dashboard)
@@ -566,7 +613,7 @@ def _career_site_view(site: dict, locale: str) -> dict:
             "logo_url": site.get("brand_logo") or site.get("logo_url")}
 
 
-def _career_site_response(site_slug: str, locale: str):
+def _career_site_response(site_slug: str, locale: str, session=None):
     site = recruitment_enterprise.public_career_site(site_slug, locale)
     if not site:
         return None
@@ -574,7 +621,8 @@ def _career_site_response(site_slug: str, locale: str):
     return careers.careers_page(
         _career_site_view(site, locale), recruitment_enterprise.public_site_jobs(site_slug, locale),
         careers_path=path, job_prefix=path + "/jobs", locale=locale,
-        alternates=recruitment_enterprise.site_alternates(site_slug))
+        alternates=recruitment_enterprise.site_alternates(site_slug),
+        viewer=_careers_viewer(session))
 
 
 # ---------- public careers and applications -------------------------------
@@ -591,15 +639,15 @@ def get():
 
 
 @rt("/sites/{site_slug}/{locale}")
-def get(site_slug: str, locale: str):
-    response = _career_site_response(site_slug, locale)
+def get(session, site_slug: str, locale: str):
+    response = _career_site_response(site_slug, locale, session=session)
     if response is None:
         return Response(t_app(current_lang(), "wa_careers_not_found"), status_code=404)
     return response
 
 
 @rt("/sites/{site_slug}/{locale}/jobs/{slug}")
-def get(request, site_slug: str, locale: str, slug: str):
+def get(session, request, site_slug: str, locale: str, slug: str):
     job = recruitment_enterprise.public_distributed_job(site_slug, locale, slug)
     if not job:
         return Response(t_app(current_lang(), "wa_job_unavailable"), status_code=404)
@@ -608,9 +656,11 @@ def get(request, site_slug: str, locale: str, slug: str):
     recruitment_ecosystem.track_event(
         "job_view", job_id=job["job_id"], source=request.query_params.get("utm_source", ""),
         medium=request.query_params.get("utm_medium", ""), metadata={"locale": locale, "site": site_slug})
+    workspace = f"/talent/jobs/{job['job_id']}" if job.get("job_id") else "/talent/candidates"
     return careers.job_page(job, careers_path=path, job_path=job_path, apply_path=job_path + "/apply",
                             locale=locale,
-                            alternates=recruitment_enterprise.job_alternates(site_slug, job["posting_id"]))
+                            alternates=recruitment_enterprise.job_alternates(site_slug, job["posting_id"]),
+                            viewer=_careers_viewer(session, workspace))
 
 
 @rt("/privacy")
@@ -619,24 +669,28 @@ def get():
 
 
 @rt("/jobs/{slug}")
-def get(request, slug: str):
+def get(session, request, slug: str):
     job = recruitment.public_job(slug)
     if not job:
         return Response(t_app(current_lang(), "wa_job_unavailable"), status_code=404)
     recruitment_ecosystem.track_event(
         "job_view", job_id=job["job_id"], source=request.query_params.get("utm_source", ""),
         medium=request.query_params.get("utm_medium", ""))
-    return careers.job_page(job)
+    workspace = f"/talent/jobs/{job['job_id']}" if job.get("job_id") else "/talent/candidates"
+    return careers.job_page(job, viewer=_careers_viewer(session, workspace))
 
 
 async def _submit_public_application(request, public_slug: str, job: dict, *,
                                      careers_path: str = "/careers", job_path: str | None = None,
-                                     apply_path: str | None = None):
-    render = {"careers_path": careers_path, "job_path": job_path, "apply_path": apply_path}
+                                     apply_path: str | None = None, session=None):
+    workspace = f"/talent/jobs/{job['job_id']}" if job.get("job_id") else "/talent/candidates"
+    viewer = _careers_viewer(session, workspace)
+    render = {"careers_path": careers_path, "job_path": job_path, "apply_path": apply_path,
+              "viewer": viewer}
     form = await request.form()
     values = dict(form)
     if values.get("website"):
-        return careers.application_success(job, careers_path=careers_path)
+        return careers.application_success(job, careers_path=careers_path, viewer=viewer)
     if _application_throttled(request):
         return careers.job_page(job, error="Too many attempts. Please wait a minute and try again.",
                                 values=values, **render)
@@ -680,19 +734,19 @@ async def _submit_public_application(request, public_slug: str, job: dict, *,
         actor="application-confirmation")
     recruitment_communications.dispatch_due()
     recruitment_ecosystem.enqueue_webhook("application.created", result)
-    return careers.application_success(job, careers_path=careers_path, locale=job.get("locale"))
+    return careers.application_success(job, careers_path=careers_path, locale=job.get("locale"), viewer=viewer)
 
 
 @rt("/jobs/{slug}/apply")
-async def post(request, slug: str):
+async def post(session, request, slug: str):
     job = recruitment.public_job(slug)
     if not job:
         return Response(t_app(current_lang(), "wa_not_accepting"), status_code=404)
-    return await _submit_public_application(request, slug, job)
+    return await _submit_public_application(request, slug, job, session=session)
 
 
 @rt("/sites/{site_slug}/{locale}/jobs/{slug}/apply")
-async def post(request, site_slug: str, locale: str, slug: str):
+async def post(session, request, site_slug: str, locale: str, slug: str):
     job = recruitment_enterprise.public_distributed_job(site_slug, locale, slug)
     if not job:
         return Response(t_app(current_lang(), "wa_not_accepting"), status_code=404)
@@ -700,7 +754,7 @@ async def post(request, site_slug: str, locale: str, slug: str):
     job_path = path + f"/jobs/{slug}"
     return await _submit_public_application(
         request, job["primary_slug"], job, careers_path=path,
-        job_path=job_path, apply_path=job_path + "/apply")
+        job_path=job_path, apply_path=job_path + "/apply", session=session)
 
 
 def _public_recruiting_shell(title: str, content, *, description: str = "", image_url: str = ""):

@@ -99,3 +99,76 @@ def test_ensure_admin_roles_is_idempotent_and_dedupes_sources(fresh_db, monkeypa
         {"account_email": "joosep.laats@gmail.com", "role": "admin", "scope": "all"},
         {"account_email": "kaljuvee@gmail.com", "role": "admin", "scope": "all"},
     ]
+
+
+def test_ensure_admin_role_for_only_allowlisted_emails(fresh_db, monkeypatch):
+    _, _, boot = _modules()
+    monkeypatch.setenv("FASTHR_ADMIN_EMAIL", "")
+    monkeypatch.setenv("FASTHR_ADMIN_EMAILS", "kaljuvee@gmail.com")
+    monkeypatch.delenv("GOOGLE_ALLOWED_EMAILS", raising=False)
+    assert boot.ensure_admin_role_for("stranger@example.com") is False
+    assert boot.ensure_admin_role_for("kaljuvee@gmail.com") is True
+    assert boot.ensure_admin_role_for("kaljuvee@gmail.com") is False
+    rows = fresh_db.rows("SELECT account_email, role FROM account_roles")
+    assert [dict(r) for r in rows] == [
+        {"account_email": "kaljuvee@gmail.com", "role": "admin"}]
+
+
+def test_careers_home_shows_login_only_on_branded_instance(fresh_db, monkeypatch):
+    _, ent, boot = _modules()
+    boot.apply_config(boot.load_config(CONFIG))
+    from web import careers
+    importlib.reload(careers)
+    site = ent.localized_site(ent.public_career_site("predictivelabs", "et"), "et")
+    view = {**site, "name": site.get("name") or site.get("brand_name"),
+            "brand_color": site.get("primary_color") or site.get("brand_color"),
+            "accent_color": site.get("accent_color"),
+            "logo_url": site.get("brand_logo") or site.get("logo_url")}
+    jobs = ent.public_site_jobs("predictivelabs", "et")
+    monkeypatch.delenv("FASTHR_BOOTSTRAP", raising=False)
+    monkeypatch.delenv("FASTHR_CAREERS_SHOW_LOGIN", raising=False)
+    importlib.reload(careers)
+    html = str(careers.careers_page(view, jobs, careers_path="/sites/predictivelabs/et",
+                                    job_prefix="/sites/predictivelabs/et/jobs", locale="et"))
+    assert 'href="/login' not in html
+    assert "Logi sisse" not in html
+
+    monkeypatch.setenv("FASTHR_CAREERS_SHOW_LOGIN", "1")
+    importlib.reload(careers)
+    html = str(careers.careers_page(view, jobs, careers_path="/sites/predictivelabs/et",
+                                    job_prefix="/sites/predictivelabs/et/jobs", locale="et"))
+    assert 'class="c-nav"' in html
+    nav = html.split('class="c-nav"', 1)[1].split("</nav>", 1)[0]
+    assert 'href="/login"' in nav
+    assert "next=" not in nav
+    assert ">Logi sisse</a>" in nav
+    footer = html.split('class="c-foot"', 1)[1] if 'class="c-foot"' in html else html.split("c-footer", 1)[-1]
+    assert 'class="c-footer-auth"' in html
+    assert ">Logi sisse</a>" in footer
+
+    en = str(careers.careers_page(view, jobs, locale="en"))
+    assert ">Log in</a>" in en
+    assert "Logi sisse" not in en
+
+    admin = str(careers.careers_page(
+        view, jobs, careers_path="/sites/predictivelabs/et", locale="et",
+        viewer={"is_admin": True, "workspace_href": "/talent/candidates"}))
+    assert ">HR töölaud</a>" in admin
+    assert 'href="/talent/candidates"' in admin
+    assert 'href="/logout"' in admin
+    assert "Logi sisse" not in admin
+
+
+def test_job_page_admin_workspace_points_at_the_requisition(fresh_db, monkeypatch):
+    _, ent, boot = _modules()
+    boot.apply_config(boot.load_config(CONFIG))
+    monkeypatch.setenv("FASTHR_CAREERS_SHOW_LOGIN", "1")
+    from web import careers
+    importlib.reload(careers)
+    job = ent.public_distributed_job("predictivelabs", "et", "riigihangete-spetsialist-el")
+    html = str(careers.job_page(
+        job, locale="et", job_path="/sites/predictivelabs/et/jobs/riigihangete-spetsialist-el",
+        viewer={"is_admin": True, "workspace_href": f"/talent/jobs/{job['job_id']}"}))
+    assert f'href="/talent/jobs/{job["job_id"]}"' in html
+    assert ">HR töölaud</a>" in html
+    assert 'href="/logout"' in html
