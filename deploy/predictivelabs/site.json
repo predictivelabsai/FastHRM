@@ -1,0 +1,89 @@
+{
+  "organization": {
+    "name": "Predictive Labs OÜ",
+    "slug": "predictivelabs",
+    "default_locale": "et",
+    "timezone": "Europe/Tallinn"
+  },
+  "brand": {
+    "name": "Predictive Labs",
+    "slug": "predictivelabs",
+    "logo_url": "/static/brands/predictivelabs.svg",
+    "favicon_url": "/static/brands/predictivelabs-favicon.svg",
+    "primary_color": "#0D2A70",
+    "accent_color": "#0F766E"
+  },
+  "domains": [
+    {
+      "host": "hr.predictivelabs.ee",
+      "locale": "et"
+    },
+    {
+      "host": "hr.predictivelabs.ai",
+      "locale": "en"
+    },
+    {
+      "host": "hr.predictivelabs.eu",
+      "locale": "en"
+    },
+    {
+      "host": "hr.predictivelabs.tech",
+      "locale": "en"
+    }
+  ],
+  "site": {
+    "name": "Predictive Labs",
+    "slug": "predictivelabs",
+    "default_locale": "en",
+    "locales": [
+      "et",
+      "en"
+    ],
+    "privacy_policy_url": "/privacy",
+    "headline": {
+      "en": "Help us win public tenders with AI.",
+      "et": "Aita meil AI abil avalikke hankeid võita."
+    },
+    "introduction": {
+      "en": "Predictive Labs builds AI for public outcomes. Join our Tallinn team and work on public procurement in Estonia and across the EU.",
+      "et": "Predictive Labs loob tehisintellekti avalike tulemuste nimel. Liitu meie Tallinna meeskonnaga ja tööta riigihangetega Eestis ning üle EL-i."
+    }
+  },
+  "jobs": [
+    {
+      "code": "PL-RHS-2026",
+      "title": "Riigihangete spetsialist (EL) / Public Procurement Specialist (EU)",
+      "location": "Tallinn, Estonia",
+      "remote_policy": "Hybrid",
+      "employment_type": "Permanent",
+      "currency": "EUR",
+      "comp_min": null,
+      "comp_max": null,
+      "application_deadline": null,
+      "primary_locale": "en",
+      "status": "Published",
+      "locales": {
+        "en": {
+          "slug": "public-procurement-specialist-eu",
+          "public_title": "Public Procurement Specialist (EU)",
+          "summary": "Full-time, hybrid in Tallinn. Find, qualify and prepare public tenders in Estonia and across the EU together with our AI assistants (TenderMan). Salary from €2,000 net per month.",
+          "description": "Predictive Labs OÜ is looking for a full-time public procurement specialist to help us win public tenders in Estonia and across the EU, working alongside our AI assistants (TenderMan).\n\nYour responsibilities:\n• finding, qualifying and prioritising tenders in Estonia and other EU countries\n• preparing bids (documents, pricing, references, CVs, ESPD)\n• working in procurement portals (including the Estonian Public Procurement Register, RHR): questions to buyers, uploads, status tracking\n• managing deadlines, requirements and partner communication, and keeping the CRM up to date\n• communicating with buyers and partners in Estonian and English\n\nEmployer: Predictive Labs OÜ (registry code 12061679), Rävala pst 6, 10143 Tallinn, Estonia.",
+          "requirements": "• experience with public procurement or bid preparation (preferably IT/software)\n• excellent Estonian and good English\n• accuracy, respect for deadlines and independence\n• willingness to work with AI tools every day (RHR experience is an advantage)",
+          "benefits": "• salary from €2,000 net per month (higher depending on experience)\n• hybrid work, Tallinn\n• full-time work with a portfolio of EU tenders and a modern AI-supported workflow\n• start as soon as possible\n\nTo apply, send your CV and a short cover letter through this form or by email to info@predictivelabs.tech.",
+          "seo_title": "Public Procurement Specialist (EU) · Predictive Labs OÜ, Tallinn",
+          "seo_description": "Full-time public procurement specialist role at Predictive Labs OÜ in Tallinn (hybrid). Salary from €2,000 net per month."
+        },
+        "et": {
+          "slug": "riigihangete-spetsialist-el",
+          "public_title": "Riigihangete spetsialist (EL)",
+          "summary": "Täiskohaga, hübriidtöö Tallinnas. Otsi, kvalifitseeri ja koosta pakkumusi avalikes hangetes Eestis ja üle EL-i koos meie AI-assistentidega (TenderMan). Palk alates 2000 € neto kuus.",
+          "description": "Predictive Labs OÜ otsib täiskohaga riigihangete spetsialisti, kes aitab meil koos meie AI-assistentidega (TenderMan) võita avalikke hankeid Eestis ja üle EL-i.\n\nSinu ülesanded:\n• hangete otsimine, kvalifitseerimine ja prioriseerimine Eestis ja teistes EL riikides\n• pakkumuste koostamine (dokumendid, hinnastus, referentsid, CVd, ESPD/EBVPD)\n• töö hankeportaalides (sh RHR): küsimused ostjatele, üleslaadimised, staatuse jälgimine\n• tähtaegade, nõuete ja partneritega suhtluse haldamine ning CRM-i ajakohasena hoidmine\n• suhtlus ostjate ja partneritega eesti ja inglise keeles\n\nTööandja: Predictive Labs OÜ (registrikood 12061679), Rävala pst 6, 10143 Tallinn.",
+          "requirements": "• kogemust riigihangete või pakkumuste koostamisel (eelistatult IT/tarkvara)\n• väga head eesti ja head inglise keelt\n• täpsust, tähtaegadest kinnipidamist ja iseseisvust\n• valmisolekut töötada igapäevaselt koos AI-tööriistadega (RHR kogemus on eeliseks)",
+          "benefits": "• palk alates 2000 € neto kuus (kogemusest sõltuvalt kõrgem)\n• hübriidtöö, Tallinn\n• täiskohaga töö EL hangete portfelliga ja kaasaegne AI-toega töövoog\n• algus võimalikult kiiresti\n\nKandideerimiseks saada CV ja lühike motivatsioonikiri selle vormi kaudu või e-postiga info@predictivelabs.tech.",
+          "seo_title": "Riigihangete spetsialist (EL) · Predictive Labs OÜ, Tallinn",
+          "seo_description": "Täiskohaga riigihangete spetsialisti töö Predictive Labs OÜ-s Tallinnas (hübriid). Palk alates 2000 € neto kuus."
+        }
+      }
+    }
+  ]
+}

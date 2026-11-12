@@ -710,3 +710,38 @@ def sla_report(organization_id: int) -> dict:
             "response_sla_met": int(response_met), "resolution_sla_met": int(resolution_met),
             "support_tier": plan.get("support_tier") or "Community",
             "onboarding_status": plan.get("onboarding_status")}
+
+
+def site_locales(site_slug: str) -> list[str]:
+    """Locales a careers site is published in, default/brand locales first."""
+    rows = db.rows(
+        """SELECT cb.locale FROM career_site_brands cb JOIN career_sites c ON c.id=cb.career_site_id
+           WHERE c.slug=? UNION SELECT d.locale FROM job_distributions d
+           JOIN career_sites c ON c.id=d.career_site_id WHERE c.slug=? AND d.status='Published'""",
+        (site_slug, site_slug))
+    seen: list[str] = []
+    for row in rows:
+        if row["locale"] and row["locale"] not in seen:
+            seen.append(row["locale"])
+    order = {"et": 0, "en": 1}
+    return sorted(seen, key=lambda code: (order.get(code, 9), code))
+
+
+def site_alternates(site_slug: str) -> dict[str, str]:
+    return {code: f"/sites/{site_slug}/{code}" for code in site_locales(site_slug)}
+
+
+def job_alternates(site_slug: str, posting_id: int) -> dict[str, str]:
+    rows = db.rows(
+        """SELECT d.locale,d.slug FROM job_distributions d JOIN career_sites c ON c.id=d.career_site_id
+           WHERE c.slug=? AND d.job_posting_id=? AND d.status='Published'""", (site_slug, posting_id))
+    order = {"et": 0, "en": 1}
+    return {row["locale"]: f"/sites/{site_slug}/{row['locale']}/jobs/{row['slug']}"
+            for row in sorted(rows, key=lambda r: order.get(r["locale"], 9))}
+
+
+def localized_site(site: dict, locale: str) -> dict:
+    """Apply reviewed headline/introduction translations to a careers site row."""
+    if not site:
+        return site
+    return localized_values("career_site", site["id"], locale, site)

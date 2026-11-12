@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import os
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -532,12 +533,20 @@ def _delete_candidate(candidate_id: int, *, actor: str) -> None:
                       "survey_invitations", "video_messages", "candidate_portal_tokens",
                       "recruiting_tasks", "bulk_action_items", "recruitment_analytics_events"):
             conn.execute(f"DELETE FROM {table} WHERE candidate_id=?", (candidate_id,))
+        stored_paths = [r[0] for r in conn.execute(
+            "SELECT stored_path FROM candidate_documents WHERE candidate_id=? AND stored_path IS NOT NULL",
+            (candidate_id,))]
         conn.execute("DELETE FROM candidate_documents WHERE candidate_id=?", (candidate_id,))
         conn.execute("UPDATE candidate_import_rows SET candidate_id=NULL,source_json='{}' WHERE candidate_id=?", (candidate_id,))
         conn.execute("UPDATE candidate_merge_events SET snapshot_json='{}' WHERE survivor_id=? OR merged_id=?", (candidate_id, candidate_id))
         conn.execute("UPDATE privacy_requests SET details=NULL,result_json=NULL WHERE candidate_id=?", (candidate_id,))
         conn.execute("UPDATE employees SET candidate_id=NULL WHERE candidate_id=?", (candidate_id,))
         conn.execute("DELETE FROM candidates WHERE id=?", (candidate_id,))
+    for stored in stored_paths:  # erase the CV files themselves, not just their rows
+        try:
+            os.remove(stored)
+        except OSError:
+            pass
     talent.log_event("privacy_deletion", candidate_id, actor=actor, to_state="Permanently deleted")
 
 

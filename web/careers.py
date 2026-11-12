@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 
 from fasthtml.common import (
     A, Body, Button, Div, Footer, Form, H1, H2, H3, Head, Html, Img, Input, Label,
@@ -25,22 +26,90 @@ CAREERS_CSS = """
 .c-hero-in{max-width:1120px;margin:auto;padding:82px 24px 72px}.c-kicker{font-size:12px;color:var(--accent);font-weight:750;letter-spacing:.15em;text-transform:uppercase}.c-hero h1{font-size:clamp(38px,6vw,66px);line-height:1.04;letter-spacing:-.045em;margin:18px 0;max-width:850px}.c-lede{font-size:19px;color:var(--muted);line-height:1.65;max-width:720px}
 .c-main{max-width:1120px;margin:auto;padding:54px 24px 88px}.c-main h2{font-size:30px;letter-spacing:-.025em}.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}.job-card{border:1px solid var(--line);border-radius:18px;padding:24px;text-decoration:none;color:var(--ink);transition:.15s;background:white}.job-card:hover{border-color:var(--brand);transform:translateY(-2px);box-shadow:0 12px 30px rgba(15,23,42,.08)}.job-card h3{font-size:21px;margin:0 0 10px}.meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:13px}.chip{background:var(--wash);border-radius:999px;padding:5px 9px}.summary{color:var(--muted);line-height:1.55;margin:16px 0 0}.empty{padding:40px;border:1px dashed var(--line);border-radius:18px;color:var(--muted);text-align:center}
 .job-head{max-width:900px;margin:auto;padding:64px 24px 28px}.back{display:inline-block;margin-bottom:24px}.job-head h1{font-size:clamp(36px,6vw,60px);letter-spacing:-.045em;line-height:1.05;margin:10px 0 20px}.job-layout{max-width:900px;margin:auto;padding:12px 24px 90px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:34px}.copy h2{font-size:23px;margin:34px 0 10px}.copy p{white-space:pre-line;color:#374151;line-height:1.75}.apply{border:1px solid var(--line);border-radius:18px;padding:22px;align-self:start;position:sticky;top:20px;background:white;box-shadow:0 12px 30px rgba(15,23,42,.06)}.apply h2{margin:0 0 6px}.field{display:grid;gap:6px;margin:13px 0}.field label{font-size:12px;font-weight:700}.field input,.field textarea{width:100%;border:1px solid #cfd5dd;border-radius:10px;padding:10px 11px;font:inherit}.field textarea{min-height:100px;resize:vertical}.check{display:flex;gap:9px;align-items:flex-start;color:var(--muted);font-size:12px;line-height:1.45}.check input{margin-top:3px}.apply button{width:100%;border:0;border-radius:10px;padding:12px;background:var(--brand);color:white;font-weight:750;cursor:pointer}.error{padding:10px;border-radius:9px;background:#fff1f2;color:#9f1239;font-size:13px}.fine{font-size:11px;color:var(--muted);line-height:1.45}.success{max-width:680px;margin:90px auto;padding:40px 24px;text-align:center}.success h1{font-size:42px}.success p{color:var(--muted);line-height:1.65}.c-footer{border-top:1px solid var(--line);padding:30px 24px;text-align:center;color:var(--muted);font-size:12px}
+.c-right{display:flex;align-items:center;gap:14px}.c-lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.c-lang a{padding:6px 11px;font-size:12px;font-weight:750;text-decoration:none;color:var(--ink)}.c-lang a.c-lang-on{background:var(--brand);color:#fff}.c-powered{display:inline-block;margin-top:8px;color:var(--muted);font-size:12px;text-decoration:none}.c-powered:hover{color:var(--accent)}
 .preview{background:#fff7ed;color:#9a3412;text-align:center;padding:8px;font-size:12px;font-weight:700}
 @media(max-width:760px){.jobs{grid-template-columns:1fr}.job-layout{grid-template-columns:1fr}.apply{position:static}.c-hero-in{padding-top:58px}.c-nav{height:62px}}
 @media(pointer:coarse){.c-brand{min-height:44px}}
 """
 
-LEGAL_LINE = "Powered by Predictive Labs Ltd · Predictive Labs Ltd · Company House Reg No: 14857334 · 155 Minories Street, Suite 275, London, EC3N 1AD, United Kingdom"
+LEGAL_LINE = os.getenv(
+    "FASTHR_LEGAL_LINE",
+    "Powered by Predictive Labs Ltd · Predictive Labs Ltd · Company House Reg No: 14857334 · 155 Minories Street, Suite 275, London, EC3N 1AD, United Kingdom",
+)
+
+# Candidate-facing UI strings for public careers pages. English mirrors the
+# original copy exactly so existing sites are unchanged; other locales are used
+# when a careers site or distributed job is rendered in that locale.
+CAREERS_TEXT = {
+    "en": {
+        "skip": "Skip to content", "join": "Join the team", "headline": "Do work that matters.",
+        "intro": "Explore our open roles.", "open_roles": "Open roles", "careers": "Careers",
+        "none": "There are no open roles right now. Please check back soon.",
+        "team": "Team", "flexible": "Flexible", "learn_more": "Learn more about this opportunity.",
+        "managed": "Recruitment managed with {name}", "all_roles": "All open roles",
+        "back": "← All open roles", "open_role": "Open role", "about": "About the role",
+        "looking": "What we’re looking for", "offer": "What we offer", "not_provided": "Not provided.",
+        "offer_default": "Details will be discussed during the process.", "apply_now": "Apply now",
+        "first_name": "First name", "last_name": "Last name", "email": "Email", "phone": "Phone",
+        "location": "Location", "cv": "CV · PDF, DOCX, TXT or MD", "cover": "Cover note",
+        "consent": "I acknowledge the recruitment privacy notice and consent to my information being used for this application.",
+        "privacy_link": "Read the privacy notice", "submit": "Submit application",
+        "preview": "Preview, this page is not public", "received_title": "Application received",
+        "received_h1": "Application received.",
+        "received_body": "Thank you for applying for {title}. The hiring team now has your application and CV.",
+        "other_roles": "View other open roles", "deadline": "Apply by {date}",
+    },
+    "et": {
+        "skip": "Liigu sisu juurde", "join": "Liitu meeskonnaga", "headline": "Tee tööd, millel on mõju.",
+        "intro": "Tutvu meie avatud ametikohtadega.", "open_roles": "Avatud ametikohad", "careers": "Karjäär",
+        "none": "Praegu avatud ametikohti ei ole. Vaata hiljem uuesti.",
+        "team": "Meeskond", "flexible": "Paindlik", "learn_more": "Loe ametikoha kohta lähemalt.",
+        "managed": "Värbamist haldab {name}", "all_roles": "Kõik ametikohad",
+        "back": "← Kõik ametikohad", "open_role": "Avatud ametikoht", "about": "Ametikohast",
+        "looking": "Keda me otsime", "offer": "Mida me pakume", "not_provided": "Pole täpsustatud.",
+        "offer_default": "Täpsustame värbamisprotsessi käigus.", "apply_now": "Kandideeri",
+        "first_name": "Eesnimi", "last_name": "Perekonnanimi", "email": "E-post", "phone": "Telefon",
+        "location": "Asukoht", "cv": "CV · PDF, DOCX, TXT või MD", "cover": "Motivatsioonikiri",
+        "consent": "Olen tutvunud värbamise privaatsusteatega ja nõustun, et minu andmeid kasutatakse selle kandideerimise menetlemiseks.",
+        "privacy_link": "Loe privaatsusteadet", "submit": "Saada avaldus",
+        "preview": "Eelvaade, leht ei ole avalik", "received_title": "Avaldus kätte saadud",
+        "received_h1": "Avaldus on kätte saadud.",
+        "received_body": "Aitäh, et kandideerisid ametikohale {title}. Värbamismeeskond on sinu avalduse ja CV kätte saanud.",
+        "other_roles": "Vaata teisi ametikohti", "deadline": "Kandideeri hiljemalt {date}",
+    },
+}
+
+
+def _tx(locale: str | None):
+    return CAREERS_TEXT.get((locale or "en").split("-")[0].lower(), CAREERS_TEXT["en"])
+
+
+def _lang_switch(alternates: dict | None, current: str):
+    """Small ET/EN switch for multilingual careers sites."""
+    if not alternates or len(alternates) < 2:
+        return None
+    return Div(*[A(code.upper(), href=url, cls="c-lang-on" if code == current else "",
+                   hreflang=code, lang=code)
+                 for code, url in alternates.items()], cls="c-lang")
+
+
+def _powered_by(site: dict):
+    """Keep the FastHR product credit underneath a customer brand."""
+    if "fasthr" in (site.get("name") or "").lower():
+        return None
+    return A("Powered by FastHR", href="https://fasthr.eu", cls="c-powered", target="_blank", rel="noopener")
 
 
 def _site_head(site: dict, title: str, description: str, *, path: str,
-               structured: dict | None = None):
+               structured: dict | None = None, alternates: dict | None = None):
     canonical = BASE_URL + path
     return Head(
         Title(title), Meta(charset="utf-8"),
         Meta(name="viewport", content="width=device-width, initial-scale=1"),
         Meta(name="description", content=description),
         Link(rel="canonical", href=canonical),
+        *[Link(rel="alternate", hreflang=code, href=BASE_URL + url)
+          for code, url in (alternates or {}).items()],
         Link(rel="icon", href=site.get("favicon_url") or FAVICON),
         Meta(property="og:type", content="website"), Meta(property="og:title", content=title),
         Meta(property="og:description", content=description), Meta(property="og:url", content=canonical),
@@ -56,44 +125,55 @@ def _brand(site: dict, href: str = "/careers"):
     return A(visual, Span(site["name"]), href=href, cls="c-brand")
 
 
+def _footer(site: dict, tx: dict):
+    return Footer(tx["managed"].format(name=site["name"]),
+                  P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
+                  _powered_by(site), cls="c-footer")
+
+
 def careers_page(site: dict, jobs: list[dict], *, careers_path: str = "/careers",
-                 job_prefix: str = "/jobs"):
+                 job_prefix: str = "/jobs", locale: str = "en", alternates: dict | None = None):
+    tx = _tx(locale)
     site = {**site, "name": (site.get("name") or "").replace("FastHRM", "FastHR")}
-    title = f"Careers · {site['name']}"
-    description = site.get("introduction") or "Explore our open roles."
+    title = f"{'Careers' if tx is CAREERS_TEXT['en'] else tx['careers']} · {site['name']}"
+    description = site.get("introduction") or tx["intro"]
     cards = [
         A(H3(j["public_title"]),
-          Div(Span(j.get("department") or "Team", cls="chip"),
-              Span(j.get("location") or "Flexible", cls="chip"),
+          Div(Span(j.get("department") or tx["team"], cls="chip"),
+              Span(j.get("location") or tx["flexible"], cls="chip"),
               Span(j.get("remote_policy") or "", cls="chip") if j.get("remote_policy") else None,
               cls="meta"),
-          P(j.get("summary") or "Learn more about this opportunity.", cls="summary"),
+          P(j.get("summary") or tx["learn_more"], cls="summary"),
           href=f"{job_prefix}/{j['slug']}", cls="job-card")
         for j in jobs
     ]
     structured = {"@context": "https://schema.org", "@type": "CollectionPage",
                   "name": title, "url": BASE_URL + careers_path, "description": description}
+    switch = _lang_switch(alternates, locale)
+    right = Div(switch, A("FastHR", href="/", cls="c-link"), cls="c-right") if switch else A("FastHR", href="/", cls="c-link")
     return Html(
-        _site_head(site, title, description, path=careers_path, structured=structured),
-        Body(A("Skip to content", href="#main-content", cls="fs-skip"),
-             Nav(_brand(site, careers_path), A("FastHR", href="/", cls="c-link"), cls="c-nav"),
-             Main(Section(Div(Span("Join the team", cls="c-kicker"),
-                                  H1(site.get("headline") or "Do work that matters."),
-                                  P(description, cls="c-lede"), cls="c-hero-in"), cls="c-hero"),
-                  Section(H2("Open roles"), Div(*cards, cls="jobs") if cards else
-                          Div("There are no open roles right now. Please check back soon.", cls="empty"),
+        _site_head(site, title, description, path=careers_path, structured=structured,
+                   alternates=alternates),
+        Body(A(tx["skip"], href="#main-content", cls="fs-skip"),
+             Nav(_brand(site, careers_path), right, cls="c-nav"),
+             Main(Section(Div(Span(tx["join"], cls="c-kicker"),
+                              H1(site.get("headline") or tx["headline"]),
+                              P(description, cls="c-lede"), cls="c-hero-in"), cls="c-hero"),
+                  Section(H2(tx["open_roles"]), Div(*cards, cls="jobs") if cards else
+                          Div(tx["none"], cls="empty"),
                           cls="c-main"), id="main-content"),
-             Footer(f"Recruitment managed with {site['name']}",
-                    P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
-                    cls="c-footer")),
-        lang="en",
+             _footer(site, tx)),
+        lang=(locale or "en"),
     )
 
 
 def job_page(job: dict, *, error: str = "", values: dict | None = None, preview: bool = False,
              careers_path: str = "/careers", job_path: str | None = None,
-             apply_path: str | None = None):
+             apply_path: str | None = None, locale: str | None = None,
+             alternates: dict | None = None):
     values = values or {}
+    locale = locale or job.get("locale") or "en"
+    tx = _tx(locale)
     site = {"name": job.get("career_site_name") or "FastHR Careers",
             "brand_color": job.get("brand_color") or "#0891b2",
             "accent_color": job.get("accent_color") or "#0e7490",
@@ -139,59 +219,65 @@ def job_page(job: dict, *, error: str = "", values: dict | None = None, preview:
     conditional_script = Script(NotStr("""
 document.querySelectorAll('.custom-field[data-condition-field]').forEach(w=>{let key=w.dataset.conditionField;if(!key)return;let source=document.querySelector(`[name="${key}"]`);let control=w.querySelector('input,select,textarea');let required=control&&control.required;let sync=()=>{let show=source&&source.value===w.dataset.conditionValue;w.hidden=!show;if(control)control.required=show&&required;};source&&source.addEventListener('change',sync);sync();});
 """)) if custom_fields else None
+    switch = _lang_switch(alternates, locale)
+    nav_right = A(tx["all_roles"], href=careers_path, cls="c-link")
+    if switch:
+        nav_right = Div(switch, nav_right, cls="c-right")
     return Html(
-        _site_head(site, title, description, path=job_path, structured=structured),
-        Body(Div("Preview, this page is not public", cls="preview") if preview else None,
-             Nav(_brand(site, careers_path), A("All open roles", href=careers_path, cls="c-link"), cls="c-nav"),
-             Main(Section(A("← All open roles", href=careers_path, cls="c-link back"),
-                          Span(job.get("department") or "Open role", cls="c-kicker"),
+        _site_head(site, title, description, path=job_path, structured=structured, alternates=alternates),
+        Body(Div(tx["preview"], cls="preview") if preview else None,
+             Nav(_brand(site, careers_path), nav_right, cls="c-nav"),
+             Main(Section(A(tx["back"], href=careers_path, cls="c-link back"),
+                          Span(job.get("department") or tx["open_role"], cls="c-kicker"),
                           H1(job["public_title"]),
-                          Div(Span(job.get("location") or "Flexible", cls="chip"),
+                          Div(Span(job.get("location") or tx["flexible"], cls="chip"),
                               Span(job.get("remote_policy") or "", cls="chip") if job.get("remote_policy") else None,
                               Span(job.get("employment_type") or "", cls="chip") if job.get("employment_type") else None,
+                              Span(tx["deadline"].format(date=job["application_deadline"]), cls="chip")
+                              if job.get("application_deadline") and tx is not CAREERS_TEXT["en"] else None,
                               cls="meta"), cls="job-head"),
                   Div(Section(P(job.get("summary") or "", cls="c-lede"),
-                              H2("About the role"), P(job.get("description") or "Not provided."),
-                              H2("What we’re looking for"), P(job.get("requirements") or "Not provided."),
-                              H2("What we offer"), P(job.get("benefits") or "Details will be discussed during the process."),
+                              H2(tx["about"]), P(job.get("description") or tx["not_provided"]),
+                              H2(tx["looking"]), P(job.get("requirements") or tx["not_provided"]),
+                              H2(tx["offer"]), P(job.get("benefits") or tx["offer_default"]),
                               cls="copy"),
-                      Section(H2("Apply now"),
+                      Section(H2(tx["apply_now"]),
                               P(error, cls="error") if error else None,
-                              Form(Div(Label("First name"), Input(name="first_name", value=values.get("first_name", ""), required=True, aria_label="First name"), cls="field"),
-                                   Div(Label("Last name"), Input(name="last_name", value=values.get("last_name", ""), required=True, aria_label="Last name"), cls="field"),
-                                   Div(Label("Email"), Input(type="email", name="email", value=values.get("email", ""), required=True, aria_label="Email"), cls="field"),
-                                   Div(Label("Phone"), Input(name="phone", value=values.get("phone", ""), aria_label="Phone"), cls="field"),
-                                   Div(Label("Location"), Input(name="location", value=values.get("location", ""), aria_label="Location"), cls="field"),
-                                   Div(Label("CV · PDF, DOCX, TXT or MD"), Input(type="file", name="cv", accept=".pdf,.docx,.txt,.md", required=True, aria_label="CV"), cls="field"),
+                              Form(Div(Label(tx["first_name"]), Input(name="first_name", value=values.get("first_name", ""), required=True, aria_label=tx["first_name"]), cls="field"),
+                                   Div(Label(tx["last_name"]), Input(name="last_name", value=values.get("last_name", ""), required=True, aria_label=tx["last_name"]), cls="field"),
+                                   Div(Label(tx["email"]), Input(type="email", name="email", value=values.get("email", ""), required=True, aria_label=tx["email"]), cls="field"),
+                                   Div(Label(tx["phone"]), Input(name="phone", value=values.get("phone", ""), aria_label=tx["phone"]), cls="field"),
+                                   Div(Label(tx["location"]), Input(name="location", value=values.get("location", ""), aria_label=tx["location"]), cls="field"),
+                                   Div(Label(tx["cv"]), Input(type="file", name="cv", accept=".pdf,.docx,.txt,.md", required=True, aria_label="CV"), cls="field"),
                                    *custom_fields,
-                                   Div(Label("Cover note"), Textarea(values.get("cover_note", ""), name="cover_note", aria_label="Cover note"), cls="field"),
+                                   Div(Label(tx["cover"]), Textarea(values.get("cover_note", ""), name="cover_note", aria_label=tx["cover"]), cls="field"),
                                    Input(name="website", tabindex="-1", autocomplete="off", style="position:absolute;left:-10000px", aria_hidden="true"),
                                    Label(Input(type="checkbox", name="consent", value="yes", required=True),
-                                         Span("I acknowledge the recruitment privacy notice and consent to my information being used for this application."), cls="check"),
-                                   P(A("Read the privacy notice", href=privacy, target="_blank", cls="c-link"), cls="fine"),
-                                   Button("Submit application", type="submit"),
+                                         Span(tx["consent"]), cls="check"),
+                                   P(A(tx["privacy_link"], href=privacy, target="_blank", cls="c-link"), cls="fine"),
+                                   Button(tx["submit"], type="submit"),
                                    method="post", action=apply_path, enctype="multipart/form-data"),
                               cls="apply"), cls="job-layout")),
-             Footer(f"Recruitment managed with {site['name']}",
-                    P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
-                    cls="c-footer"), conditional_script)
+             _footer(site, tx), conditional_script),
+        lang=locale,
     )
 
 
-def application_success(job: dict, *, careers_path: str = "/careers"):
+def application_success(job: dict, *, careers_path: str = "/careers", locale: str | None = None):
+    locale = locale or job.get("locale") or "en"
+    tx = _tx(locale)
     site = {"name": job.get("career_site_name") or "FastHR Careers",
             "brand_color": job.get("brand_color") or "#0891b2",
             "accent_color": job.get("accent_color") or "#0e7490",
             "logo_url": job.get("logo_url") or "",
             "favicon_url": job.get("favicon_url") or ""}
-    return Html(_site_head(site, "Application received", "Thank you for applying.", path=f"/jobs/{job['slug']}/thanks"),
-                Body(Nav(_brand(site, careers_path), A("All open roles", href=careers_path, cls="c-link"), cls="c-nav"),
-                     Main(Section(H1("Application received."),
-                                  P(f"Thank you for applying for {job['public_title']}. The hiring team now has your application and CV."),
-                                  A("View other open roles", href=careers_path, cls="c-link"), cls="success")),
-                     Footer(f"Recruitment managed with {site['name']}",
-                            P(LEGAL_LINE, style="font-size:13px;line-height:1.5;margin-top:10px;"),
-                            cls="c-footer")))
+    return Html(_site_head(site, tx["received_title"], "Thank you for applying.", path=f"/jobs/{job['slug']}/thanks"),
+                Body(Nav(_brand(site, careers_path), A(tx["all_roles"], href=careers_path, cls="c-link"), cls="c-nav"),
+                     Main(Section(H1(tx["received_h1"]),
+                                  P(tx["received_body"].format(title=job['public_title'])),
+                                  A(tx["other_roles"], href=careers_path, cls="c-link"), cls="success")),
+                     _footer(site, tx)),
+                lang=locale)
 
 
 def privacy_page(site: dict):

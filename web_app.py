@@ -542,18 +542,32 @@ def get(session, request):
     branded = recruitment_enterprise.resolve_brand(host=request.headers.get("host", ""))
     if branded and branded.get("site_slug"):
         locale = branded.get("default_locale") or "en"
-        site = recruitment_enterprise.public_career_site(branded["site_slug"], locale)
-        if not site:
-            return landing_page(lang=lang) if not _user(session) else _guard(session, "dashboard", views.dashboard)
-        site = {**site, "name": site.get("name") or site.get("brand_name"),
-                "brand_color": site.get("primary_color") or site.get("brand_color"),
-                "logo_url": site.get("brand_logo") or site.get("logo_url")}
-        path = f"/sites/{branded['site_slug']}/{locale}"
-        return careers.careers_page(site, recruitment_enterprise.public_site_jobs(branded["site_slug"], locale),
-                                    careers_path=path, job_prefix=path + "/jobs")
+        response = _career_site_response(branded["site_slug"], locale)
+        if response is not None:
+            return response
+        return landing_page(lang=lang) if not _user(session) else _guard(session, "dashboard", views.dashboard)
     if not _user(session):
         return landing_page(lang=lang)
     return _guard(session, "dashboard", views.dashboard)
+
+
+def _career_site_view(site: dict, locale: str) -> dict:
+    site = recruitment_enterprise.localized_site(site, locale)
+    return {**site, "name": site.get("name") or site.get("brand_name"),
+            "brand_color": site.get("primary_color") or site.get("brand_color"),
+            "accent_color": site.get("accent_color"),
+            "logo_url": site.get("brand_logo") or site.get("logo_url")}
+
+
+def _career_site_response(site_slug: str, locale: str):
+    site = recruitment_enterprise.public_career_site(site_slug, locale)
+    if not site:
+        return None
+    path = f"/sites/{site_slug}/{locale}"
+    return careers.careers_page(
+        _career_site_view(site, locale), recruitment_enterprise.public_site_jobs(site_slug, locale),
+        careers_path=path, job_prefix=path + "/jobs", locale=locale,
+        alternates=recruitment_enterprise.site_alternates(site_slug))
 
 
 # ---------- public careers and applications -------------------------------
@@ -571,17 +585,10 @@ def get():
 
 @rt("/sites/{site_slug}/{locale}")
 def get(site_slug: str, locale: str):
-    site = recruitment_enterprise.public_career_site(site_slug, locale)
-    if not site:
+    response = _career_site_response(site_slug, locale)
+    if response is None:
         return Response(t_app(current_lang(), "wa_careers_not_found"), status_code=404)
-    site_view = {**site, "name": site.get("name") or site.get("brand_name"),
-                 "brand_color": site.get("primary_color") or site.get("brand_color"),
-                 "accent_color": site.get("accent_color"),
-                 "logo_url": site.get("brand_logo") or site.get("logo_url")}
-    path = f"/sites/{site_slug}/{locale}"
-    return careers.careers_page(
-        site_view, recruitment_enterprise.public_site_jobs(site_slug, locale),
-        careers_path=path, job_prefix=path + "/jobs")
+    return response
 
 
 @rt("/sites/{site_slug}/{locale}/jobs/{slug}")
@@ -594,7 +601,9 @@ def get(request, site_slug: str, locale: str, slug: str):
     recruitment_ecosystem.track_event(
         "job_view", job_id=job["job_id"], source=request.query_params.get("utm_source", ""),
         medium=request.query_params.get("utm_medium", ""), metadata={"locale": locale, "site": site_slug})
-    return careers.job_page(job, careers_path=path, job_path=job_path, apply_path=job_path + "/apply")
+    return careers.job_page(job, careers_path=path, job_path=job_path, apply_path=job_path + "/apply",
+                            locale=locale,
+                            alternates=recruitment_enterprise.job_alternates(site_slug, job["posting_id"]))
 
 
 @rt("/privacy")
@@ -664,7 +673,7 @@ async def _submit_public_application(request, public_slug: str, job: dict, *,
         actor="application-confirmation")
     recruitment_communications.dispatch_due()
     recruitment_ecosystem.enqueue_webhook("application.created", result)
-    return careers.application_success(job, careers_path=careers_path)
+    return careers.application_success(job, careers_path=careers_path, locale=job.get("locale"))
 
 
 @rt("/jobs/{slug}/apply")
@@ -1842,6 +1851,25 @@ def post(session, request_id: int):
         return denied
     recruitment_communications.process_privacy_request(request_id, actor=_user(session))
     return _platform_redirect("communications", "Privacy request processed.")
+
+
+@rt("/talent/privacy/delete-candidate")
+def post(session, email: str = ""):
+    """Permanently delete one candidate (and their applications/CVs) by email.
+
+    Goes through the audited privacy-request flow; used to clean up test
+    applications and to honour erasure requests received outside the portal.
+    """
+    denied = _publisher_guard(session)
+    if denied:
+        return denied
+    candidate = talent.find_candidate_by_email((email or "").strip().lower())
+    if not candidate:
+        return JSONResponse({"deleted": 0}, status_code=404)
+    request_id = recruitment_communications.create_privacy_request(
+        candidate["id"], "Delete", details="Admin erasure")
+    recruitment_communications.process_privacy_request(request_id, actor=_user(session))
+    return JSONResponse({"deleted": 1, "candidate_id": candidate["id"]})
 
 
 @rt("/talent/availability")
@@ -3180,18 +3208,23 @@ def _ensure_db():
     applied = db.migrate()
     if applied:
         logger.info("Applied migrations: %s", ", ".join(applied))
-    if not db.scalar("SELECT COUNT(*) FROM employees"):
+    demo_seed = os.getenv("FASTHR_DEMO_SEED", "1") != "0"
+    if not demo_seed:
+        logger.info("FASTHR_DEMO_SEED=0 — skipping synthetic demo data.")
+    if demo_seed and not db.scalar("SELECT COUNT(*) FROM employees"):
         logger.info("No employees found — seeding synthetic HR data…")
         import seed
         seed.build()
-    if not db.scalar("SELECT COUNT(*) FROM job_openings"):
+    if demo_seed and not db.scalar("SELECT COUNT(*) FROM job_openings"):
         logger.info("No requisitions found — seeding synthetic talent pipeline…")
         import seed_talent
         seed_talent.build()
-    if not db.scalar("SELECT COUNT(*) FROM goals WHERE owner_type='company'"):
+    if demo_seed and not db.scalar("SELECT COUNT(*) FROM goals WHERE owner_type='company'"):
         logger.info("No performance data found — seeding goals, feedback and lifecycle…")
         import seed_platform
         seed_platform.build()
+    import site_bootstrap
+    site_bootstrap.run_from_env()
     cv_extract.ensure_default_prompt()
     ranking.ensure_prompts()
     recruitment.process_publication_schedules()

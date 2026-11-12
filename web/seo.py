@@ -9,7 +9,9 @@ from starlette.responses import Response
 import recruitment
 
 PRODUCT = 'FastHR'
-BASE_URL = 'https://fasthr.eu'
+import os
+
+BASE_URL = os.getenv('FASTHR_BASE_URL', 'https://fasthr.eu').rstrip('/')
 DESCRIPTION = 'Manage employee records, departments, leave, attendance, payroll, and payslips without enterprise-suite overhead.'
 KEYWORDS = ('FastHR', 'open source people operations', 'people operations software', 'SME people operations', 'Employee records', 'Leave and attendance', 'Payroll and payslips', 'FastSME', 'open source business software')
 FEATURES = ('Employee records', 'Leave and attendance', 'Payroll and payslips', 'Recruiting ATS', 'Performance management', 'Employee lifecycle')
