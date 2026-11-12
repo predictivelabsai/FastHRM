@@ -3,7 +3,7 @@
 //   cd e2e && npm i && npx playwright test
 //   FASTHR_E2E_BASE_URLS=https://hr.predictivelabs.ai,https://hr.predictivelabs.ee
 //   FASTHR_E2E_APPLY=1 FASTHR_E2E_ADMIN_EMAIL=... FASTHR_E2E_ADMIN_PASSWORD=...  (submit + delete a test application)
-const { test, expect, request } = require('@playwright/test');
+const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -26,7 +26,7 @@ for (const base of BASES) {
       const brand = await page.evaluate(() =>
         getComputedStyle(document.documentElement).getPropertyValue('--brand').trim().toLowerCase());
       expect(brand).toBe('#0d2a70');
-      const logo = await page.request.get(base + '/static/brands/predictivelabs.svg');
+      const logo = await page.goto(base + '/static/brands/predictivelabs.svg');
       expect(logo.status()).toBe(200);
     });
 
@@ -83,16 +83,18 @@ test('test application submits and is then deleted', async ({ page }) => {
   await expect(page.locator('h1')).toHaveText('Application received.');
   fs.unlinkSync(cv);
 
-  const admin = await request.newContext({ baseURL: base });
-  const login = await admin.post('/login', {
-    form: { email: process.env.FASTHR_E2E_ADMIN_EMAIL, password: process.env.FASTHR_E2E_ADMIN_PASSWORD },
-    maxRedirects: 0,
-  });
-  expect(login.status()).toBe(303);
-  const del = await admin.post('/talent/privacy/delete-candidate', { form: { email } });
-  expect(del.status()).toBe(200);
-  expect((await del.json()).deleted).toBe(1);
-  const again = await admin.post('/talent/privacy/delete-candidate', { form: { email } });
-  expect(again.status()).toBe(404);
-  await admin.dispose();
+  // Clean up through the browser so the same resolver/TLS settings apply.
+  await page.goto(base + '/healthz');
+  const result = await page.evaluate(async ({ email, adminEmail, adminPassword }) => {
+    const form = (data) => { const f = new URLSearchParams(); for (const [k, v] of Object.entries(data)) f.append(k, v); return f; };
+    const login = await fetch('/login', { method: 'POST', body: form({ email: adminEmail, password: adminPassword }), redirect: 'manual' });
+    const del = await fetch('/talent/privacy/delete-candidate', { method: 'POST', body: form({ email }) });
+    const body = await del.json();
+    const again = await fetch('/talent/privacy/delete-candidate', { method: 'POST', body: form({ email }) });
+    return { login: login.type === 'opaqueredirect' || login.status === 303 || login.ok, status: del.status, body, again: again.status };
+  }, { email, adminEmail: process.env.FASTHR_E2E_ADMIN_EMAIL, adminPassword: process.env.FASTHR_E2E_ADMIN_PASSWORD });
+  expect(result.login).toBeTruthy();
+  expect(result.status).toBe(200);
+  expect(result.body.deleted).toBe(1);
+  expect(result.again).toBe(404);
 });

@@ -114,7 +114,8 @@ def _site_head(site: dict, title: str, description: str, *, path: str,
         Meta(property="og:type", content="website"), Meta(property="og:title", content=title),
         Meta(property="og:description", content=description), Meta(property="og:url", content=canonical),
         *FONT_LINKS,
-        Style(f":root{{--brand:{site['brand_color']};--accent:{site['accent_color']}}}" + DESIGN_CSS + CAREERS_CSS),
+        # Site colours go last so they override the CAREERS_CSS defaults.
+        Style(DESIGN_CSS + CAREERS_CSS + f":root{{--brand:{site['brand_color']};--accent:{site['accent_color']}}}"),
         Script(NotStr(json.dumps(structured).replace("<", "\\u003c")),
                type="application/ld+json") if structured else None,
     )

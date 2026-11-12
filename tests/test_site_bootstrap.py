@@ -62,3 +62,13 @@ def test_estonian_careers_page_renders_localized_labels(fresh_db):
     english = str(careers.job_page(
         ent.public_distributed_job("predictivelabs", "en", "public-procurement-specialist-eu")))
     assert "About the role" in english and "Submit application" in english
+
+
+def test_site_colours_override_careers_css_defaults(fresh_db):
+    _, ent, boot = _modules()
+    boot.apply_config(boot.load_config(CONFIG))
+    from web import careers
+    importlib.reload(careers)
+    html = str(careers.job_page(
+        ent.public_distributed_job("predictivelabs", "en", "public-procurement-specialist-eu")))
+    assert html.rindex("--brand:#0D2A70") > html.rindex("--brand:#0891b2")
