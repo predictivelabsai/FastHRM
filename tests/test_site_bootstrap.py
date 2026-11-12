@@ -72,3 +72,30 @@ def test_site_colours_override_careers_css_defaults(fresh_db):
     html = str(careers.job_page(
         ent.public_distributed_job("predictivelabs", "en", "public-procurement-specialist-eu")))
     assert html.rindex("--brand:#0D2A70") > html.rindex("--brand:#0891b2")
+
+
+def test_ensure_admin_roles_is_idempotent_and_dedupes_sources(fresh_db, monkeypatch):
+    _, _, boot = _modules()
+    monkeypatch.setenv("FASTHR_ADMIN_EMAIL", "hr-admin@predictivelabs.ai")
+    monkeypatch.setenv(
+        "FASTHR_ADMIN_EMAILS",
+        "kaljuvee@gmail.com, joosep.laats@gmail.com, kaljuvee@gmail.com",
+    )
+    monkeypatch.setenv("GOOGLE_ALLOWED_EMAILS", "daniel.raissar@gmail.com,kaljuvee@gmail.com")
+    first = boot.ensure_admin_roles()
+    second = boot.ensure_admin_roles()
+    assert set(first) == {
+        "hr-admin@predictivelabs.ai",
+        "kaljuvee@gmail.com",
+        "joosep.laats@gmail.com",
+        "daniel.raissar@gmail.com",
+    }
+    assert second == []
+    rows = fresh_db.rows(
+        "SELECT account_email, role, scope FROM account_roles ORDER BY account_email")
+    assert [dict(r) for r in rows] == [
+        {"account_email": "daniel.raissar@gmail.com", "role": "admin", "scope": "all"},
+        {"account_email": "hr-admin@predictivelabs.ai", "role": "admin", "scope": "all"},
+        {"account_email": "joosep.laats@gmail.com", "role": "admin", "scope": "all"},
+        {"account_email": "kaljuvee@gmail.com", "role": "admin", "scope": "all"},
+    ]

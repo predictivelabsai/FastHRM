@@ -4,8 +4,9 @@ A separate FastHR deployment (for example Predictive Labs' hr.* domains) points
 ``FASTHR_BOOTSTRAP`` at a JSON file. On boot this ensures the organisation,
 one brand per custom domain, the multilingual careers site and its jobs exist.
 Existing rows are left alone unless ``FASTHR_BOOTSTRAP_FORCE=1`` so edits made
-in the admin UI are not overwritten on every restart. Nothing runs when the
-variable is unset, so the main fasthr.eu instance is unaffected.
+in the admin UI are not overwritten on every restart. When the variable is
+unset, site content is left alone (so the main fasthr.eu instance is
+unaffected); configured admin emails are still granted the admin role.
 """
 from __future__ import annotations
 
@@ -20,6 +21,40 @@ import recruitment_enterprise
 
 logger = logging.getLogger("fasthr.bootstrap")
 ACTOR = "site-bootstrap"
+
+
+def configured_admin_emails() -> list[str]:
+    """Unique admin emails from FASTHR_ADMIN_EMAIL(S) and GOOGLE_ALLOWED_EMAILS."""
+    emails: list[str] = []
+    for raw in (os.getenv("FASTHR_ADMIN_EMAIL", ""),
+                os.getenv("FASTHR_ADMIN_EMAILS", ""),
+                os.getenv("GOOGLE_ALLOWED_EMAILS", "")):
+        for part in raw.split(","):
+            email = part.strip().lower()
+            if email and "@" in email and email not in emails:
+                emails.append(email)
+    return emails
+
+
+def ensure_admin_roles() -> list[str]:
+    """Grant the admin role to configured emails. Idempotent; never deletes roles."""
+    granted = []
+    for email in configured_admin_emails():
+        existing = db.one(
+            "SELECT id FROM account_roles WHERE lower(account_email)=? AND role='admin'",
+            (email,))
+        if existing:
+            continue
+        with db.cursor() as conn:
+            conn.execute(
+                """INSERT INTO account_roles(account_email,role,scope,employee_id,created)
+                   VALUES (?,'admin','all',NULL,datetime('now'))""",
+                (email,))
+        granted.append(email)
+        logger.info("Granted admin role to %s", email)
+    return granted
+
+
 JOB_FIELDS = ("public_title", "summary", "description", "requirements", "benefits",
               "seo_title", "seo_description")
 
@@ -144,11 +179,20 @@ def apply_config(config: dict, *, force: bool = False) -> dict:
 def run_from_env() -> dict | None:
     path = os.getenv("FASTHR_BOOTSTRAP", "").strip()
     if not path:
+        try:
+            ensure_admin_roles()
+        except Exception:
+            logger.exception("Admin role bootstrap failed")
         return None
     try:
         result = apply_config(load_config(path), force=os.getenv("FASTHR_BOOTSTRAP_FORCE", "0") == "1")
     except Exception:  # never block boot on a bad bootstrap file
         logger.exception("Site bootstrap from %s failed", path)
-        return None
-    logger.info("Site bootstrap applied from %s: %s", path, result)
+        result = None
+    else:
+        logger.info("Site bootstrap applied from %s: %s", path, result)
+    try:
+        ensure_admin_roles()
+    except Exception:
+        logger.exception("Admin role bootstrap failed")
     return result

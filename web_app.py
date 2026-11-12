@@ -347,6 +347,12 @@ def delete(request, member_id: int):
     return Response(status_code=204)
 
 
+
+def _show_demo_login_hint() -> bool:
+    """Only show the public demo password on instances that still use it."""
+    return VALID_EMAIL.strip().lower() == "admin@fasthr.example" and VALID_PASSWORD == "FastHR2026$"
+
+
 def _login_card(error="", email=""):
     lang = current_lang()
     return Title("FastHR · Logi sisse"), Style(LAYOUT_CSS), Div(
@@ -355,7 +361,8 @@ def _login_card(error="", email=""):
              Input(name="password", type="password", placeholder="Password", required=True),
              P(error, cls="error") if error else None,
              Button(t_app(lang, "wa_signin"), cls="btn primary", type="submit"),
-             P(NotStr("Demo: <code>admin@fasthr.example</code> / <code>FastHR2026$</code>"), cls="hint"),
+             P(NotStr("Demo: <code>admin@fasthr.example</code> / <code>FastHR2026$</code>"), cls="hint")
+             if _show_demo_login_hint() else None,
              method="post", action="/login", cls="login-card"), cls="login-wrap")
 
 
