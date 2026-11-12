@@ -252,3 +252,20 @@ def test_live_extraction(fresh_db):
     profile, _ = cv_extract.extract_profile(cv, "ada.txt")
     assert profile["candidate"]["first_name"].lower() == "ada"
     assert profile["experience"]
+
+
+def test_queue_extraction_reuses_existing_document(fresh_db, tmp_path):
+    import talent
+    from web import cv_extract
+    cid = talent.create_candidate(first_name="Eduard", last_name="Test", email="t@example.com")
+    path = tmp_path / "cv.txt"
+    path.write_text("A short CV")
+    doc_id = talent.save_document(cid, file_name="cv.txt", mime="text/plain",
+                                  size=10, stored_path=str(path), text="A short CV")
+    first = cv_extract.queue_extraction(cid, doc_id)
+    second = cv_extract.queue_extraction(cid)
+    assert first["document_id"] == second["document_id"] == doc_id
+    assert first["run_id"] != second["run_id"]
+    runs = fresh_db.rows("SELECT id, status, document_id FROM extraction_runs WHERE candidate_id=?", (cid,))
+    assert len(runs) == 2
+    assert {r["status"] for r in runs} == {"pending"}

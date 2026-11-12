@@ -2338,6 +2338,21 @@ def get(session, cid: int):
     return ats.extraction_status(cid)
 
 
+@rt("/talent/candidates/{cid}/extraction")
+def post(session, cid: int, document_id: int = 0):
+    """Re-run CV parsing for an existing document (e.g. after an API-key failure)."""
+    if not _user(session):
+        return Response("Unauthorized", status_code=401)
+    if not can(_roles_for(session), "candidates", "edit"):
+        return Response(t(resolve_lang(session))["rbac_denied_message"], status_code=403)
+    try:
+        queued = cv_extract.queue_extraction(cid, document_id or None)
+    except ValueError as e:
+        return Response(str(e), status_code=404)
+    cv_extract.run_extraction_async(queued["run_id"], queued["candidate_id"], queued["document_id"])
+    return ats.extraction_status(cid)
+
+
 @rt("/talent/documents/{document_id}")
 def get(session, document_id: int):
     if not _user(session):

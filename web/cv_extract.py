@@ -233,6 +233,23 @@ def ingest_cv(*, file_name: str, data: bytes, candidate_id: int | None = None,
             "text_chars": len(text)}
 
 
+def queue_extraction(candidate_id: int, document_id: int | None = None) -> dict:
+    """Queue a new extraction run for an existing CV. Uses the latest document
+    when ``document_id`` is omitted. Does not start the model call."""
+    if document_id:
+        doc = db.one("SELECT * FROM candidate_documents WHERE id=? AND candidate_id=?",
+                     (document_id, candidate_id))
+    else:
+        doc = db.one("""SELECT * FROM candidate_documents WHERE candidate_id=?
+                        ORDER BY id DESC LIMIT 1""", (candidate_id,))
+    if not doc:
+        raise ValueError("No CV document to analyse.")
+    _prompt, version = active_prompt()
+    run_id = talent.start_run(candidate_id, doc["id"], prompt_key=PROMPT_KEY,
+                              prompt_version=version, model=llm.model_name())
+    return {"run_id": run_id, "candidate_id": candidate_id, "document_id": doc["id"]}
+
+
 def run_extraction(run_id: int, candidate_id: int, document_id: int) -> dict:
     """Execute one queued extraction and persist the result. Never raises."""
     started = time.monotonic()

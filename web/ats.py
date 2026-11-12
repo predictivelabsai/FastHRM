@@ -202,7 +202,11 @@ def extraction_status(cid: int, *, poll: bool = True):
                        "hx-trigger": f"every {POLL_MS}ms", "hx-swap": "outerHTML"} if poll else {}))
         return body
     if run["status"] == "error":
-        return Div(P(_c("ats_extraction_failed").format(error=run['error']), cls="flag"), link, id=f"xrun-{cid}")
+        retry = Form(Button(_c("ats_retry_extraction"), cls="btn sm", type="submit"),
+                     **{"hx-post": f"/talent/candidates/{cid}/extraction",
+                        "hx-target": f"#xrun-{cid}", "hx-swap": "outerHTML"})
+        return Div(P(_c("ats_extraction_failed").format(error=run['error']), cls="flag"),
+                   retry, link, id=f"xrun-{cid}")
 
     prof = talent.candidate_profile(cid)
     return Div(
